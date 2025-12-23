@@ -1,0 +1,1063 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Louvor Pro App</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#121212">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABmJLR0QA/wD/AP+gvaeTAAAAjklEQVRoge3ywQmAMAwF0EwlTtIlnKdrOoun0wlSqCFIQ/sP34PAQyAJ4D/i2c7d5666q6q7e7d5666q7u7d5q27qrq7d5u37qrq7t5t3rqrqrt7t3nrrqru7t3mrbuqurt3m7fuquru3m3euququ3u3eeuuqu7u3eatuyq6+zJ/4r6f4B/4u/u2eQAAAABJRU5ErkJggg==" id="app-icon">
+    <!-- Placeholder para o Manifesto -->
+    <link rel="manifest" id="app-manifest">
+
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+        /* --- CSS: DESIGN MODERNO --- */
+        :root {
+            --bg-color: #121212;
+            --sidebar-bg: #1e1e1e;
+            --accent-color: #3b82f6;
+            --timer-color: #4ade80;
+            --danger-color: #ef4444;
+            --text-color: #f3f4f6;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            -webkit-user-select: none; /* App feel: disable text selection mostly */
+            user-select: none;
+        }
+
+        /* Permitir seleção onde importa */
+        input, textarea { -webkit-user-select: text; user-select: text; }
+
+        /* --- MODO PROJETOR --- */
+        body.projector-mode #sidebar,
+        body.projector-mode #controls-bar,
+        body.projector-mode #modal-overlay,
+        body.projector-mode .control-only,
+        body.projector-mode #modal-gallery,
+        body.projector-mode #modal-verse {
+            display: none !important;
+        }
+
+        body.projector-mode #display-area {
+            cursor: none;
+        }
+
+        /* --- BARRA LATERAL --- */
+        #sidebar {
+            width: 320px;
+            background-color: var(--sidebar-bg);
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, width 0.3s ease;
+            flex-shrink: 0;
+            z-index: 20;
+            position: relative;
+        }
+
+        /* Abas da Sidebar */
+        .sidebar-tabs {
+            display: flex;
+            background: #111;
+        }
+        .tab-btn {
+            flex: 1;
+            padding: 15px 5px;
+            background: transparent;
+            color: #888;
+            border: none;
+            border-bottom: 2px solid transparent;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.8rem;
+            transition: 0.2s;
+            text-transform: uppercase;
+        }
+        .tab-btn:hover { color: #ccc; }
+        .tab-btn.active {
+            color: var(--accent-color);
+            border-bottom: 2px solid var(--accent-color);
+            background: #1a1a1a;
+        }
+
+        /* Conteúdo das Abas */
+        .tab-content {
+            flex-grow: 1;
+            overflow-y: auto;
+            display: none;
+            padding: 15px;
+        }
+        .tab-content.active { display: flex; flex-direction: column; gap: 15px; }
+
+        /* Estilo da Lista de Versículos e Galeria */
+        .sidebar-header {
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+        }
+        .sidebar-title { font-weight: bold; color: #ccc; font-size: 1rem; }
+        
+        .add-btn {
+            background: var(--accent-color); border: none; color: white;
+            border-radius: 50%; width: 32px; height: 32px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; font-size: 20px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+        }
+        
+        /* CARDS GERAIS */
+        .list-card {
+            background-color: #2a2a2a; border: 1px solid #333; border-radius: 8px;
+            padding: 12px; cursor: pointer; transition: 0.2s; display: flex;
+            justify-content: space-between; align-items: center; margin-bottom: 5px;
+        }
+        .list-card:hover { background-color: #333; border-color: #555; transform: translateY(-1px); }
+        .list-info { flex-grow: 1; overflow: hidden; }
+        .list-title { font-weight: bold; font-size: 0.95rem; margin-bottom: 2px; }
+        .list-preview { font-size: 0.8rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        .delete-btn { background: transparent; border: none; color: #666; cursor: pointer; padding: 8px; }
+        .delete-btn:hover { color: var(--danger-color); }
+
+        /* CARDS GALERIA */
+        .gallery-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+        }
+        .gallery-item {
+            position: relative; border-radius: 8px; overflow: hidden;
+            aspect-ratio: 16/9; cursor: pointer; border: 2px solid transparent;
+            background: #000;
+        }
+        .gallery-item:hover { border-color: #666; }
+        .gallery-item.selected { border-color: var(--accent-color); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); }
+        
+        .gallery-thumb { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; transition: 0.2s; }
+        .gallery-item:hover .gallery-thumb { opacity: 1; }
+        
+        .gallery-type-icon {
+            position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.6);
+            color: white; padding: 3px; border-radius: 4px; pointer-events: none;
+        }
+        .gallery-delete {
+            position: absolute; top: 5px; right: 5px; background: rgba(200,0,0,0.8);
+            color: white; border: none; border-radius: 4px; width: 24px; height: 24px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            opacity: 0; transition: 0.2s;
+        }
+        .gallery-item:hover .gallery-delete { opacity: 1; }
+
+        /* --- PAINEL DE CONFIGURAÇÕES --- */
+        .config-group {
+            background: #252525; padding: 15px; border-radius: 8px;
+            border: 1px solid #333; margin-bottom: 10px;
+        }
+        .config-group h4 { margin: 0 0 10px 0; color: #aaa; font-size: 0.85rem; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 8px;}
+        .config-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 0.95rem; }
+        .config-item label { color: #ddd; flex-grow: 1; }
+        
+        input[type="color"] { border: none; width: 35px; height: 35px; cursor: pointer; background: none; padding: 0; }
+        input[type="number"] {
+            background: #111; border: 1px solid #444; color: white; padding: 6px; border-radius: 4px; width: 65px; text-align: center; font-size: 14px;
+        }
+        input[type="range"] { flex-grow: 1; margin-left: 10px; cursor: pointer; }
+        input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent-color); }
+        select.font-select { width: 100%; padding: 8px; background: #111; border: 1px solid #444; color: white; border-radius: 4px; }
+        select.config-select { padding: 6px; background: #111; border: 1px solid #444; color: white; border-radius: 4px; font-size: 0.9rem; }
+        
+        .align-btn-group { display: flex; gap: 5px; background: #111; padding: 3px; border-radius: 4px; border: 1px solid #333; }
+        .align-btn { flex: 1; background: transparent; border: none; color: #666; cursor: pointer; padding: 6px; border-radius: 2px; }
+        .align-btn:hover { color: white; }
+        .align-btn.active { background: #333; color: white; }
+
+        /* Botão de Instalar */
+        #install-btn {
+            display: none; /* Só aparece se suportado */
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(45deg, #2563eb, #3b82f6);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-weight: bold;
+            margin-bottom: 15px;
+            cursor: pointer;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        #install-btn:hover { filter: brightness(1.1); }
+
+        /* --- CONTEÚDO PRINCIPAL --- */
+        #main-content { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
+
+        #controls-bar {
+            background-color: #1a1a1a; padding: 10px 20px; display: flex; gap: 15px;
+            align-items: center; border-bottom: 1px solid #333; height: 70px;
+        }
+        .input-group { display: flex; gap: 5px; align-items: center; }
+        .input-group input[type="number"] { width: 50px; background: #222; padding: 8px; }
+        
+        button.ctrl-btn {
+            padding: 10px 18px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; color: white;
+            display: flex; align-items: center; gap: 6px; background-color: #333; transition: 0.2s; font-size: 14px;
+        }
+        button.ctrl-btn:hover { background-color: #444; }
+        button.play { background-color: var(--accent-color); }
+        button.stop { background-color: var(--danger-color); }
+        button.project { background-color: #8b5cf6; }
+
+        textarea#live-text { flex-grow: 1; height: 42px; background: #222; border: 1px solid #444; color: white; padding: 10px; border-radius: 6px; resize: none; font-family: inherit; font-size: 14px; }
+
+        /* --- DISPLAY GIGANTE --- */
+        #display-area {
+            flex-grow: 1; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; text-align: center;
+            padding: 40px;
+            background-color: #000;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            overflow: hidden; 
+        }
+        
+        #bg-video {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover; z-index: 0; display: none;
+        }
+
+        #display-overlay {
+            position: absolute; top:0; left:0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5); pointer-events: none; z-index: 1;
+        }
+
+        #content-wrapper { z-index: 2; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+
+        #timer-display {
+            font-family: 'Courier New', monospace; font-weight: bold;
+            line-height: 1; transition: color 0.3s, font-size 0.3s;
+        }
+
+        #text-display {
+            line-height: 1.3; max-width: 90%; white-space: pre-wrap; font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .danger-mode {
+            color: var(--danger-color) !important;
+            text-shadow: 0 0 30px rgba(239, 68, 68, 0.5) !important;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+
+        /* MODAIS */
+        #modal-overlay, .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+        .modal { background: #2a2a2a; padding: 25px; border-radius: 12px; width: 450px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); border: 1px solid #444;}
+        .modal input[type="text"], .modal textarea, .modal select { width: 100%; margin-bottom: 15px; padding: 12px; background: #1a1a1a; border: 1px solid #444; color: white; box-sizing: border-box; border-radius: 6px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        
+        .divider { display: flex; align-items: center; text-align: center; color: #666; font-size: 12px; margin: 15px 0; }
+        .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #444; }
+        .divider:not(:empty)::before { margin-right: .5em; }
+        .divider:not(:empty)::after { margin-left: .5em; }
+
+        .file-upload-label {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 25px; border: 2px dashed #444; border-radius: 8px; cursor: pointer;
+            transition: 0.2s; color: #888; margin-bottom: 10px; background: rgba(255,255,255,0.02);
+        }
+        .file-upload-label:hover { border-color: var(--accent-color); color: var(--accent-color); background: rgba(59, 130, 246, 0.1); }
+        input[type="file"] { display: none; }
+
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <div id="sidebar">
+        <!-- ABAS -->
+        <div class="sidebar-tabs">
+            <button class="tab-btn active" onclick="switchTab('verses')">Versos</button>
+            <button class="tab-btn" onclick="switchTab('gallery')">Galeria</button>
+            <button class="tab-btn" onclick="switchTab('appearance')">Ajustes</button>
+        </div>
+
+        <!-- CONTEÚDO ABA 1: VERSÍCULOS -->
+        <div id="tab-verses" class="tab-content active">
+            <button id="install-btn" onclick="installPWA()">
+                <span class="material-icons">download</span> Instalar App
+            </button>
+
+            <div class="sidebar-header">
+                <span class="sidebar-title">Lista de Textos</span>
+                <button class="add-btn" onclick="openModal('verse')" title="Adicionar Novo">+</button>
+            </div>
+            <div id="verse-list"></div>
+        </div>
+
+        <!-- CONTEÚDO ABA 2: GALERIA -->
+        <div id="tab-gallery" class="tab-content">
+            <div class="sidebar-header">
+                <span class="sidebar-title">Mídia de Fundo</span>
+                <button class="add-btn" onclick="openModal('gallery')" title="Adicionar Mídia">+</button>
+            </div>
+            <div style="margin-bottom:10px;">
+                <button class="list-card" onclick="removeBackground()" style="width:100%; justify-content:center; color:#aaa; font-size:12px;">
+                    <span class="material-icons" style="font-size:16px; margin-right:5px;">block</span> Remover Fundo (Usar Cor)
+                </button>
+            </div>
+            <div id="gallery-grid" class="gallery-grid"></div>
+        </div>
+
+        <!-- CONTEÚDO ABA 3: APARÊNCIA -->
+        <div id="tab-appearance" class="tab-content">
+            
+            <div class="config-group">
+                <h4>Projeção</h4>
+                <div class="config-item">
+                    <label>Abrir Projetor ao Iniciar</label>
+                    <input type="checkbox" id="cfg-auto-open" onchange="updateSettings()">
+                </div>
+            </div>
+
+            <div class="config-group">
+                <h4>Layout & Exibição</h4>
+                <div class="config-item">
+                    <label>Mostrar Timer</label>
+                    <input type="checkbox" id="cfg-show-timer" onchange="updateSettings()" checked>
+                </div>
+                <div class="config-item">
+                    <label>Mostrar Texto</label>
+                    <input type="checkbox" id="cfg-show-text" onchange="updateSettings()" checked>
+                </div>
+                <div class="config-item">
+                    <label>Posição do Timer</label>
+                    <select id="cfg-timer-pos" class="config-select" onchange="updateSettings()">
+                        <option value="top">Acima do Texto</option>
+                        <option value="bottom">Abaixo do Texto</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="config-group">
+                <h4>Geral</h4>
+                <div class="config-item">
+                    <label>Cor de Fundo Base</label>
+                    <input type="color" id="cfg-bg-color" value="#000000" oninput="updateSettings()">
+                </div>
+                <div class="config-item">
+                    <label>Escurecer Mídia</label>
+                    <input type="range" id="cfg-overlay-opacity" min="0" max="1" step="0.1" value="0.5" oninput="updateSettings()">
+                </div>
+            </div>
+
+            <div class="config-group">
+                <h4>Texto</h4>
+                <div class="config-item">
+                    <label>Cor</label>
+                    <input type="color" id="cfg-text-color" value="#ffffff" oninput="updateSettings()">
+                </div>
+                <div class="config-item">
+                    <label>Tamanho (px)</label>
+                    <input type="number" id="cfg-text-size" min="10" max="800" value="80" oninput="updateSettings()">
+                </div>
+                <div class="config-item" style="display:block">
+                     <label style="display:block; margin-bottom:5px;">Fonte</label>
+                     <select id="cfg-font-family" class="font-select" onchange="updateSettings()">
+                         <option value="'Segoe UI', sans-serif">Padrão (Segoe UI)</option>
+                         <option value="'Courier New', monospace">Máquina (Courier)</option>
+                         <option value="'Times New Roman', serif">Clássico (Serifa)</option>
+                         <option value="Arial, sans-serif">Simples (Arial)</option>
+                         <option value="cursive">Manuscrito</option>
+                     </select>
+                </div>
+                <div class="config-item" style="display:block; margin-top:10px;">
+                    <label style="display:block; margin-bottom:5px;">Alinhamento</label>
+                    <div class="align-btn-group">
+                        <button class="align-btn" onclick="setAlignment('left')" id="btn-align-left"><span class="material-icons" style="font-size:16px">format_align_left</span></button>
+                        <button class="align-btn" onclick="setAlignment('center')" id="btn-align-center"><span class="material-icons" style="font-size:16px">format_align_center</span></button>
+                        <button class="align-btn" onclick="setAlignment('right')" id="btn-align-right"><span class="material-icons" style="font-size:16px">format_align_right</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="config-group">
+                <h4>Timer</h4>
+                <div class="config-item">
+                    <label>Cor Normal</label>
+                    <input type="color" id="cfg-timer-color" value="#4ade80" oninput="updateSettings()">
+                </div>
+                <div class="config-item">
+                    <label>Tamanho (px)</label>
+                    <input type="number" id="cfg-timer-size" min="10" max="800" value="180" oninput="updateSettings()">
+                </div>
+                
+                <div class="config-item">
+                    <label>Alertar quando faltar:</label>
+                    <div class="input-group" style="justify-content: flex-end;">
+                        <input type="number" id="cfg-alert-min" value="1" oninput="updateSettings()" placeholder="m" style="width: 40px;">
+                        <span>:</span>
+                        <input type="number" id="cfg-alert-sec" value="00" oninput="updateSettings()" placeholder="s" style="width: 40px;">
+                    </div>
+                </div>
+            </div>
+
+            <button class="ctrl-btn" onclick="resetSettings()" style="width:100%; justify-content:center; background:#444; margin-bottom: 10px;">Restaurar Padrões</button>
+            
+            <div style="border-top: 1px solid #333; margin: 15px 0;"></div>
+
+            <button class="ctrl-btn" onclick="downloadSource()" style="width:100%; justify-content:center; background: #2563eb;">
+                <span class="material-icons">download</span> Download App
+            </button>
+            <p style="color:#666; font-size:11px; text-align:center; margin-top:5px;">Baixar arquivo HTML para backup.</p>
+        </div>
+    </div>
+
+    <!-- ÁREA PRINCIPAL -->
+    <div id="main-content">
+        <div id="controls-bar">
+            <button class="ctrl-btn" onclick="toggleSidebar()"><span class="material-icons">menu</span></button>
+            <button class="ctrl-btn project" onclick="openProjectorWindow(true)" title="Projetar em Segunda Tela"><span class="material-icons">open_in_new</span> Projetor</button>
+            <div class="input-group">
+                <input type="number" id="min" value="5"><span>:</span><input type="number" id="sec" value="00">
+            </div>
+            <button class="ctrl-btn play" onclick="startTimer()"><span class="material-icons">play_arrow</span></button>
+            <button class="ctrl-btn stop" onclick="pauseTimer()"><span class="material-icons">pause</span></button>
+            <button class="ctrl-btn" onclick="resetTimer()"><span class="material-icons">refresh</span></button>
+            <textarea id="live-text" placeholder="Digite para projetar..." oninput="updateDisplay(this.value)"></textarea>
+            <button class="ctrl-btn" onclick="toggleFullScreen()"><span class="material-icons">fullscreen</span></button>
+        </div>
+
+        <!-- PROJEÇÃO -->
+        <div id="display-area">
+            <video id="bg-video" loop muted playsinline></video>
+            <div id="display-overlay"></div>
+            <div id="content-wrapper">
+                <div id="timer-display">05:00</div>
+                <div id="text-display">...</div>
+            </div>
+            <button class="control-only" onclick="toggleUI()" style="position: absolute; bottom: 20px; z-index:10; opacity: 0.3; background: none; border: 1px solid white; color: white; cursor: pointer;">Ocultar Interface</button>
+        </div>
+    </div>
+
+    <!-- MODAL VERSÍCULO -->
+    <div id="modal-verse" class="modal-overlay hidden">
+        <div class="modal">
+            <h3 style="margin-top:0">Novo Texto</h3>
+            <input type="text" id="new-verse-title" placeholder="Título">
+            <textarea id="new-verse-content" rows="5" placeholder="Conteúdo..."></textarea>
+            <div class="modal-actions">
+                <button class="ctrl-btn" onclick="closeModal('verse')">Cancelar</button>
+                <button class="ctrl-btn play" onclick="saveVerse()">Salvar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL GALERIA -->
+    <div id="modal-gallery" class="modal-overlay hidden">
+        <div class="modal">
+            <h3 style="margin-top:0">Nova Mídia</h3>
+            <label style="color:#ddd; font-size:12px">Tipo de Mídia:</label>
+            <select id="new-media-type" onchange="toggleMediaType()">
+                <option value="image">Imagem (JPG, PNG)</option>
+                <option value="video">Vídeo (MP4, WebM)</option>
+            </select>
+            <label for="new-media-file" class="file-upload-label">
+                <span class="material-icons" style="font-size:30px">cloud_upload</span>
+                <span id="file-label-text">Clique para escolher do Computador</span>
+            </label>
+            <input type="file" id="new-media-file" accept="image/*,video/*" onchange="updateFileLabel(this)">
+            <div class="divider">OU</div>
+            <input type="text" id="new-media-url" placeholder="Cole um link da internet (URL)...">
+            <div class="modal-actions">
+                <button class="ctrl-btn" onclick="closeModal('gallery')">Cancelar</button>
+                <button class="ctrl-btn play" onclick="saveMedia()">Adicionar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- PWA CONFIG ---
+        // Criação dinâmica do manifesto para permitir "Instalar App"
+        const manifestData = {
+            "name": "Louvor Pro App",
+            "short_name": "LouvorPro",
+            "start_url": ".",
+            "display": "standalone",
+            "background_color": "#121212",
+            "theme_color": "#121212",
+            "icons": [{
+                "src": document.getElementById('app-icon').href,
+                "sizes": "192x192",
+                "type": "image/png"
+            }]
+        };
+        const stringManifest = JSON.stringify(manifestData);
+        const blobManifest = new Blob([stringManifest], {type: 'application/json'});
+        const manifestURL = URL.createObjectURL(blobManifest);
+        document.getElementById('app-manifest').setAttribute('href', manifestURL);
+
+        // Lógica de instalação PWA
+        let deferredPrompt;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('install-btn').style.display = 'flex';
+        });
+
+        async function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    document.getElementById('install-btn').style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        }
+
+        // --- INICIALIZAÇÃO ---
+        const channel = new BroadcastChannel('louvor_app_v2');
+        const urlParams = new URLSearchParams(window.location.search);
+        const isProjector = urlParams.get('view') === 'projector';
+
+        const defaultSettings = {
+            autoOpenProjector: false,
+            showTimer: true,
+            showText: true,
+            timerPos: 'top',
+            bgColor: '#000000',
+            bgType: 'color', 
+            bgUrl: '',
+            overlayOpacity: 0.5,
+            textColor: '#ffffff',
+            textSize: 80,
+            fontFamily: "'Segoe UI', sans-serif",
+            textAlign: 'center',
+            timerColor: '#4ade80',
+            timerSize: 180,
+            alertTime: 60
+        };
+        let currentSettings = JSON.parse(localStorage.getItem('appSettings')) || defaultSettings;
+
+        const defaultVerses = [
+            { title: "Boas Vindas", content: "Sejam bem-vindos!\nO culto começará em instantes." },
+            { title: "Salmos 119:105", content: "Lâmpada para os meus pés é tua palavra,\ne luz para o meu caminho." }
+        ];
+        let verses = JSON.parse(localStorage.getItem('myVerses')) || defaultVerses;
+
+        const MAX_FILE_SIZE_MB = 4.5; 
+
+        let galleryItems = JSON.parse(localStorage.getItem('myGallery')) || [
+            { type: 'image', url: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?auto=format&fit=crop&w=1000&q=80' },
+            { type: 'image', url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80' }
+        ];
+
+        let timerInterval;
+        let totalSeconds = 300;
+        let isRunning = false;
+        const timerDisplay = document.getElementById('timer-display');
+        const textDisplay = document.getElementById('text-display');
+
+        // --- FUNÇÃO DE JANELA ---
+        async function openProjectorWindow(fromClick = false) {
+            let params = 'width=800,height=600,menubar=no,toolbar=no,location=no,status=no';
+            
+            if (fromClick && window.getScreenDetails) {
+                try {
+                    const screenDetails = await window.getScreenDetails();
+                    const secondaryScreen = screenDetails.screens.find(s => s !== screenDetails.currentScreen);
+                    if (secondaryScreen) {
+                        params = `left=${secondaryScreen.left},top=${secondaryScreen.top},width=${secondaryScreen.width},height=${secondaryScreen.height},menubar=no,toolbar=no,location=no,status=no`;
+                    }
+                } catch (e) {
+                    console.warn("Permissão de tela negada ou cancelada. Abrindo janela padrão.");
+                }
+            }
+
+            const newWin = window.open(window.location.href.split('?')[0] + '?view=projector', 'ProjectorWindow', params);
+            
+            if(!newWin || newWin.closed || typeof newWin.closed=='undefined') {
+                alert("O navegador bloqueou a janela do projetor. Por favor, permita POP-UPS para este site na barra de endereço.");
+            }
+        }
+
+        // --- DOWNLOAD SOURCE ---
+        function downloadSource() {
+            const clone = document.documentElement.cloneNode(true);
+            clone.querySelectorAll('.modal-overlay').forEach(el => el.classList.add('hidden'));
+            clone.classList.remove('projector-mode');
+            
+            const htmlContent = clone.outerHTML;
+            const blob = new Blob([htmlContent], {type: 'text/html'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'app_louvor_pro.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // --- FUNÇÕES GERAIS ---
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            if(tabName === 'verses') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                document.getElementById('tab-verses').classList.add('active');
+            } else if(tabName === 'gallery') {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                document.getElementById('tab-gallery').classList.add('active');
+            } else {
+                document.querySelectorAll('.tab-btn')[2].classList.add('active');
+                document.getElementById('tab-appearance').classList.add('active');
+            }
+        }
+
+        function loadSettingsToInputs() {
+            if(isProjector) return;
+            document.getElementById('cfg-auto-open').checked = currentSettings.autoOpenProjector || false; 
+
+            document.getElementById('cfg-show-timer').checked = currentSettings.showTimer !== false; 
+            document.getElementById('cfg-show-text').checked = currentSettings.showText !== false;
+            document.getElementById('cfg-timer-pos').value = currentSettings.timerPos || 'top';
+
+            document.getElementById('cfg-bg-color').value = currentSettings.bgColor;
+            document.getElementById('cfg-overlay-opacity').value = currentSettings.overlayOpacity;
+            document.getElementById('cfg-text-color').value = currentSettings.textColor;
+            document.getElementById('cfg-text-size').value = currentSettings.textSize;
+            document.getElementById('cfg-font-family').value = currentSettings.fontFamily;
+            document.getElementById('cfg-timer-color').value = currentSettings.timerColor;
+            document.getElementById('cfg-timer-size').value = currentSettings.timerSize;
+            
+            const totalAlertSeconds = currentSettings.alertTime || 60;
+            const alertMin = Math.floor(totalAlertSeconds / 60);
+            const alertSec = totalAlertSeconds % 60;
+            document.getElementById('cfg-alert-min').value = alertMin;
+            document.getElementById('cfg-alert-sec').value = alertSec;
+
+            updateAlignButtons(currentSettings.textAlign);
+        }
+
+        function updateAlignButtons(align) {
+            if(isProjector) return;
+            document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-align-${align}`).classList.add('active');
+        }
+
+        function setAlignment(align) {
+            currentSettings.textAlign = align;
+            updateAlignButtons(align);
+            saveAndApplySettings();
+        }
+
+        function updateSettings() {
+            currentSettings.autoOpenProjector = document.getElementById('cfg-auto-open').checked; 
+
+            currentSettings.showTimer = document.getElementById('cfg-show-timer').checked;
+            currentSettings.showText = document.getElementById('cfg-show-text').checked;
+            currentSettings.timerPos = document.getElementById('cfg-timer-pos').value;
+
+            currentSettings.bgColor = document.getElementById('cfg-bg-color').value;
+            currentSettings.overlayOpacity = document.getElementById('cfg-overlay-opacity').value;
+            currentSettings.textColor = document.getElementById('cfg-text-color').value;
+            currentSettings.textSize = document.getElementById('cfg-text-size').value;
+            currentSettings.fontFamily = document.getElementById('cfg-font-family').value;
+            currentSettings.timerColor = document.getElementById('cfg-timer-color').value;
+            currentSettings.timerSize = document.getElementById('cfg-timer-size').value;
+            
+            const alertMin = parseInt(document.getElementById('cfg-alert-min').value) || 0;
+            const alertSec = parseInt(document.getElementById('cfg-alert-sec').value) || 0;
+            currentSettings.alertTime = (alertMin * 60) + alertSec;
+
+            saveAndApplySettings();
+        }
+
+        function removeBackground() {
+            currentSettings.bgType = 'color';
+            currentSettings.bgUrl = '';
+            saveAndApplySettings();
+            renderGallery();
+        }
+
+        function setBackground(url, type) {
+            currentSettings.bgType = type;
+            currentSettings.bgUrl = url;
+            saveAndApplySettings();
+            renderGallery();
+        }
+
+        function resetSettings() {
+            currentSettings = {...defaultSettings};
+            loadSettingsToInputs();
+            saveAndApplySettings();
+        }
+
+        function saveAndApplySettings() {
+            try {
+                localStorage.setItem('appSettings', JSON.stringify(currentSettings));
+            } catch (e) {
+                console.error("Erro ao salvar settings", e);
+            }
+            applyStyles(currentSettings);
+            channel.postMessage({ type: 'settings', payload: currentSettings });
+        }
+
+        function applyStyles(s) {
+            const display = document.getElementById('display-area');
+            const overlay = document.getElementById('display-overlay');
+            const text = document.getElementById('text-display');
+            const timer = document.getElementById('timer-display');
+            const wrapper = document.getElementById('content-wrapper');
+            const videoEl = document.getElementById('bg-video');
+
+            timer.style.display = (s.showTimer !== false) ? 'block' : 'none';
+            text.style.display = (s.showText !== false) ? 'block' : 'none';
+
+            if (s.timerPos === 'bottom') {
+                wrapper.style.flexDirection = 'column-reverse';
+            } else {
+                wrapper.style.flexDirection = 'column';
+            }
+
+            display.style.backgroundColor = s.bgColor;
+            
+            if (s.bgType === 'video' && s.bgUrl) {
+                display.style.backgroundImage = 'none';
+                videoEl.style.display = 'block';
+                if (videoEl.src !== s.bgUrl) {
+                    videoEl.src = s.bgUrl;
+                    videoEl.play().catch(e => console.log("Erro ao tocar vídeo:", e));
+                } else {
+                    if(videoEl.paused) videoEl.play();
+                }
+            } else if (s.bgType === 'image' && s.bgUrl) {
+                videoEl.style.display = 'none';
+                videoEl.pause();
+                display.style.backgroundImage = `url('${s.bgUrl}')`;
+            } else {
+                videoEl.style.display = 'none';
+                videoEl.pause();
+                display.style.backgroundImage = 'none';
+            }
+
+            if (s.bgType !== 'color') {
+                overlay.style.backgroundColor = `rgba(0,0,0,${s.overlayOpacity})`;
+            } else {
+                overlay.style.backgroundColor = 'transparent';
+            }
+
+            text.style.color = s.textColor;
+            text.style.fontSize = `${s.textSize}px`; 
+            text.style.fontFamily = s.fontFamily;
+            text.style.textAlign = s.textAlign;
+            wrapper.style.alignItems = s.textAlign === 'center' ? 'center' : (s.textAlign === 'left' ? 'flex-start' : 'flex-end');
+
+            timer.style.color = s.timerColor; 
+            if(timer.innerText !== "ACABOU SEU TEMPO") {
+                timer.style.fontSize = `${s.timerSize}px`; 
+            }
+        }
+
+        function renderGallery() {
+            if(isProjector) return;
+            const grid = document.getElementById('gallery-grid');
+            grid.innerHTML = '';
+            
+            galleryItems.forEach((item, index) => {
+                const div = document.createElement('div');
+                const isSelected = (currentSettings.bgUrl === item.url);
+                div.className = `gallery-item ${isSelected ? 'selected' : ''}`;
+                div.onclick = (e) => {
+                    if(e.target.closest('.gallery-delete')) return;
+                    setBackground(item.url, item.type);
+                };
+
+                let icon = item.type === 'video' ? 'videocam' : 'image';
+                let imgTag = item.type === 'image' 
+                    ? `<img src="${item.url}" class="gallery-thumb" onerror="this.src='https://via.placeholder.com/150?text=Erro'">`
+                    : `<div class="gallery-thumb" style="background:#333; display:flex; align-items:center; justify-content:center; color:#555;"><span class="material-icons" style="font-size:30px">movie</span></div>`;
+
+                div.innerHTML = `
+                    ${imgTag}
+                    <div class="gallery-type-icon"><span class="material-icons" style="font-size:14px">${icon}</span></div>
+                    <button class="gallery-delete" onclick="deleteMedia(${index})"><span class="material-icons" style="font-size:14px">close</span></button>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        function toggleMediaType() {
+            const type = document.getElementById('new-media-type').value;
+            const fileInput = document.getElementById('new-media-file');
+            fileInput.accept = type === 'video' ? 'video/*' : 'image/*';
+        }
+
+        function updateFileLabel(input) {
+            const label = document.getElementById('file-label-text');
+            if (input.files && input.files[0]) {
+                label.innerText = input.files[0].name;
+            } else {
+                label.innerText = "Clique para escolher do Computador";
+            }
+        }
+
+        function saveMedia() {
+            const type = document.getElementById('new-media-type').value;
+            const urlInput = document.getElementById('new-media-url').value;
+            const fileInput = document.getElementById('new-media-file');
+            
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const fileSizeMB = file.size / 1024 / 1024;
+                if (fileSizeMB > MAX_FILE_SIZE_MB) {
+                    alert(`Arquivo muito grande (${fileSizeMB.toFixed(2)}MB). O navegador só permite salvar arquivos pequenos (aprox 4MB).`);
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    addToGalleryAndSave(type, e.target.result);
+                };
+                reader.readAsDataURL(file);
+            } else if (urlInput) {
+                addToGalleryAndSave(type, urlInput);
+            } else {
+                alert("Por favor, selecione um arquivo ou cole uma URL.");
+            }
+        }
+
+        function addToGalleryAndSave(type, url) {
+            try {
+                galleryItems.push({ type, url });
+                localStorage.setItem('myGallery', JSON.stringify(galleryItems));
+                renderGallery();
+                closeModal('gallery');
+            } catch (e) {
+                galleryItems.pop(); 
+                alert("Erro: Espaço cheio! Exclua alguns itens da galeria.");
+                console.error(e);
+            }
+        }
+
+        function deleteMedia(index) {
+            if(confirm('Remover da galeria?')) {
+                galleryItems.splice(index, 1);
+                localStorage.setItem('myGallery', JSON.stringify(galleryItems));
+                renderGallery();
+            }
+        }
+
+        function startTimer() {
+            if (isRunning) return;
+            if (!isProjector && !timerInterval) {
+                 const m = parseInt(document.getElementById('min').value) || 0;
+                 const s = parseInt(document.getElementById('sec').value) || 0;
+                 totalSeconds = m * 60 + s;
+            }
+            isRunning = true;
+            timerInterval = setInterval(() => {
+                if (totalSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    isRunning = false;
+                    updateTimerUI(true);
+                    return;
+                }
+                totalSeconds--;
+                updateTimerUI(false);
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            isRunning = false;
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            if (!isProjector) {
+                const m = parseInt(document.getElementById('min').value) || 0;
+                const s = parseInt(document.getElementById('sec').value) || 0;
+                totalSeconds = m * 60 + s;
+                updateTimerUI(false);
+            }
+        }
+
+        function updateTimerUI(finished) {
+            let displayText = "";
+            let currentFontSize = "";
+            let isDanger = false;
+            const alertThreshold = currentSettings.alertTime || 60;
+
+            if (finished) {
+                displayText = "ACABOU SEU TEMPO";
+                currentFontSize = (currentSettings.timerSize * 0.4) + "px"; 
+                isDanger = true;
+            } else {
+                const m = Math.floor(totalSeconds / 60);
+                const s = totalSeconds % 60;
+                displayText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                currentFontSize = currentSettings.timerSize + "px"; 
+                isDanger = (totalSeconds < alertThreshold && totalSeconds > 0);
+            }
+
+            timerDisplay.innerText = displayText;
+            timerDisplay.style.fontSize = currentFontSize;
+            if(isDanger) timerDisplay.classList.add('danger-mode');
+            else timerDisplay.classList.remove('danger-mode');
+            
+            broadcastTimer(displayText, isDanger, currentFontSize);
+        }
+
+        function updateDisplay(text) {
+            textDisplay.innerText = text;
+            if(!isProjector) document.getElementById('live-text').value = text;
+            broadcastText(text);
+        }
+
+        function renderList() {
+            if(isProjector) return;
+            const list = document.getElementById('verse-list');
+            list.innerHTML = '';
+            verses.forEach((v, index) => {
+                const card = document.createElement('div');
+                card.className = 'list-card';
+                card.onclick = (e) => {
+                    if(e.target.closest('.delete-btn')) return; 
+                    updateDisplay(v.content);
+                };
+                card.innerHTML = `
+                    <div class="list-info">
+                        <div class="list-title">${v.title}</div>
+                        <div class="list-preview">${v.content.replace(/\n/g, ' ')}</div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteVerse(${index})"><span class="material-icons" style="font-size:18px">delete</span></button>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function deleteVerse(index) {
+            if(confirm('Apagar?')) {
+                verses.splice(index, 1);
+                localStorage.setItem('myVerses', JSON.stringify(verses));
+                renderList();
+            }
+        }
+
+        function openModal(type) {
+            if(type === 'verse') {
+                document.getElementById('new-verse-title').value = '';
+                document.getElementById('new-verse-content').value = '';
+                document.getElementById('modal-verse').style.display = 'flex';
+                document.getElementById('modal-verse').classList.remove('hidden');
+            } else if (type === 'gallery') {
+                document.getElementById('new-media-url').value = '';
+                document.getElementById('new-media-file').value = '';
+                document.getElementById('file-label-text').innerText = "Clique para escolher do Computador";
+                document.getElementById('modal-gallery').style.display = 'flex';
+                document.getElementById('modal-gallery').classList.remove('hidden');
+            }
+        }
+        function closeModal(type) {
+            if(type === 'verse') document.getElementById('modal-verse').style.display = 'none';
+            if(type === 'gallery') document.getElementById('modal-gallery').style.display = 'none';
+        }
+
+        function saveVerse() {
+            const title = document.getElementById('new-verse-title').value;
+            const content = document.getElementById('new-verse-content').value;
+            if (title && content) {
+                verses.push({ title, content });
+                localStorage.setItem('myVerses', JSON.stringify(verses));
+                renderList();
+                closeModal('verse');
+            }
+        }
+
+        function toggleSidebar() {
+            const sb = document.getElementById('sidebar');
+            sb.style.marginLeft = sb.style.marginLeft === '-320px' ? '0' : '-320px';
+        }
+        function toggleUI() {
+            document.getElementById('controls-bar').classList.toggle('hidden');
+            document.getElementById('sidebar').classList.toggle('hidden');
+        }
+        
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(e => {
+                    console.warn("Fullscreen blocked:", e);
+                    alert("O ecrã inteiro foi bloqueado pelas permissões do navegador.");
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(e => console.warn("Exit fullscreen blocked:", e));
+                }
+            }
+        }
+
+        function broadcastTimer(text, isDanger, fontSize) {
+            if (!isProjector) channel.postMessage({ type: 'timer', payload: { text, danger: isDanger, fontSize } });
+        }
+        function broadcastText(text) {
+            if (!isProjector) channel.postMessage({ type: 'text', payload: text });
+        }
+        function updateTimerDisplayDirectly(text, danger, fontSize) {
+            const el = document.getElementById('timer-display');
+            el.innerText = text;
+            el.style.fontSize = fontSize;
+            if(danger) el.classList.add('danger-mode');
+            else el.classList.remove('danger-mode');
+        }
+
+        // --- EXECUÇÃO PRINCIPAL ---
+        if (isProjector) {
+            document.body.classList.add('projector-mode');
+            document.title = "Projeção";
+            applyStyles(currentSettings);
+
+            channel.onmessage = (event) => {
+                const { type, payload } = event.data;
+                if (type === 'timer') updateTimerDisplayDirectly(payload.text, payload.danger, payload.fontSize);
+                if (type === 'text') document.getElementById('text-display').innerText = payload;
+                if (type === 'settings') applyStyles(payload);
+            };
+        } else {
+            // Modo Controle
+            loadSettingsToInputs();
+            applyStyles(currentSettings);
+            renderGallery();
+            renderList();
+            updateTimerUI(false);
+
+            // TENTATIVA DE AUTO-ABRIR SE CONFIGURADO
+            if (currentSettings.autoOpenProjector) {
+                // Pequeno delay para garantir que o navegador esteja "pronto"
+                setTimeout(() => {
+                    openProjectorWindow(false);
+                }, 500);
+            }
+        }
+
+    </script>
+</body>
+</html>
