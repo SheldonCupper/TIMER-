@@ -337,7 +337,7 @@
         let bibleNavState = { step: 'book', selectedBookIndex: -1, selectedChapter: -1 };
         let downloadedVersions = {};
         let bibleDB;
-        let currentSmIndex = -1; // SM Index
+        let currentSmIndex = -1; 
 
         // --- SM LOGIC (NEW) ---
         function renderSmList() {
@@ -452,6 +452,7 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
+            // Map index manually to ensure correctness
             const tabs = ['tab-verses', 'tab-sm', 'tab-bible', 'tab-gallery', 'tab-appearance'];
             let index = 0;
             if(tabName === 'sm') index = 1;
@@ -658,8 +659,6 @@
         function saveAndApplySettings() { try{localStorage.setItem('appSettings', JSON.stringify(currentSettings));}catch(e){} applyStyles(currentSettings); channel.postMessage({type:'settings', payload:currentSettings}); }
         function updateSettings() {
              currentSettings.autoOpenProjector = document.getElementById('cfg-auto-open').checked;
-             // ... (Settings update logic from previous version, kept short here but fully implemented in final file)
-             // Re-implementing full for safety:
              currentSettings.showTimer = document.getElementById('cfg-show-timer').checked;
              currentSettings.showText = document.getElementById('cfg-show-text').checked;
              currentSettings.timerPos = document.getElementById('cfg-timer-pos').value;
@@ -677,7 +676,6 @@
         }
         function loadSettingsToInputs() {
             if(isProjector || isStage) return;
-            // ... (Load logic from previous version) ...
             document.getElementById('cfg-auto-open').checked = currentSettings.autoOpenProjector;
             document.getElementById('cfg-show-timer').checked = currentSettings.showTimer;
             document.getElementById('cfg-show-text').checked = currentSettings.showText;
@@ -701,24 +699,6 @@
         function updateAlignButtons(align) { if(isProjector || isStage) return; document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active')); document.getElementById(`btn-align-${align}`).classList.add('active'); }
         function setAlignment(align) { currentSettings.textAlign = align; updateAlignButtons(align); saveAndApplySettings(); }
         function resetSettings() { currentSettings = {...defaultSettings}; loadSettingsToInputs(); saveAndApplySettings(); }
-
-        // TIMER Logic
-        function startTimer() { if (isRunning) return; if (!isProjector && !timerInterval) { const m = parseInt(document.getElementById('min').value)||0; const s = parseInt(document.getElementById('sec').value)||0; totalSeconds = m * 60 + s; } isRunning = true; timerInterval = setInterval(() => { if (totalSeconds <= 0) { clearInterval(timerInterval); isRunning = false; updateTimerUI(true); return; } totalSeconds--; updateTimerUI(false); }, 1000); }
-        function pauseTimer() { clearInterval(timerInterval); timerInterval = null; isRunning = false; }
-        function resetTimer() { pauseTimer(); if (!isProjector) { const m = parseInt(document.getElementById('min').value)||0; const s = parseInt(document.getElementById('sec').value)||0; totalSeconds = m * 60 + s; updateTimerUI(false); } }
-        function updateTimerUI(finished) {
-            let txt = "", size = "", danger = false;
-            if(finished) { txt = "ACABOU SEU TEMPO"; size = (currentSettings.timerSize * 0.4) + "px"; danger = true; }
-            else { 
-                const m = Math.floor(totalSeconds / 60); const s = totalSeconds % 60;
-                txt = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                size = currentSettings.timerSize + "px";
-                danger = (totalSeconds < (currentSettings.alertTime||60) && totalSeconds > 0);
-            }
-            const el = document.getElementById('timer-display'); el.innerText = txt; el.style.fontSize = size;
-            if(danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
-            if(!isProjector) channel.postMessage({ type: 'timer', payload: { text: txt, danger, fontSize: size } });
-        }
 
         // --- RESTORED FUNCTIONS ---
         function renderList() {
@@ -761,9 +741,66 @@
         }
         
         function startProjectorFlow() { document.getElementById('startup-overlay').style.display='none'; openProjectorWindow(true); }
-        async function openProjectorWindow(click) { const p = 'width=800,height=600,menubar=no,toolbar=no'; window.open(window.location.href.split('?')[0]+'?view=projector', 'Proj', p); }
-        async function openStageWindow() { const p = 'width=800,height=600,menubar=no,toolbar=no'; window.open(window.location.href.split('?')[0]+'?view=stage', 'Retorno', p); }
+        async function openProjectorWindow(click) { 
+            let params = 'width=1280,height=720,menubar=no,toolbar=no,location=no,status=no,scrollbars=no,resizable=yes';
+            if (click && window.getScreenDetails) {
+                try {
+                    const screenDetails = await window.getScreenDetails();
+                    const secondaryScreen = screenDetails.screens.find(s => s !== screenDetails.currentScreen) || screenDetails.screens[0];
+                    if (secondaryScreen) {
+                        params = `left=${secondaryScreen.left},top=${secondaryScreen.top},width=${secondaryScreen.width},height=${secondaryScreen.height},menubar=no,toolbar=no,location=no,status=no,scrollbars=no,fullscreen=yes`;
+                    }
+                } catch (e) { console.warn("Permissão de tela negada ou API não suportada.", e); }
+            }
+            const newWin = window.open(window.location.href.split('?')[0] + '?view=projector', 'ProjectorWindow', params);
+            if(!newWin || newWin.closed || typeof newWin.closed=='undefined') alert("O navegador bloqueou a janela do projetor. Por favor, permita POP-UPS para este site na barra de endereço.");
+        }
+        async function openStageWindow() { 
+            let params = 'width=800,height=600,menubar=no,toolbar=no,location=no,status=no';
+             if (window.getScreenDetails) {
+                try {
+                    const screenDetails = await window.getScreenDetails();
+                    const secondaryScreen = screenDetails.screens.find(s => s !== screenDetails.currentScreen);
+                    if (secondaryScreen) {
+                         params = `left=${secondaryScreen.left},top=${secondaryScreen.top},width=${secondaryScreen.width},height=${secondaryScreen.height},menubar=no,toolbar=no,location=no,status=no,fullscreen=yes`;
+                    }
+                } catch(e){}
+             }
+            window.open(window.location.href.split('?')[0]+'?view=stage', 'Retorno', params); 
+        }
         function downloadSource() { const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([document.documentElement.outerHTML],{type:'text/html'})); a.download='louvor_app_pro.html'; a.click(); }
+
+        // TIMER Logic
+        function startTimer() { if (isRunning) return; if (!isProjector && !timerInterval) { const m = parseInt(document.getElementById('min').value)||0; const s = parseInt(document.getElementById('sec').value)||0; totalSeconds = m * 60 + s; } isRunning = true; timerInterval = setInterval(() => { if (totalSeconds <= 0) { clearInterval(timerInterval); isRunning = false; updateTimerUI(true); return; } totalSeconds--; updateTimerUI(false); }, 1000); }
+        function pauseTimer() { clearInterval(timerInterval); timerInterval = null; isRunning = false; }
+        function resetTimer() { pauseTimer(); if (!isProjector) { const m = parseInt(document.getElementById('min').value)||0; const s = parseInt(document.getElementById('sec').value)||0; totalSeconds = m * 60 + s; updateTimerUI(false); } }
+        function updateTimerUI(finished) {
+            let txt = "", size = "", danger = false;
+            if(finished) { txt = "ACABOU SEU TEMPO"; size = (currentSettings.timerSize * 0.4) + "px"; danger = true; }
+            else { 
+                const m = Math.floor(totalSeconds / 60); const s = totalSeconds % 60;
+                txt = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                size = currentSettings.timerSize + "px";
+                danger = (totalSeconds < (currentSettings.alertTime||60) && totalSeconds > 0);
+            }
+            const el = document.getElementById('timer-display'); el.innerText = txt; 
+            if (!isStage) el.style.fontSize = size;
+            if(danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
+            if(!isProjector) channel.postMessage({ type: 'timer', payload: { text: txt, danger, fontSize: size } });
+        }
+        
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(e => {
+                    console.warn("Fullscreen blocked:", e);
+                    alert("O ecrã inteiro foi bloqueado pelas permissões do navegador.");
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen().catch(e => console.warn("Exit fullscreen blocked:", e));
+                }
+            }
+        }
         
     </script>
 </body>
