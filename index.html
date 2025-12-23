@@ -11,133 +11,76 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
     <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABmJLR0QA/wD/AP+gvaeTAAAAjklEQVRoge3ywQmAMAwF0EwlTtIlnKdrOoun0wlSqCFIQ/sP34PAQyAJ4D/i2c7d5666q6q7e7d5666q7u7d5q27qrq7d5t3rqrqrt7t3nrrqru7t3mrbuqurt3m7fuquru3m3euququ3u3eeuuqu7u3eatuyq6+zJ/4r6f4B/4u/u2eQAAAABJRU5ErkJggg==" id="app-icon">
-    <!-- Placeholder para o Manifesto -->
     <link rel="manifest" id="app-manifest">
-
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
     <style>
-        /* --- CSS: DESIGN MODERNO --- */
-        :root {
-            --bg-color: #121212;
-            --sidebar-bg: #1e1e1e;
-            --accent-color: #3b82f6;
-            --timer-color: #4ade80;
-            --danger-color: #ef4444;
-            --text-color: #f3f4f6;
-        }
-
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            height: 100vh;
-            display: flex;
-            overflow: hidden;
-            -webkit-user-select: none;
-            user-select: none;
-        }
-
+        /* --- CSS: GERAL --- */
+        :root { --bg-color: #121212; --sidebar-bg: #1e1e1e; --accent-color: #3b82f6; --timer-color: #4ade80; --danger-color: #ef4444; --text-color: #f3f4f6; --success-color: #10b981; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; overflow: hidden; -webkit-user-select: none; user-select: none; }
         input, textarea { -webkit-user-select: text; user-select: text; }
 
-        /* --- MODO PROJETOR --- */
-        body.projector-mode #sidebar,
-        body.projector-mode #controls-bar,
-        body.projector-mode .modal-overlay, /* Esconde todos os modais */
-        body.projector-mode .control-only,
-        body.projector-mode #startup-overlay {
-            display: none !important;
+        /* --- MODOS ESPECIAIS (PROJETOR E RETORNO) --- */
+        body.projector-mode #sidebar, body.projector-mode #controls-bar, body.projector-mode .modal-overlay, body.projector-mode .control-only, body.projector-mode #startup-overlay { display: none !important; }
+        body.projector-mode #display-area { cursor: none; }
+
+        /* Modo Retorno (Stage Monitor) */
+        body.stage-mode #sidebar, body.stage-mode #controls-bar, body.stage-mode .modal-overlay, body.stage-mode .control-only, body.stage-mode #startup-overlay, body.stage-mode #bg-video, body.stage-mode #display-overlay { display: none !important; }
+        body.stage-mode #display-area { 
+            background-color: #000 !important; 
+            background-image: none !important;
+            padding: 20px;
+            align-items: flex-start;
+            justify-content: flex-start;
+            text-align: left;
+        }
+        body.stage-mode #content-wrapper { align-items: flex-start !important; width: 100%; height: 100%; }
+        body.stage-mode #text-display {
+            font-family: Arial, sans-serif !important; font-weight: bold; color: #fff !important;
+            font-size: 6vw !important; text-transform: uppercase; line-height: 1.2;
+            text-shadow: none !important; white-space: pre-wrap; width: 100%;
+        }
+        body.stage-mode #timer-display {
+            position: fixed; top: 10px; right: 10px; font-size: 4vw !important;
+            color: yellow !important; background: rgba(0,0,0,0.8); padding: 5px 10px; border-radius: 5px; z-index: 100;
         }
 
-        body.projector-mode #display-area {
-            cursor: none;
-        }
-
-        /* --- BARRA LATERAL --- */
-        #sidebar {
-            width: 320px;
-            background-color: var(--sidebar-bg);
-            border-right: 1px solid #333;
-            display: flex;
-            flex-direction: column;
-            transition: transform 0.3s ease, width 0.3s ease;
-            flex-shrink: 0;
-            z-index: 20;
-            position: relative;
-        }
-
-        /* Abas da Sidebar */
-        .sidebar-tabs {
-            display: flex;
-            background: #111;
-        }
-        .tab-btn {
-            flex: 1;
-            padding: 15px 5px;
-            background: transparent;
-            color: #888;
-            border: none;
-            border-bottom: 2px solid transparent;
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 0.8rem;
-            transition: 0.2s;
-            text-transform: uppercase;
-        }
+        /* --- SIDEBAR --- */
+        #sidebar { width: 350px; background-color: var(--sidebar-bg); border-right: 1px solid #333; display: flex; flex-direction: column; transition: transform 0.3s ease; flex-shrink: 0; z-index: 20; position: relative; }
+        .sidebar-tabs { display: flex; background: #111; overflow-x: auto; scrollbar-width: none; } 
+        .sidebar-tabs::-webkit-scrollbar { display: none; }
+        .tab-btn { flex: 1; padding: 12px 10px; background: transparent; color: #888; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: bold; font-size: 0.75rem; transition: 0.2s; text-transform: uppercase; white-space: nowrap; }
         .tab-btn:hover { color: #ccc; }
-        .tab-btn.active {
-            color: var(--accent-color);
-            border-bottom: 2px solid var(--accent-color);
-            background: #1a1a1a;
-        }
-
-        /* Conteúdo das Abas */
-        .tab-content {
-            flex-grow: 1;
-            overflow-y: auto;
-            display: none;
-            padding: 15px;
-        }
+        .tab-btn.active { color: var(--accent-color); border-bottom: 2px solid var(--accent-color); background: #1a1a1a; }
+        .tab-content { flex-grow: 1; overflow-y: auto; display: none; padding: 15px; }
         .tab-content.active { display: flex; flex-direction: column; gap: 15px; }
 
-        .sidebar-header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
-        }
+        .sidebar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .sidebar-title { font-weight: bold; color: #ccc; font-size: 1rem; }
-        
-        .add-btn {
-            background: var(--accent-color); border: none; color: white;
-            border-radius: 50%; width: 32px; height: 32px; cursor: pointer;
-            display: flex; align-items: center; justify-content: center; font-size: 20px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
-        
+        .add-btn { background: var(--accent-color); border: none; color: white; border-radius: 50%; width: 32px; height: 32px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.3); }
+
         /* CARDS GERAIS */
-        .list-card {
-            background-color: #2a2a2a; border: 1px solid #333; border-radius: 8px;
-            padding: 12px; cursor: pointer; transition: 0.2s; display: flex;
-            justify-content: space-between; align-items: center; margin-bottom: 5px;
-        }
+        .list-card { background-color: #2a2a2a; border: 1px solid #333; border-radius: 8px; padding: 12px; cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .list-card:hover { background-color: #333; border-color: #555; transform: translateY(-1px); }
         .list-info { flex-grow: 1; overflow: hidden; }
         .list-title { font-weight: bold; font-size: 0.95rem; margin-bottom: 2px; }
         .list-preview { font-size: 0.8rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        
         .delete-btn { background: transparent; border: none; color: #666; cursor: pointer; padding: 8px; }
         .delete-btn:hover { color: var(--danger-color); }
 
+        /* --- ABA SLIDES (SM) --- */
+        #sm-list { display: flex; flex-direction: column; gap: 5px; }
+        .slide-grid { display: grid; grid-template-columns: 1fr; gap: 8px; }
+        .slide-card { background: #252525; padding: 12px; border-radius: 6px; border: 1px solid #333; cursor: pointer; font-size: 0.9rem; line-height: 1.4; color: #ddd; white-space: pre-wrap; transition: 0.2s; }
+        .slide-card:hover { border-color: var(--accent-color); background: #333; }
+        .slide-card.active-slide { background: #1e3a8a; border-color: var(--accent-color); color: white; box-shadow: 0 0 10px rgba(59, 130, 246, 0.2); }
+        .slide-number { font-size: 0.7rem; color: #666; display: block; margin-bottom: 4px; font-weight: bold; text-transform: uppercase; }
+
         /* CARDS GALERIA */
-        .gallery-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-        }
-        .gallery-item {
-            position: relative; border-radius: 8px; overflow: hidden;
-            aspect-ratio: 16/9; cursor: pointer; border: 2px solid transparent;
-            background: #000;
-        }
+        .gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .gallery-item { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 16/9; cursor: pointer; border: 2px solid transparent; background: #000; }
         .gallery-item:hover { border-color: #666; }
         .gallery-item.selected { border-color: var(--accent-color); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); }
-        
         .gallery-thumb { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; transition: 0.2s; }
         .gallery-item:hover .gallery-thumb { opacity: 1; }
         .gallery-delete {
@@ -149,122 +92,71 @@
         .gallery-item:hover .gallery-delete { opacity: 1; }
 
         /* ABA BÍBLIA */
-        #bible-controls {
-            display: flex; gap: 5px; margin-bottom: 10px;
-        }
+        #bible-status-card { background: #222; padding: 10px; border-radius: 6px; border: 1px solid #333; margin-bottom: 15px; }
+        .version-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #333; }
+        .version-row:last-child { border-bottom: none; }
+        .version-info { display: flex; flex-direction: column; }
+        .version-name { font-weight: bold; font-size: 0.85rem; color: #ddd; }
+        .version-status { font-size: 0.7rem; color: #888; }
+        .download-btn { padding: 5px 10px; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem; white-space: nowrap; }
+        .download-btn:disabled { background: #444; cursor: default; opacity: 0.7; }
+        .download-btn.downloaded { background: transparent; color: var(--success-color); border: 1px solid var(--success-color); }
+        #bible-controls { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+        .bible-row { display: flex; gap: 5px; }
+        #bible-version-select { width: 100%; padding: 8px; background: #222; color: var(--accent-color); border: 1px solid #444; border-radius: 4px; font-weight: bold; }
         #bible-book { flex-grow: 2; padding: 8px; background: #222; color: white; border: 1px solid #444; border-radius: 4px; }
         #bible-chapter { width: 50px; padding: 8px; background: #222; color: white; border: 1px solid #444; border-radius: 4px; text-align: center; }
         #bible-go { background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer; padding: 0 10px; font-weight: bold; }
-        
         #bible-search-local { width: 100%; padding: 8px; background: #111; border: 1px solid #333; color: white; border-radius: 4px; box-sizing: border-box; margin-bottom: 10px; font-size: 13px; }
-        
-        #bible-verse-list {
-            display: flex; flex-direction: column; gap: 5px; max-height: calc(100vh - 200px); overflow-y: auto;
-        }
-        .bible-verse-item {
-            background: #252525; padding: 10px; border-radius: 4px; border-left: 3px solid #444;
-            cursor: pointer; transition: 0.2s; font-size: 0.9rem; color: #ddd; line-height: 1.4;
-        }
+        #bible-verse-list { display: flex; flex-direction: column; gap: 5px; max-height: calc(100vh - 350px); overflow-y: auto; }
+        .bible-verse-item { background: #252525; padding: 10px; border-radius: 4px; border-left: 3px solid #444; cursor: pointer; transition: 0.2s; font-size: 0.9rem; color: #ddd; line-height: 1.4; }
         .bible-verse-item:hover { background: #333; border-left-color: var(--accent-color); color: white; }
         .bible-verse-ref { font-size: 0.75rem; color: #888; font-weight: bold; margin-bottom: 3px; display: block; }
 
-        /* CONFIGURAÇÕES */
-        .config-group {
-            background: #252525; padding: 15px; border-radius: 8px; border: 1px solid #333; margin-bottom: 10px;
-        }
+        /* CONFIGS */
+        .config-group { background: #252525; padding: 15px; border-radius: 8px; border: 1px solid #333; margin-bottom: 10px; }
         .config-group h4 { margin: 0 0 10px 0; color: #aaa; font-size: 0.85rem; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 8px;}
         .config-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 0.95rem; }
         .config-item label { color: #ddd; flex-grow: 1; }
-        
         input[type="color"] { border: none; width: 35px; height: 35px; cursor: pointer; background: none; padding: 0; }
         input[type="number"] { background: #111; border: 1px solid #444; color: white; padding: 6px; border-radius: 4px; width: 65px; text-align: center; }
         input[type="range"] { flex-grow: 1; margin-left: 10px; cursor: pointer; }
         input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent-color); }
-        select.font-select { width: 100%; padding: 8px; background: #111; border: 1px solid #444; color: white; border-radius: 4px; }
-        select.config-select { padding: 6px; background: #111; border: 1px solid #444; color: white; border-radius: 4px; font-size: 0.9rem; }
-        
+        select.font-select, select.config-select { width: 100%; padding: 8px; background: #111; border: 1px solid #444; color: white; border-radius: 4px; }
         .align-btn-group { display: flex; gap: 5px; background: #111; padding: 3px; border-radius: 4px; border: 1px solid #333; }
         .align-btn { flex: 1; background: transparent; border: none; color: #666; cursor: pointer; padding: 6px; border-radius: 2px; }
         .align-btn:hover { color: white; }
         .align-btn.active { background: #333; color: white; }
-
-        #install-btn {
-            display: none; width: 100%; padding: 12px; background: linear-gradient(45deg, #2563eb, #3b82f6);
-            border: none; border-radius: 6px; color: white; font-weight: bold; margin-bottom: 15px;
-            cursor: pointer; align-items: center; justify-content: center; gap: 8px;
-        }
-        #install-btn:hover { filter: brightness(1.1); }
+        #install-btn { display: none; width: 100%; padding: 12px; background: linear-gradient(45deg, #2563eb, #3b82f6); border: none; border-radius: 6px; color: white; font-weight: bold; margin-bottom: 15px; cursor: pointer; align-items: center; justify-content: center; gap: 8px; }
 
         /* MAIN CONTENT */
         #main-content { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
-
-        #controls-bar {
-            background-color: #1a1a1a; padding: 10px 20px; display: flex; gap: 15px;
-            align-items: center; border-bottom: 1px solid #333; height: 70px;
-        }
+        #controls-bar { background-color: #1a1a1a; padding: 10px 20px; display: flex; gap: 15px; align-items: center; border-bottom: 1px solid #333; height: 70px; }
         .input-group { display: flex; gap: 5px; align-items: center; }
         .input-group input[type="number"] { width: 50px; background: #222; padding: 8px; }
-        
-        button.ctrl-btn {
-            padding: 10px 18px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; color: white;
-            display: flex; align-items: center; gap: 6px; background-color: #333; transition: 0.2s; font-size: 14px;
-        }
+        button.ctrl-btn { padding: 10px 18px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; color: white; display: flex; align-items: center; gap: 6px; background-color: #333; transition: 0.2s; font-size: 14px; }
         button.ctrl-btn:hover { background-color: #444; }
         button.play { background-color: var(--accent-color); }
         button.stop { background-color: var(--danger-color); }
         button.project { background-color: #8b5cf6; }
-
+        button.stage { background-color: #eab308; color: #111; }
         textarea#live-text { flex-grow: 1; height: 42px; background: #222; border: 1px solid #444; color: white; padding: 10px; border-radius: 6px; resize: none; font-family: inherit; font-size: 14px; }
 
-        #display-area {
-            flex-grow: 1; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; text-align: center;
-            padding: 40px;
-            background-color: #000;
-            background-size: cover;
-            background-position: center;
-            position: relative;
-            overflow: hidden; 
-        }
-        
-        #bg-video {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            object-fit: cover; z-index: 0; display: none;
-        }
-
-        #display-overlay {
-            position: absolute; top:0; left:0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); pointer-events: none; z-index: 1;
-        }
-
+        /* DISPLAY */
+        #display-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 40px; background-color: #000; background-size: cover; background-position: center; position: relative; overflow: hidden; }
+        #bg-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; display: none; }
+        #display-overlay { position: absolute; top:0; left:0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); pointer-events: none; z-index: 1; }
         #content-wrapper { z-index: 2; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; }
-
-        #timer-display {
-            font-family: 'Courier New', monospace; font-weight: bold;
-            line-height: 1; transition: color 0.3s, font-size 0.3s;
-        }
-
-        #text-display {
-            line-height: 1.3; max-width: 90%; white-space: pre-wrap; font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        .danger-mode {
-            color: var(--danger-color) !important;
-            text-shadow: 0 0 30px rgba(239, 68, 68, 0.5) !important;
-            animation: pulse 1s infinite;
-        }
+        #timer-display { font-family: 'Courier New', monospace; font-weight: bold; line-height: 1; transition: color 0.3s, font-size 0.3s; }
+        #text-display { line-height: 1.3; max-width: 90%; white-space: pre-wrap; font-weight: 500; transition: all 0.3s; }
+        .danger-mode { color: var(--danger-color) !important; text-shadow: 0 0 30px rgba(239, 68, 68, 0.5) !important; animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
 
         /* MODAIS */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 100;
-            backdrop-filter: blur(5px);
-        }
-        .modal { background: #2a2a2a; padding: 25px; border-radius: 12px; width: 450px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); border: 1px solid #444;}
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(5px); }
+        .modal { background: #2a2a2a; padding: 25px; border-radius: 12px; width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); border: 1px solid #444; max-height: 90vh; display: flex; flex-direction: column; }
         .modal input[type="text"], .modal textarea, .modal select { width: 100%; margin-bottom: 15px; padding: 12px; background: #1a1a1a; border: 1px solid #444; color: white; box-sizing: border-box; border-radius: 6px; }
-        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
+        .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;}
         .divider { display: flex; align-items: center; text-align: center; color: #666; font-size: 12px; margin: 15px 0; }
         .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #444; }
         .divider:not(:empty)::before { margin-right: .5em; }
@@ -273,56 +165,22 @@
         .file-upload-label:hover { border-color: var(--accent-color); color: var(--accent-color); background: rgba(59, 130, 246, 0.1); }
         input[type="file"] { display: none; }
         
-        /* --- ESTILOS DO NAVEGADOR BÍBLICO (MODAL GRANDE) --- */
-        #modal-bible-navigator {
-            align-items: flex-start; /* Começa do topo */
-            padding-top: 50px;
-        }
-        .bible-full-window {
-            background: #1a1a1a; width: 90%; max-width: 1000px; height: 80vh; 
-            border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column;
-            box-shadow: 0 0 50px rgba(0,0,0,0.8);
-        }
-        .bible-header {
-            padding: 15px; background: #222; border-bottom: 1px solid #333; 
-            display: flex; justify-content: space-between; align-items: center;
-        }
+        /* BIBLE NAVIGATOR */
+        #modal-bible-navigator { align-items: flex-start; padding-top: 50px; }
+        .bible-full-window { background: #1a1a1a; width: 90%; max-width: 1000px; height: 80vh; border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        .bible-header { padding: 15px; background: #222; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
         .bible-header h3 { margin: 0; color: #fff; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
         .bible-crumbs { color: var(--accent-color); font-size: 0.9rem; margin-left: 10px; font-weight: normal;}
-        
-        .bible-content-area {
-            flex-grow: 1; overflow-y: auto; padding: 20px;
-        }
-
-        /* GRID DE LIVROS */
-        .bible-books-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px;
-        }
-        .bible-book-btn {
-            background: #333; border: 1px solid #444; color: #ddd; padding: 15px 5px;
-            border-radius: 6px; cursor: pointer; text-align: center; font-weight: bold; font-size: 0.9rem;
-            transition: 0.2s;
-        }
+        .bible-content-area { flex-grow: 1; overflow-y: auto; padding: 20px; }
+        .bible-books-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
+        .bible-book-btn { background: #333; border: 1px solid #444; color: #ddd; padding: 15px 5px; border-radius: 6px; cursor: pointer; text-align: center; font-weight: bold; font-size: 0.9rem; transition: 0.2s; }
         .bible-book-btn:hover { background: #444; border-color: var(--accent-color); color: white; }
         .testament-label { grid-column: 1 / -1; color: #666; margin: 15px 0 5px 0; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
-
-        /* GRID DE CAPÍTULOS */
-        .bible-chapters-grid {
-            display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 10px;
-        }
-        .bible-chapter-btn {
-            background: #252525; border: 1px solid #333; color: white; aspect-ratio: 1;
-            display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold;
-            border-radius: 6px; cursor: pointer; transition: 0.2s;
-        }
+        .bible-chapters-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 10px; }
+        .bible-chapter-btn { background: #252525; border: 1px solid #333; color: white; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold; border-radius: 6px; cursor: pointer; transition: 0.2s; }
         .bible-chapter-btn:hover { background: var(--accent-color); border-color: var(--accent-color); }
-
-        /* LISTA DE VERSÍCULOS (MODAL) */
         .bible-verse-list-full { display: flex; flex-direction: column; gap: 8px; }
-        .bible-verse-item-full {
-            background: #252525; padding: 15px; border-radius: 6px; border-left: 4px solid #444;
-            cursor: pointer; font-size: 1.1rem; line-height: 1.5; color: #ddd; transition: 0.2s;
-        }
+        .bible-verse-item-full { background: #252525; padding: 15px; border-radius: 6px; border-left: 4px solid #444; cursor: pointer; font-size: 1.1rem; line-height: 1.5; color: #ddd; transition: 0.2s; }
         .bible-verse-item-full:hover { background: #333; border-left-color: var(--accent-color); color: white; padding-left: 20px;}
         .bible-verse-num { color: var(--accent-color); font-weight: bold; margin-right: 8px; }
 
@@ -331,16 +189,13 @@
 </head>
 <body>
 
-    <!-- OVERLAY DE INICIALIZAÇÃO (AUTO OPEN) -->
+    <!-- OVERLAY -->
     <div id="startup-overlay" class="modal-overlay hidden" style="background: #121212; z-index: 200;">
         <div style="text-align: center; color: white;">
             <h2 style="margin-bottom: 20px;">Bem-vindo ao Louvor Pro</h2>
-            <p style="margin-bottom: 30px; color: #aaa;">Detetámos que a projeção automática está ativa.</p>
-            <button class="ctrl-btn play" onclick="startProjectorFlow()" style="font-size: 1.2rem; padding: 15px 30px;">
-                <span class="material-icons" style="margin-right: 10px;">connected_tv</span> 
-                INICIAR PROJEÇÃO
-            </button>
-            <p style="margin-top: 20px; font-size: 0.8rem; color: #666;">Clique para autorizar a detecção da 2ª tela.</p>
+            <p style="margin-bottom: 30px; color: #aaa;">Projeção automática ativa.</p>
+            <button class="ctrl-btn play" onclick="startProjectorFlow()" style="font-size: 1.2rem; padding: 15px 30px;"><span class="material-icons" style="margin-right: 10px;">connected_tv</span> INICIAR PROJEÇÃO</button>
+            <p style="margin-top: 20px; font-size: 0.8rem; color: #666;">Clique para autorizar.</p>
         </div>
     </div>
 
@@ -348,496 +203,223 @@
     <div id="sidebar">
         <div class="sidebar-tabs">
             <button class="tab-btn active" onclick="switchTab('verses')">Versos</button>
+            <button class="tab-btn" onclick="switchTab('sm')">SM</button>
             <button class="tab-btn" onclick="switchTab('bible')">Bíblia</button>
             <button class="tab-btn" onclick="switchTab('gallery')">Galeria</button>
             <button class="tab-btn" onclick="switchTab('appearance')">Ajustes</button>
         </div>
 
-        <!-- ABA 1: VERSÍCULOS -->
+        <!-- ABA 1: VERSOS -->
         <div id="tab-verses" class="tab-content active">
             <button id="install-btn" onclick="installPWA()"><span class="material-icons">download</span> Instalar App</button>
-            <div class="sidebar-header">
-                <span class="sidebar-title">Lista de Textos</span>
-                <button class="add-btn" onclick="openModal('verse')" title="Adicionar Novo">+</button>
-            </div>
+            <div class="sidebar-header"><span class="sidebar-title">Avisos e Versos</span><button class="add-btn" onclick="openModal('verse')" title="Adicionar">+</button></div>
             <div id="verse-list"></div>
         </div>
 
-        <!-- ABA 2: BÍBLIA (SIMPLIFICADA) -->
-        <div id="tab-bible" class="tab-content">
+        <!-- ABA 2: SM -->
+        <div id="tab-sm" class="tab-content">
             <div class="sidebar-header">
-                <span class="sidebar-title">Pesquisa Bíblica</span>
+                <span class="sidebar-title">Slides Músicos</span>
+                <button class="add-btn" onclick="openModal('sm')" title="Adicionar">+</button>
             </div>
-            <div id="bible-controls">
-                <select id="bible-book"></select>
-                <input type="number" id="bible-chapter" value="1" min="1">
-                <button id="bible-go" onclick="fetchBibleChapter()">Ir</button>
-            </div>
-            <input type="text" id="bible-search-local" placeholder="Filtrar resultado..." oninput="filterBibleVerses()">
-            <div id="bible-verse-list" style="margin-top: 10px; max-height: calc(100vh - 200px); overflow-y: auto;">
-                <div style="color:#666; text-align:center; padding:10px; font-size:13px;">Selecione e clique em IR</div>
-            </div>
+            <button class="ctrl-btn stage" onclick="openStageWindow()" style="width:100%; margin-bottom:10px;">
+                <span class="material-icons">mic</span> Abrir Retorno
+            </button>
+            <div id="sm-list"></div>
         </div>
 
-        <!-- ABA 3: GALERIA -->
+        <!-- ABA 3: BÍBLIA -->
+        <div id="tab-bible" class="tab-content">
+            <div id="bible-status-card">
+                <div style="font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 8px;">Versões Disponíveis (Offline)</div>
+                <div id="bible-versions-list"></div>
+            </div>
+            <button class="ctrl-btn" onclick="openBibleNavigator()" style="width:100%; height:50px; font-size:1.1rem; background: var(--accent-color); margin-bottom: 15px;"><span class="material-icons">menu_book</span> Abrir Bíblia</button>
+            <div class="sidebar-header"><span class="sidebar-title">Pesquisa Rápida</span></div>
+            <div id="bible-controls">
+                <select id="bible-version-select" title="Versão"></select>
+                <div class="bible-row">
+                    <select id="bible-book" onchange="updateChapterMax()"></select>
+                    <input type="number" id="bible-chapter" value="1" min="1" max="50">
+                    <button id="bible-go" onclick="fetchBibleChapter()">Ir</button>
+                </div>
+            </div>
+            <div id="bible-verse-list"><div style="color:#666; text-align:center; padding:10px; font-size:13px;">Selecione e clique em IR</div></div>
+        </div>
+
+        <!-- ABA 4: GALERIA -->
         <div id="tab-gallery" class="tab-content">
-            <div class="sidebar-header">
-                <span class="sidebar-title">Mídia de Fundo</span>
-                <button class="add-btn" onclick="openModal('gallery')" title="Adicionar Mídia">+</button>
-            </div>
-            <div style="margin-bottom:10px;">
-                <button class="list-card" onclick="removeBackground()" style="width:100%; justify-content:center; color:#aaa; font-size:12px;">
-                    <span class="material-icons" style="font-size:16px; margin-right:5px;">block</span> Remover Fundo
-                </button>
-            </div>
+            <div class="sidebar-header"><span class="sidebar-title">Mídia de Fundo</span><button class="add-btn" onclick="openModal('gallery')" title="Adicionar">+</button></div>
+            <div style="margin-bottom:10px;"><button class="list-card" onclick="removeBackground()" style="width:100%; justify-content:center; color:#aaa; font-size:12px;"><span class="material-icons" style="font-size:16px; margin-right:5px;">block</span> Remover Fundo</button></div>
             <div id="gallery-grid" class="gallery-grid"></div>
         </div>
 
-        <!-- ABA 4: APARÊNCIA -->
+        <!-- ABA 5: AJUSTES -->
         <div id="tab-appearance" class="tab-content">
-            <!-- (Conteúdo mantido igual ao anterior) -->
             <div class="config-group"><h4>Projeção</h4><div class="config-item"><label>Abrir Projetor ao Iniciar</label><input type="checkbox" id="cfg-auto-open" onchange="updateSettings()"></div></div>
-            <div class="config-group"><h4>Layout & Exibição</h4><div class="config-item"><label>Mostrar Timer</label><input type="checkbox" id="cfg-show-timer" onchange="updateSettings()" checked></div><div class="config-item"><label>Mostrar Texto</label><input type="checkbox" id="cfg-show-text" onchange="updateSettings()" checked></div><div class="config-item"><label>Posição do Timer</label><select id="cfg-timer-pos" class="config-select" onchange="updateSettings()"><option value="top">Acima do Texto</option><option value="bottom">Abaixo do Texto</option></select></div></div>
-            <div class="config-group"><h4>Geral</h4><div class="config-item"><label>Cor de Fundo Base</label><input type="color" id="cfg-bg-color" value="#000000" oninput="updateSettings()"></div><div class="config-item"><label>Escurecer Mídia</label><input type="range" id="cfg-overlay-opacity" min="0" max="1" step="0.1" value="0.5" oninput="updateSettings()"></div></div>
-            <div class="config-group"><h4>Texto</h4><div class="config-item"><label>Cor</label><input type="color" id="cfg-text-color" value="#ffffff" oninput="updateSettings()"></div><div class="config-item"><label>Tamanho (px)</label><input type="number" id="cfg-text-size" min="10" max="800" value="80" oninput="updateSettings()"></div><div class="config-item" style="display:block"><label style="display:block; margin-bottom:5px;">Fonte</label><select id="cfg-font-family" class="font-select" onchange="updateSettings()"><option value="'Segoe UI', sans-serif">Padrão</option><option value="'Courier New', monospace">Máquina</option><option value="'Times New Roman', serif">Clássico</option><option value="Arial, sans-serif">Simples</option><option value="cursive">Manuscrito</option></select></div><div class="config-item" style="display:block; margin-top:10px;"><label style="display:block; margin-bottom:5px;">Alinhamento</label><div class="align-btn-group"><button class="align-btn" onclick="setAlignment('left')" id="btn-align-left"><span class="material-icons">format_align_left</span></button><button class="align-btn" onclick="setAlignment('center')" id="btn-align-center"><span class="material-icons">format_align_center</span></button><button class="align-btn" onclick="setAlignment('right')" id="btn-align-right"><span class="material-icons">format_align_right</span></button></div></div></div>
+            <div class="config-group"><h4>Layout</h4><div class="config-item"><label>Mostrar Timer</label><input type="checkbox" id="cfg-show-timer" onchange="updateSettings()" checked></div><div class="config-item"><label>Mostrar Texto</label><input type="checkbox" id="cfg-show-text" onchange="updateSettings()" checked></div><div class="config-item"><label>Posição</label><select id="cfg-timer-pos" class="config-select" onchange="updateSettings()"><option value="top">Timer Acima</option><option value="bottom">Timer Abaixo</option></select></div></div>
+            <div class="config-group"><h4>Estilo</h4><div class="config-item"><label>Cor Fundo</label><input type="color" id="cfg-bg-color" value="#000000" oninput="updateSettings()"></div><div class="config-item"><label>Escurecer</label><input type="range" id="cfg-overlay-opacity" min="0" max="1" step="0.1" value="0.5" oninput="updateSettings()"></div><div class="config-item"><label>Cor Texto</label><input type="color" id="cfg-text-color" value="#ffffff" oninput="updateSettings()"></div><div class="config-item"><label>Tam. Texto</label><input type="number" id="cfg-text-size" min="10" max="800" value="80" oninput="updateSettings()"></div><div class="config-item" style="display:block"><label style="display:block; margin-bottom:5px;">Fonte</label><select id="cfg-font-family" class="font-select" onchange="updateSettings()"><option value="'Segoe UI', sans-serif">Padrão</option><option value="'Courier New', monospace">Máquina</option><option value="'Times New Roman', serif">Clássico</option><option value="Arial, sans-serif">Simples</option><option value="cursive">Manuscrito</option></select></div><div class="config-item" style="display:block; margin-top:10px;"><label style="display:block; margin-bottom:5px;">Alinhamento</label><div class="align-btn-group"><button class="align-btn" onclick="setAlignment('left')" id="btn-align-left"><span class="material-icons">format_align_left</span></button><button class="align-btn" onclick="setAlignment('center')" id="btn-align-center"><span class="material-icons">format_align_center</span></button><button class="align-btn" onclick="setAlignment('right')" id="btn-align-right"><span class="material-icons">format_align_right</span></button></div></div></div>
             <div class="config-group"><h4>Timer</h4><div class="config-item"><label>Cor Normal</label><input type="color" id="cfg-timer-color" value="#4ade80" oninput="updateSettings()"></div><div class="config-item"><label>Tamanho (px)</label><input type="number" id="cfg-timer-size" min="10" max="800" value="180" oninput="updateSettings()"></div><div class="config-item"><label>Alertar quando faltar:</label><div class="input-group" style="justify-content: flex-end;"><input type="number" id="cfg-alert-min" value="1" oninput="updateSettings()" placeholder="m" style="width: 40px;"><span>:</span><input type="number" id="cfg-alert-sec" value="00" oninput="updateSettings()" placeholder="s" style="width: 40px;"></div></div></div>
             <button class="ctrl-btn" onclick="resetSettings()" style="width:100%; justify-content:center; background:#444; margin-bottom: 10px;">Restaurar Padrões</button>
             <div style="border-top: 1px solid #333; margin: 15px 0;"></div>
-            <button class="ctrl-btn" onclick="downloadSource()" style="width:100%; justify-content:center; background: #2563eb;">
-                <span class="material-icons">download</span> Download App
-            </button>
+            <button class="ctrl-btn" onclick="downloadSource()" style="width:100%; justify-content:center; background: #2563eb;"><span class="material-icons">download</span> Download App</button>
         </div>
     </div>
 
-    <!-- ÁREA PRINCIPAL -->
+    <!-- MAIN CONTENT -->
     <div id="main-content">
         <div id="controls-bar">
             <button class="ctrl-btn" onclick="toggleSidebar()"><span class="material-icons">menu</span></button>
-            <button class="ctrl-btn project" onclick="openProjectorWindow(true)" title="Projetar em Segunda Tela"><span class="material-icons">open_in_new</span> Projetor</button>
-            <div class="input-group">
-                <input type="number" id="min" value="5"><span>:</span><input type="number" id="sec" value="00">
-            </div>
+            <button class="ctrl-btn project" onclick="openProjectorWindow(true)" title="Projetar"><span class="material-icons">open_in_new</span> Projetor</button>
+            <button class="ctrl-btn stage" onclick="openStageWindow()" title="Abrir Retorno (Músicos)"><span class="material-icons">mic</span> Retorno</button>
+            <div class="input-group"><input type="number" id="min" value="5"><span>:</span><input type="number" id="sec" value="00"></div>
             <button class="ctrl-btn play" onclick="startTimer()"><span class="material-icons">play_arrow</span></button>
             <button class="ctrl-btn stop" onclick="pauseTimer()"><span class="material-icons">pause</span></button>
             <button class="ctrl-btn" onclick="resetTimer()"><span class="material-icons">refresh</span></button>
             <textarea id="live-text" placeholder="Digite para projetar..." oninput="updateDisplay(this.value)"></textarea>
             <button class="ctrl-btn" onclick="toggleFullScreen()"><span class="material-icons">fullscreen</span></button>
         </div>
-
         <div id="display-area">
             <video id="bg-video" loop muted playsinline></video>
             <div id="display-overlay"></div>
-            <div id="content-wrapper">
-                <div id="timer-display">05:00</div>
-                <div id="text-display">...</div>
-            </div>
+            <div id="content-wrapper"><div id="timer-display">05:00</div><div id="text-display">...</div></div>
             <button class="control-only" onclick="toggleUI()" style="position: absolute; bottom: 20px; z-index:10; opacity: 0.3; background: none; border: 1px solid white; color: white; cursor: pointer;">Ocultar Interface</button>
         </div>
-    </div>
-
-    <!-- MODAIS PEQUENOS -->
-    <div id="modal-verse" class="modal-overlay hidden">
-        <div class="modal">
-            <h3 style="margin-top:0">Novo Texto</h3>
-            <input type="text" id="new-verse-title" placeholder="Título">
-            <textarea id="new-verse-content" rows="5" placeholder="Conteúdo..."></textarea>
-            <div class="modal-actions"><button class="ctrl-btn" onclick="closeModal('verse')">Cancelar</button><button class="ctrl-btn play" onclick="saveVerse()">Salvar</button></div>
-        </div>
-    </div>
-
-    <div id="modal-gallery" class="modal-overlay hidden">
-        <div class="modal">
-            <h3 style="margin-top:0">Nova Mídia</h3>
-            <label style="color:#ddd; font-size:12px">Tipo:</label>
-            <select id="new-media-type" onchange="toggleMediaType()"><option value="image">Imagem</option><option value="video">Vídeo</option></select>
-            <label for="new-media-file" class="file-upload-label"><span class="material-icons" style="font-size:30px">cloud_upload</span><span id="file-label-text">Clique para escolher</span></label>
-            <input type="file" id="new-media-file" accept="image/*,video/*" onchange="updateFileLabel(this)">
-            <div class="divider">OU</div>
-            <input type="text" id="new-media-url" placeholder="URL da internet...">
-            <div class="modal-actions"><button class="ctrl-btn" onclick="closeModal('gallery')">Cancelar</button><button class="ctrl-btn play" onclick="saveMedia()">Adicionar</button></div>
-        </div>
-    </div>
-
-    <!-- NOVO MODAL: NAVEGADOR BÍBLICO FULL -->
-    <div id="modal-bible-navigator" class="modal-overlay hidden">
-        <div class="bible-full-window">
-            <div class="bible-header">
-                <h3><span class="material-icons">auto_stories</span> Bíblia <span id="bible-crumbs" class="bible-crumbs"></span></h3>
-                <div style="display:flex; gap:10px;">
-                    <button class="ctrl-btn" id="bible-back-btn" onclick="bibleGoBack()" style="display:none;"><span class="material-icons">arrow_back</span> Voltar</button>
-                    <button class="ctrl-btn stop" onclick="closeModal('bible-navigator')"><span class="material-icons">close</span></button>
-                </div>
+        
+        <!-- Viewer Container for SM items -->
+        <div id="sm-viewer" style="display:none; flex-direction:column; height:100%; position:absolute; top:70px; left:0; right:0; bottom:0; background:var(--bg-color); z-index:5;">
+             <div id="sm-viewer-header" style="display:flex; align-items:center; gap:10px; padding:15px; border-bottom:1px solid #333;">
+                <button class="ctrl-btn" onclick="closeSmViewer()"><span class="material-icons">arrow_back</span></button>
+                <span id="sm-title-display" style="font-weight:bold; color:var(--accent-color); flex-grow:1;"></span>
+                <button class="delete-btn" onclick="deleteCurrentSmSlide()"><span class="material-icons">delete</span></button>
             </div>
-            <div class="bible-content-area" id="bible-content-area">
-                <!-- Conteúdo Dinâmico Aqui -->
-            </div>
+            <div id="sm-slides-container" class="slide-grid" style="padding:15px; overflow-y:auto;"></div>
         </div>
     </div>
+
+    <!-- MODAIS -->
+    <div id="modal-verse" class="modal-overlay hidden"><div class="modal"><h3 style="margin-top:0">Novo Texto</h3><input type="text" id="new-verse-title" placeholder="Título"><textarea id="new-verse-content" rows="5" placeholder="Conteúdo..."></textarea><div class="modal-actions"><button class="ctrl-btn" onclick="closeModal('verse')">Cancelar</button><button class="ctrl-btn play" onclick="saveVerse()">Salvar</button></div></div></div>
+    
+    <!-- MODAL SM -->
+    <div id="modal-sm" class="modal-overlay hidden"><div class="modal" style="width: 600px;"><h3 style="margin-top:0">Novo Slide SM</h3><input type="text" id="new-sm-title" placeholder="Título"><small style="color:#aaa; display:block; margin-bottom:5px;">Dê 2 ENTERS para separar os slides.</small><textarea id="new-sm-content" rows="10" placeholder="Conteúdo dos slides..."></textarea><div class="modal-actions"><button class="ctrl-btn" onclick="closeModal('sm')">Cancelar</button><button class="ctrl-btn play" onclick="saveSmSlide()">Salvar</button></div></div></div>
+    
+    <div id="modal-gallery" class="modal-overlay hidden"><div class="modal"><h3 style="margin-top:0">Nova Mídia</h3><label style="color:#ddd; font-size:12px">Tipo:</label><select id="new-media-type" onchange="toggleMediaType()"><option value="image">Imagem</option><option value="video">Vídeo</option></select><label for="new-media-file" class="file-upload-label"><span class="material-icons" style="font-size:30px">cloud_upload</span><span id="file-label-text">Clique para escolher</span></label><input type="file" id="new-media-file" accept="image/*,video/*" onchange="updateFileLabel(this)"><div class="divider">OU</div><input type="text" id="new-media-url" placeholder="URL..."><div class="modal-actions"><button class="ctrl-btn" onclick="closeModal('gallery')">Cancelar</button><button class="ctrl-btn play" onclick="saveMedia()">Adicionar</button></div></div></div>
+    <div id="modal-bible-navigator" class="modal-overlay hidden"><div class="bible-full-window"><div class="bible-header"><h3><span class="material-icons">auto_stories</span> Bíblia <span id="bible-crumbs" class="bible-crumbs"></span></h3><div style="display:flex; gap:10px;"><button class="ctrl-btn" id="bible-back-btn" onclick="bibleGoBack()" style="display:none;"><span class="material-icons">arrow_back</span> Voltar</button><button class="ctrl-btn stop" onclick="closeModal('bible-navigator')"><span class="material-icons">close</span></button></div></div><div class="bible-content-area" id="bible-content-area"></div></div></div>
 
     <script>
-        // --- PWA SETUP ---
+        // --- PWA ---
         const manifestData = { "name": "Louvor Pro", "short_name": "Louvor", "start_url": ".", "display": "standalone", "background_color": "#121212", "theme_color": "#121212", "icons": [{"src": document.getElementById('app-icon').href, "sizes": "192x192", "type": "image/png"}] };
         document.getElementById('app-manifest').setAttribute('href', URL.createObjectURL(new Blob([JSON.stringify(manifestData)], {type: 'application/json'})));
-        let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; document.getElementById('install-btn').style.display = 'flex'; });
+        let deferredPrompt; window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; document.getElementById('install-btn').style.display = 'flex'; });
         async function installPWA() { if (deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; if (outcome === 'accepted') document.getElementById('install-btn').style.display = 'none'; deferredPrompt = null; } }
 
-        // --- CORE VARIABLES ---
+        // --- CORE ---
         const channel = new BroadcastChannel('louvor_app_v2');
         const urlParams = new URLSearchParams(window.location.search);
         const isProjector = urlParams.get('view') === 'projector';
-        
-        // --- BIBLE DATA ---
-        const bibleBooks = [
-            {name: "Gênesis", id: "Genesis"}, {name: "Êxodo", id: "Exodus"}, {name: "Levítico", id: "Leviticus"}, {name: "Números", id: "Numbers"}, {name: "Deuteronômio", id: "Deuteronomy"},
-            {name: "Josué", id: "Joshua"}, {name: "Juízes", id: "Judges"}, {name: "Rute", id: "Ruth"}, {name: "1 Samuel", id: "1Samuel"}, {name: "2 Samuel", id: "2Samuel"},
-            {name: "1 Reis", id: "1Kings"}, {name: "2 Reis", id: "2Kings"}, {name: "1 Crônicas", id: "1Chronicles"}, {name: "2 Crônicas", id: "2Chronicles"}, {name: "Esdras", id: "Ezra"},
-            {name: "Neemias", id: "Nehemiah"}, {name: "Ester", id: "Esther"}, {name: "Jó", id: "Job"}, {name: "Salmos", id: "Psalms"}, {name: "Provérbios", id: "Proverbs"},
-            {name: "Eclesiastes", id: "Ecclesiastes"}, {name: "Cânticos", id: "Song of Solomon"}, {name: "Isaías", id: "Isaiah"}, {name: "Jeremias", id: "Jeremiah"}, {name: "Lamentações", id: "Lamentations"},
-            {name: "Ezequiel", id: "Ezekiel"}, {name: "Daniel", id: "Daniel"}, {name: "Oseias", id: "Hosea"}, {name: "Joel", id: "Joel"}, {name: "Amós", id: "Amos"},
-            {name: "Obadias", id: "Obadiah"}, {name: "Jonas", id: "Jonah"}, {name: "Miqueias", id: "Micah"}, {name: "Naum", id: "Nahum"}, {name: "Habacuque", id: "Habakkuk"},
-            {name: "Sofonias", id: "Zephaniah"}, {name: "Ageu", id: "Haggai"}, {name: "Zacarias", id: "Zechariah"}, {name: "Malaquias", id: "Malachi"},
-            {name: "Mateus", id: "Matthew"}, {name: "Marcos", id: "Mark"}, {name: "Lucas", id: "Luke"}, {name: "João", id: "John"}, {name: "Atos", id: "Acts"},
-            {name: "Romanos", id: "Romans"}, {name: "1 Coríntios", id: "1Corinthians"}, {name: "2 Coríntios", id: "2Corinthians"}, {name: "Gálatas", id: "Galatians"}, {name: "Efésios", id: "Ephesians"},
-            {name: "Filipenses", id: "Philippians"}, {name: "Colossenses", id: "Colossians"}, {name: "1 Tessalonicenses", id: "1Thessalonians"}, {name: "2 Tessalonicenses", id: "2Thessalonians"}, {name: "1 Timóteo", id: "1Timothy"},
-            {name: "2 Timóteo", id: "2Timothy"}, {name: "Tito", id: "Titus"}, {name: "Filemom", id: "Philemon"}, {name: "Hebreus", id: "Hebrews"}, {name: "Tiago", id: "James"},
-            {name: "1 Pedro", id: "1Peter"}, {name: "2 Pedro", id: "2Peter"}, {name: "1 João", id: "1John"}, {name: "2 João", id: "2John"}, {name: "3 João", id: "3John"},
-            {name: "Judas", id: "Jude"}, {name: "Apocalipse", id: "Revelation"}
-        ];
+        const isStage = urlParams.get('view') === 'stage';
+
+        // --- DATA ---
+        const bibleBooks = [{name: "Gênesis", id: "Genesis"},{name: "Êxodo", id: "Exodus"},{name: "Levítico", id: "Leviticus"},{name: "Números", id: "Numbers"},{name: "Deuteronômio", id: "Deuteronomy"},{name: "Josué", id: "Joshua"},{name: "Juízes", id: "Judges"},{name: "Rute", id: "Ruth"},{name: "1 Samuel", id: "1 Samuel"},{name: "2 Samuel", id: "2 Samuel"},{name: "1 Reis", id: "1 Kings"},{name: "2 Reis", id: "2 Kings"},{name: "1 Crônicas", id: "1 Chronicles"},{name: "2 Crônicas", id: "2 Chronicles"},{name: "Esdras", id: "Ezra"},{name: "Neemias", id: "Nehemiah"},{name: "Ester", id: "Esther"},{name: "Jó", id: "Job"},{name: "Salmos", id: "Psalms"},{name: "Provérbios", id: "Proverbs"},{name: "Eclesiastes", id: "Ecclesiastes"},{name: "Cânticos", id: "Song of Solomon"},{name: "Isaías", id: "Isaiah"},{name: "Jeremias", id: "Jeremiah"},{name: "Lamentações", id: "Lamentations"},{name: "Ezequiel", id: "Ezekiel"},{name: "Daniel", id: "Daniel"},{name: "Oseias", id: "Hosea"},{name: "Joel", id: "Joel"},{name: "Amós", id: "Amos"},{name: "Obadias", id: "Obadiah"},{name: "Jonas", id: "Jonah"},{name: "Miqueias", id: "Micah"},{name: "Naum", id: "Nahum"},{name: "Habacuque", id: "Habakkuk"},{name: "Sofonias", id: "Zephaniah"},{name: "Ageu", id: "Haggai"},{name: "Zacarias", id: "Zechariah"},{name: "Malaquias", id: "Malachi"},{name: "Mateus", id: "Matthew"},{name: "Marcos", id: "Mark"},{name: "Lucas", id: "Luke"},{name: "João", id: "John"},{name: "Atos", id: "Acts"},{name: "Romanos", id: "Romans"},{name: "1 Coríntios", id: "1 Corinthians"},{name: "2 Coríntios", id: "2 Corinthians"},{name: "Gálatas", id: "Galatians"},{name: "Efésios", id: "Ephesians"},{name: "Filipenses", id: "Philippians"},{name: "Colossenses", id: "Colossians"},{name: "1 Tessalonicenses", id: "1 Thessalonians"},{name: "2 Tessalonicenses", id: "2 Thessalonians"},{name: "1 Timóteo", id: "1 Timothy"},{name: "2 Timóteo", id: "2 Timothy"},{name: "Tito", id: "Titus"},{name: "Filemom", id: "Philemon"},{name: "Hebreus", id: "Hebrews"},{name: "Tiago", id: "James"},{name: "1 Pedro", id: "1 Peter"},{name: "2 Pedro", id: "2 Peter"},{name: "1 João", id: "1 John"},{name: "2 João", id: "2 John"},{name: "3 João", id: "3 John"},{name: "Judas", id: "Jude"},{name: "Apocalipse", id: "Revelation"}];
         const bibleChapterCounts = [50,40,27,36,34,24,21,4,31,24,22,25,29,36,10,13,10,42,150,31,12,8,66,52,5,48,12,14,3,9,1,4,7,3,3,3,2,14,4,28,16,24,21,28,16,16,13,6,6,4,4,5,3,6,1,13,5,5,3,5,1,1,1,22];
-
-        // Bible Navigator State
-        let bibleNavState = { step: 'book', selectedBookIndex: -1, selectedChapter: -1 };
-
-        // --- SETTINGS & STATE ---
-        const defaultSettings = {
-            autoOpenProjector: false, showTimer: true, showText: true, timerPos: 'top',
-            bgColor: '#000000', bgType: 'color', bgUrl: '', overlayOpacity: 0.5,
-            textColor: '#ffffff', textSize: 80, fontFamily: "'Segoe UI', sans-serif", textAlign: 'center',
-            timerColor: '#4ade80', timerSize: 180, alertTime: 60
+        const bibleVersions = {
+            'aa': { name: 'Almeida Atualizada (PT)', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_aa.json' },
+            'acf': { name: 'Almeida Corr. Fiel (PT)', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_acf.json' },
+            'nvi': { name: 'Nova Versão Int. (PT)', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_nvi.json' }
         };
-        let currentSettings = JSON.parse(localStorage.getItem('appSettings')) || defaultSettings;
 
-        const defaultVerses = [{ title: "Boas Vindas", content: "Sejam bem-vindos!\nO culto começará em instantes." }];
-        let verses = JSON.parse(localStorage.getItem('myVerses')) || defaultVerses;
-        let galleryItems = JSON.parse(localStorage.getItem('myGallery')) || [
-            { type: 'image', url: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?auto=format&fit=crop&w=1000&q=80' },
-            { type: 'image', url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80' }
-        ];
+        let currentSettings = JSON.parse(localStorage.getItem('appSettings')) || { autoOpenProjector: false, showTimer: true, showText: true, timerPos: 'top', bgColor: '#000000', bgType: 'color', bgUrl: '', overlayOpacity: 0.5, textColor: '#ffffff', textSize: 80, fontFamily: "'Segoe UI', sans-serif", textAlign: 'center', timerColor: '#4ade80', timerSize: 180, alertTime: 60 };
+        let verses = JSON.parse(localStorage.getItem('myVerses')) || [{ title: "Boas Vindas", content: "Sejam bem-vindos!\nO culto começará em instantes." }];
+        let galleryItems = JSON.parse(localStorage.getItem('myGallery')) || [{ type: 'image', url: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?auto=format&fit=crop&w=1000&q=80' }];
+        let smSlides = JSON.parse(localStorage.getItem('mySmSlides')) || []; // SM SLIDES
 
         let timerInterval, totalSeconds = 300, isRunning = false;
+        let bibleNavState = { step: 'book', selectedBookIndex: -1, selectedChapter: -1 };
+        let downloadedVersions = {};
+        let bibleDB;
+        let currentSmIndex = -1; // SM Index
 
-        // --- AUTO START LOGIC ---
-        async function startProjectorFlow() {
-            document.getElementById('startup-overlay').style.display = 'none';
-            await openProjectorWindow(true);
-        }
-
-        // --- BIBLE STRATEGY ---
-        // 1. Tentar Gemini (IA)
-        async function getChapterFromGemini(bookName, chapter) {
-            const apiKey = "AIzaSyCD1tXgDGMa8H4UJR7s1eEOPFjbjI7dd4Y"; 
-            const prompt = `Retorne o texto bíblico de ${bookName} ${chapter} na versão João Ferreira de Almeida. Retorne estritamente um JSON válido neste formato: { "verses": [ { "verse": 1, "text": "texto..." } ] }`;
-
-            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
-                method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-            });
-            const data = await res.json();
-            let txt = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-            
-            // Robust Parsing: Encontra o primeiro { e o último }
-            const jsonMatch = txt.match(/\{[\s\S]*\}/);
-            if (jsonMatch) return JSON.parse(jsonMatch[0]);
-            throw new Error("JSON não encontrado na resposta da IA");
-        }
-
-        // 2. Fallback: API Pública
-        async function getChapterFromPublicAPI(bookIndex, chapter) {
-            const bookId = bibleBooks[bookIndex].id; // Use English ID for Public API
-            const res = await fetch(`https://bible-api.com/${bookId}+${chapter}?translation=almeida`);
-            return await res.json();
-        }
-
-        // --- BIBLE LOGIC MAIN ---
-        function initBible() {
-            const select = document.getElementById('bible-book');
-            if(!select) return;
-            bibleBooks.forEach((book, i) => {
-                const opt = document.createElement('option');
-                opt.value = i; // Armazena índice para facilitar fallback
-                opt.innerText = book.name;
-                select.appendChild(opt);
-            });
-        }
-
-        async function fetchBibleChapter() {
-            const bookIndex = document.getElementById('bible-book').value;
-            const bookName = bibleBooks[bookIndex].name;
-            const chapter = document.getElementById('bible-chapter').value;
-            const list = document.getElementById('bible-verse-list');
-            
-            list.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Buscando Texto...</div>';
-            
-            try {
-                // Tenta IA Primeiro
-                try {
-                    const jsonBible = await getChapterFromGemini(bookName, chapter);
-                    if(jsonBible.verses) {
-                        renderBibleVerses(jsonBible.verses, `${bookName} ${chapter}`);
-                        return;
-                    }
-                } catch (e) { console.warn("Gemini falhou, tentando API pública...", e); }
-
-                // Fallback para API Pública
-                const publicBible = await getChapterFromPublicAPI(bookIndex, chapter);
-                if(publicBible.verses) {
-                    renderBibleVerses(publicBible.verses, `${bookName} ${chapter}`);
-                } else {
-                    list.innerHTML = '<div style="color:red; text-align:center;">Capítulo não encontrado.</div>';
-                }
-
-            } catch (e) {
-                console.error(e);
-                list.innerHTML = '<div style="color:red; text-align:center;">Erro de conexão. Verifique a internet.</div>';
-            }
-        }
-
-        function renderBibleVerses(versesArray, referenceBase) {
-            const list = document.getElementById('bible-verse-list');
+        // --- SM LOGIC (NEW) ---
+        function renderSmList() {
+            if(isProjector || isStage) return;
+            const list = document.getElementById('sm-list');
             list.innerHTML = '';
-            versesArray.forEach(v => {
-                const item = document.createElement('div');
-                item.className = 'bible-verse-item';
-                const verseNum = v.verse || v.pk; // Public API uses 'verse' or 'pk' sometimes
-                const projectionText = `${v.text}\n\n(${referenceBase}:${verseNum})`;
-                item.innerHTML = `<span class="bible-verse-ref">${verseNum}</span>${v.text}`;
-                item.onclick = () => {
-                    updateDisplay(projectionText);
-                    item.style.backgroundColor = '#3b82f6'; setTimeout(() => item.style.backgroundColor = '', 200);
-                };
-                list.appendChild(item);
+            
+            if(smSlides.length === 0) {
+                list.innerHTML = '<div style="text-align:center; color:#666; padding:20px; font-size:0.9rem;">Nenhum slide.</div>';
+                return;
+            }
+
+            smSlides.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'list-card';
+                card.onclick = () => openSmViewer(index);
+                card.innerHTML = `
+                    <div class="list-info">
+                        <div class="list-title">${item.title}</div>
+                        <div class="list-preview">${item.content.substring(0, 30).replace(/\n/g, ' ')}...</div>
+                    </div>
+                    <span class="material-icons" style="color:#666; font-size:18px;">chevron_right</span>
+                `;
+                list.appendChild(card);
             });
         }
 
-        function filterBibleVerses() {
-            const term = document.getElementById('bible-search-local').value.toLowerCase();
-            const list = document.getElementById('bible-verse-list');
-            const items = list.getElementsByClassName('bible-verse-item');
-            for(let item of items) {
-                const text = item.innerText.toLowerCase();
-                if(text.includes(term)) item.style.display = 'block'; else item.style.display = 'none';
-            }
-        }
-
-        // --- BIBLE NAVIGATOR ---
-        function openBibleNavigator() {
-            bibleNavState = { step: 'book', selectedBookIndex: -1, selectedChapter: -1 };
-            renderBibleNavigator();
-            document.getElementById('modal-bible-navigator').style.display = 'flex';
-            document.getElementById('modal-bible-navigator').classList.remove('hidden');
-        }
-
-        function bibleGoBack() {
-            if(bibleNavState.step === 'verse') { bibleNavState.step = 'chapter'; renderBibleNavigator(); }
-            else if(bibleNavState.step === 'chapter') { bibleNavState.step = 'book'; renderBibleNavigator(); }
-        }
-
-        function renderBibleNavigator() {
-            const area = document.getElementById('bible-content-area');
-            const crumbs = document.getElementById('bible-crumbs');
-            const backBtn = document.getElementById('bible-back-btn');
+        function saveSmSlide() {
+            const title = document.getElementById('new-sm-title').value;
+            const content = document.getElementById('new-sm-content').value;
             
-            area.innerHTML = '';
-
-            if (bibleNavState.step === 'book') {
-                backBtn.style.display = 'none'; crumbs.innerText = '';
-                const grid = document.createElement('div'); grid.className = 'bible-books-grid';
-                grid.innerHTML += `<div class="testament-label">Velho Testamento</div>`;
-                bibleBooks.slice(0, 39).forEach((b, i) => grid.appendChild(createBookBtn(b, i)));
-                grid.innerHTML += `<div class="testament-label">Novo Testamento</div>`;
-                bibleBooks.slice(39).forEach((b, i) => grid.appendChild(createBookBtn(b, i + 39)));
-                area.appendChild(grid);
-
-            } else if (bibleNavState.step === 'chapter') {
-                backBtn.style.display = 'flex';
-                const bookName = bibleBooks[bibleNavState.selectedBookIndex].name;
-                crumbs.innerText = `> ${bookName}`;
-                const grid = document.createElement('div'); grid.className = 'bible-chapters-grid';
-                const count = bibleChapterCounts[bibleNavState.selectedBookIndex];
-                for(let c = 1; c <= count; c++) {
-                    const btn = document.createElement('div'); btn.className = 'bible-chapter-btn'; btn.innerText = c;
-                    btn.onclick = () => { bibleNavState.selectedChapter = c; bibleNavState.step = 'verse'; renderBibleNavigator(); };
-                    grid.appendChild(btn);
-                }
-                area.appendChild(grid);
-
-            } else if (bibleNavState.step === 'verse') {
-                backBtn.style.display = 'flex';
-                const book = bibleBooks[bibleNavState.selectedBookIndex];
-                const chapter = bibleNavState.selectedChapter;
-                crumbs.innerText = `> ${book.name} > Cap ${chapter}`;
-                
-                area.innerHTML = '<div style="text-align:center; padding:40px; color:#aaa;">Carregando...</div>';
-                
-                // Híbrido: IA -> Fallback Public
-                (async () => {
-                    let data = {};
-                    try {
-                        data = await getChapterFromGemini(book.name, chapter);
-                    } catch(e) {
-                        try {
-                            data = await getChapterFromPublicAPI(bibleNavState.selectedBookIndex, chapter);
-                        } catch(err) { return null; }
-                    }
-                    return data;
-                })().then(data => {
-                    area.innerHTML = '';
-                    if(data && data.verses) {
-                        const list = document.createElement('div'); list.className = 'bible-verse-list-full';
-                        data.verses.forEach(v => {
-                            const row = document.createElement('div'); row.className = 'bible-verse-item-full';
-                            const vNum = v.verse || v.pk;
-                            row.innerHTML = `<span class="bible-verse-num">${vNum}</span> ${v.text}`;
-                            row.onclick = () => {
-                                const projText = `${v.text}\n\n(${book.name} ${chapter}:${vNum})`;
-                                updateDisplay(projText);
-                                row.style.background = '#2563eb'; setTimeout(()=> row.style.background = '', 300);
-                            };
-                            list.appendChild(row);
-                        });
-                        area.appendChild(list);
-                    } else {
-                        area.innerHTML = '<div style="text-align:center; color:red;">Erro ao carregar texto.</div>';
-                    }
-                });
-            }
-        }
-
-        function createBookBtn(book, index) {
-            const btn = document.createElement('div'); btn.className = 'bible-book-btn'; btn.innerText = book.name;
-            btn.onclick = () => { bibleNavState.selectedBookIndex = index; bibleNavState.step = 'chapter'; renderBibleNavigator(); };
-            return btn;
-        }
-
-        // --- TAB & UI LOGIC ---
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            const buttons = document.querySelectorAll('.tab-btn');
-            const tabs = ['tab-verses', 'tab-bible', 'tab-gallery', 'tab-appearance'];
-            let index = 0;
-            if(tabName === 'bible') index = 1;
-            if(tabName === 'gallery') index = 2;
-            if(tabName === 'appearance') index = 3;
-
-            buttons[index].classList.add('active');
-            document.getElementById(tabs[index]).classList.add('active');
-        }
-
-        // --- SYSTEM FUNCTIONS ---
-        async function openProjectorWindow(fromClick = false) {
-            let params = 'width=800,height=600,menubar=no,toolbar=no,location=no,status=no';
-            if (fromClick && window.getScreenDetails) {
-                try {
-                    const screenDetails = await window.getScreenDetails();
-                    const secondaryScreen = screenDetails.screens.find(s => s !== screenDetails.currentScreen);
-                    if (secondaryScreen) params = `left=${secondaryScreen.left},top=${secondaryScreen.top},width=${secondaryScreen.width},height=${secondaryScreen.height},menubar=no,toolbar=no,location=no,status=no`;
-                } catch (e) { console.warn("Permissão tela negada."); }
-            }
-            const newWin = window.open(window.location.href.split('?')[0] + '?view=projector', 'ProjectorWindow', params);
-            if(!newWin || newWin.closed || typeof newWin.closed=='undefined') alert("Pop-up bloqueado. Permita na barra de endereço.");
-        }
-
-        function downloadSource() {
-            const clone = document.documentElement.cloneNode(true);
-            clone.querySelectorAll('.modal-overlay').forEach(el => el.classList.add('hidden'));
-            clone.classList.remove('projector-mode');
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([clone.outerHTML], {type: 'text/html'}));
-            a.download = 'app_louvor_pro.html';
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-        }
-
-        function loadSettingsToInputs() {
-            if(isProjector) return;
-            document.getElementById('cfg-auto-open').checked = currentSettings.autoOpenProjector || false; 
-            document.getElementById('cfg-show-timer').checked = currentSettings.showTimer !== false; 
-            document.getElementById('cfg-show-text').checked = currentSettings.showText !== false;
-            document.getElementById('cfg-timer-pos').value = currentSettings.timerPos || 'top';
-            document.getElementById('cfg-bg-color').value = currentSettings.bgColor;
-            document.getElementById('cfg-overlay-opacity').value = currentSettings.overlayOpacity;
-            document.getElementById('cfg-text-color').value = currentSettings.textColor;
-            document.getElementById('cfg-text-size').value = currentSettings.textSize;
-            document.getElementById('cfg-font-family').value = currentSettings.fontFamily;
-            document.getElementById('cfg-timer-color').value = currentSettings.timerColor;
-            document.getElementById('cfg-timer-size').value = currentSettings.timerSize;
-            const alertMin = Math.floor((currentSettings.alertTime || 60) / 60);
-            const alertSec = (currentSettings.alertTime || 60) % 60;
-            document.getElementById('cfg-alert-min').value = alertMin;
-            document.getElementById('cfg-alert-sec').value = alertSec;
-            updateAlignButtons(currentSettings.textAlign);
-        }
-
-        function updateAlignButtons(align) {
-            if(isProjector) return;
-            document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`btn-align-${align}`).classList.add('active');
-        }
-        function setAlignment(align) { currentSettings.textAlign = align; updateAlignButtons(align); saveAndApplySettings(); }
-
-        function updateSettings() {
-            currentSettings.autoOpenProjector = document.getElementById('cfg-auto-open').checked;
-            currentSettings.showTimer = document.getElementById('cfg-show-timer').checked;
-            currentSettings.showText = document.getElementById('cfg-show-text').checked;
-            currentSettings.timerPos = document.getElementById('cfg-timer-pos').value;
-            currentSettings.bgColor = document.getElementById('cfg-bg-color').value;
-            currentSettings.overlayOpacity = document.getElementById('cfg-overlay-opacity').value;
-            currentSettings.textColor = document.getElementById('cfg-text-color').value;
-            currentSettings.textSize = document.getElementById('cfg-text-size').value;
-            currentSettings.fontFamily = document.getElementById('cfg-font-family').value;
-            currentSettings.timerColor = document.getElementById('cfg-timer-color').value;
-            currentSettings.timerSize = document.getElementById('cfg-timer-size').value;
-            currentSettings.alertTime = (parseInt(document.getElementById('cfg-alert-min').value)||0)*60 + (parseInt(document.getElementById('cfg-alert-sec').value)||0);
-            saveAndApplySettings();
-        }
-
-        function removeBackground() { currentSettings.bgType = 'color'; currentSettings.bgUrl = ''; saveAndApplySettings(); renderGallery(); }
-        function setBackground(url, type) { currentSettings.bgType = type; currentSettings.bgUrl = url; saveAndApplySettings(); renderGallery(); }
-        function resetSettings() { currentSettings = {...defaultSettings}; loadSettingsToInputs(); saveAndApplySettings(); }
-        function saveAndApplySettings() { try { localStorage.setItem('appSettings', JSON.stringify(currentSettings)); } catch(e){} applyStyles(currentSettings); channel.postMessage({ type: 'settings', payload: currentSettings }); }
-
-        function applyStyles(s) {
-            const display = document.getElementById('display-area');
-            const overlay = document.getElementById('display-overlay');
-            const text = document.getElementById('text-display');
-            const timer = document.getElementById('timer-display');
-            const wrapper = document.getElementById('content-wrapper');
-            const videoEl = document.getElementById('bg-video');
-
-            timer.style.display = (s.showTimer !== false) ? 'block' : 'none';
-            text.style.display = (s.showText !== false) ? 'block' : 'none';
-            wrapper.style.flexDirection = s.timerPos === 'bottom' ? 'column-reverse' : 'column';
-            display.style.backgroundColor = s.bgColor;
-            
-            if (s.bgType === 'video' && s.bgUrl) {
-                display.style.backgroundImage = 'none'; videoEl.style.display = 'block';
-                if (videoEl.src !== s.bgUrl) { videoEl.src = s.bgUrl; videoEl.play().catch(e=>{}); } else if(videoEl.paused) videoEl.play();
-            } else if (s.bgType === 'image' && s.bgUrl) {
-                videoEl.style.display = 'none'; videoEl.pause(); display.style.backgroundImage = `url('${s.bgUrl}')`;
+            if(title && content) {
+                smSlides.push({ title, content });
+                localStorage.setItem('mySmSlides', JSON.stringify(smSlides));
+                renderSmList();
+                closeModal('sm');
             } else {
-                videoEl.style.display = 'none'; videoEl.pause(); display.style.backgroundImage = 'none';
+                alert("Preencha título e conteúdo.");
             }
-            overlay.style.backgroundColor = s.bgType !== 'color' ? `rgba(0,0,0,${s.overlayOpacity})` : 'transparent';
-            text.style.color = s.textColor; text.style.fontSize = `${s.textSize}px`; text.style.fontFamily = s.fontFamily; text.style.textAlign = s.textAlign;
-            wrapper.style.alignItems = s.textAlign === 'center' ? 'center' : (s.textAlign === 'left' ? 'flex-start' : 'flex-end');
-            timer.style.color = s.timerColor; 
-            if(timer.innerText !== "ACABOU SEU TEMPO") timer.style.fontSize = `${s.timerSize}px`; 
         }
 
+        function deleteCurrentSmSlide() {
+             if(confirm("Excluir?")) {
+                smSlides.splice(currentSmIndex, 1);
+                localStorage.setItem('mySmSlides', JSON.stringify(smSlides));
+                closeSmViewer();
+                renderSmList();
+            }
+        }
+
+        function openSmViewer(index) {
+            currentSmIndex = index;
+            const item = smSlides[index];
+            document.getElementById('sm-viewer').style.display = 'flex';
+            document.getElementById('sm-title-display').innerText = item.title;
+            
+            const container = document.getElementById('sm-slides-container');
+            container.innerHTML = '';
+            const slides = item.content.split(/\n\s*\n/);
+            
+            slides.forEach((slideText, i) => {
+                if(!slideText.trim()) return;
+                const card = document.createElement('div');
+                card.className = 'slide-card';
+                card.innerHTML = `<span class="slide-number">Slide ${i+1}</span>${slideText.trim()}`;
+                card.onclick = () => {
+                    updateDisplay(slideText.trim());
+                    document.querySelectorAll('.slide-card').forEach(c => c.classList.remove('active-slide'));
+                    card.classList.add('active-slide');
+                };
+                container.appendChild(card);
+            });
+        }
+        
+        function closeSmViewer() {
+            document.getElementById('sm-viewer').style.display = 'none';
+            currentSmIndex = -1;
+        }
+
+        // --- GALLERY LOGIC ---
         function renderGallery() {
-            if(isProjector) return;
+            if(isProjector || isStage) return;
             const grid = document.getElementById('gallery-grid'); grid.innerHTML = '';
             galleryItems.forEach((item, index) => {
                 const div = document.createElement('div');
@@ -848,7 +430,6 @@
                 grid.appendChild(div);
             });
         }
-
         function saveMedia() {
             const type = document.getElementById('new-media-type').value;
             const urlInput = document.getElementById('new-media-url').value;
@@ -862,6 +443,264 @@
         function deleteMedia(index) { if(confirm('Remover?')) { galleryItems.splice(index, 1); localStorage.setItem('myGallery', JSON.stringify(galleryItems)); renderGallery(); } }
         function toggleMediaType() { document.getElementById('new-media-file').accept = document.getElementById('new-media-type').value === 'video' ? 'video/*' : 'image/*'; }
         function updateFileLabel(input) { document.getElementById('file-label-text').innerText = input.files[0] ? input.files[0].name : "Clique para escolher"; }
+        function setBackground(url, type) { currentSettings.bgType = type; currentSettings.bgUrl = url; saveAndApplySettings(); renderGallery(); }
+
+
+        // --- GENERIC APP LOGIC ---
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            const tabs = ['tab-verses', 'tab-sm', 'tab-bible', 'tab-gallery', 'tab-appearance'];
+            let index = 0;
+            if(tabName === 'sm') index = 1;
+            if(tabName === 'bible') index = 2;
+            if(tabName === 'gallery') index = 3;
+            if(tabName === 'appearance') index = 4;
+
+            document.querySelectorAll('.tab-btn')[index].classList.add('active');
+            document.getElementById(tabs[index]).classList.add('active');
+        }
+
+        // --- BIBLE LOGIC ---
+        async function initOfflineBible() {
+            return new Promise((resolve) => {
+                const request = indexedDB.open("LouvorProDB", 2);
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains("bible")) db.createObjectStore("bible");
+                };
+                request.onsuccess = (e) => {
+                    bibleDB = e.target.result;
+                    checkBibleStatus();
+                    resolve();
+                };
+            });
+        }
+        function checkBibleStatus() {
+            if(!bibleDB) return;
+            const tx = bibleDB.transaction("bible", "readonly");
+            const store = tx.objectStore("bible");
+            Object.keys(bibleVersions).forEach(key => {
+                const req = store.get(key);
+                req.onsuccess = () => {
+                    downloadedVersions[key] = !!req.result;
+                    renderBibleStatusList();
+                };
+            });
+        }
+        function renderBibleStatusList() {
+            const list = document.getElementById('bible-versions-list'); list.innerHTML = '';
+            Object.keys(bibleVersions).forEach(key => {
+                const v = bibleVersions[key];
+                const isDown = downloadedVersions[key];
+                const div = document.createElement('div'); div.className = 'version-row';
+                div.innerHTML = `<div class="version-info"><span class="version-name">${v.name}</span><span class="version-status">${isDown?'Offline':'Online'}</span></div><button class="download-btn ${isDown?'downloaded':''}" onclick="downloadOfflineBible('${key}')" ${isDown?'disabled':''}>${isDown?'Pronta':'Baixar'}</button>`;
+                list.appendChild(div);
+            });
+        }
+        async function downloadOfflineBible(key) {
+            const btn = event.target; btn.innerText = "Baixando...";
+            try {
+                const res = await fetch(bibleVersions[key].url);
+                const data = await res.json();
+                const tx = bibleDB.transaction("bible", "readwrite");
+                tx.objectStore("bible").put(data, key);
+                tx.oncomplete = () => { alert("Baixado!"); checkBibleStatus(); };
+            } catch(e) { alert("Erro ao baixar."); checkBibleStatus(); }
+        }
+
+        async function getChapterFromLocalDB(vKey, bIdx, ch) {
+            return new Promise((resolve, reject) => {
+                const req = bibleDB.transaction("bible", "readonly").objectStore("bible").get(vKey);
+                req.onsuccess = () => {
+                    const res = req.result;
+                    if(res && res[bIdx] && res[bIdx].chapters[ch-1]) {
+                        resolve({ verses: res[bIdx].chapters[ch-1].map((t,i)=>({verse:i+1, text:t})) });
+                    } else reject();
+                };
+                req.onerror = reject;
+            });
+        }
+
+        async function fetchBibleChapter() {
+             const bIdx = parseInt(document.getElementById('bible-book').value);
+             const bName = bibleBooks[bIdx].name;
+             const ch = parseInt(document.getElementById('bible-chapter').value);
+             const vKey = document.getElementById('bible-version-select').value;
+             const list = document.getElementById('bible-verse-list');
+             list.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Buscando...</div>';
+
+             // 1. Offline
+             if(downloadedVersions[vKey]) {
+                 try {
+                     const data = await getChapterFromLocalDB(vKey, bIdx, ch);
+                     renderBibleVerses(data.verses, `${bName} ${ch} (${vKey.toUpperCase()})`);
+                     return;
+                 } catch(e){}
+             }
+             
+             const apiKey = "AIzaSyCD1tXgDGMa8H4UJR7s1eEOPFjbjI7dd4Y";
+             try {
+                const prompt = `Texto de ${bName} ${ch} na versão ${bibleVersions[vKey].name}. JSON: {"verses":[{"verse":1,"text":"..."}]}`;
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, { method: "POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+                const d = await res.json();
+                const json = JSON.parse(d.candidates[0].content.parts[0].text.match(/\{[\s\S]*\}/)[0]);
+                renderBibleVerses(json.verses, `${bName} ${ch}`);
+             } catch(e) {
+                 try {
+                     const res2 = await fetch(`https://bible-api.com/${bibleBooks[bIdx].id.replace(/\s/g,'+')}+${ch}?translation=almeida`);
+                     const d2 = await res2.json();
+                     renderBibleVerses(d2.verses, `${bName} ${ch}`);
+                 } catch(e2) {
+                     list.innerHTML = '<div style="color:red; text-align:center;">Erro. Baixe a versão para garantir.</div>';
+                 }
+             }
+        }
+
+        function renderBibleVerses(verses, ref) {
+            const list = document.getElementById('bible-verse-list'); list.innerHTML = '';
+            verses.forEach(v => {
+                const d = document.createElement('div'); d.className = 'bible-verse-item';
+                const vNum = v.verse || v.pk;
+                d.innerHTML = `<span class="bible-verse-ref">${vNum}</span>${v.text}`;
+                d.onclick = () => { updateDisplay(`${v.text}\n\n(${ref}:${vNum})`); d.style.background='#3b82f6'; setTimeout(()=>d.style.background='',200); };
+                list.appendChild(d);
+            });
+        }
+        
+        function initBible() {
+            const selB = document.getElementById('bible-book');
+            bibleBooks.forEach((b,i)=>{const o=document.createElement('option'); o.value=i; o.innerText=b.name; selB.appendChild(o)});
+            const selV = document.getElementById('bible-version-select');
+            Object.keys(bibleVersions).forEach(k=>{const o=document.createElement('option'); o.value=k; o.innerText=bibleVersions[k].name; selV.appendChild(o)});
+        }
+        function updateChapterMax() { document.getElementById('bible-chapter').max = bibleChapterCounts[document.getElementById('bible-book').value]; }
+
+        // --- FULL BIBLE NAVIGATOR ---
+        function openBibleNavigator() { bibleNavState={step:'book'}; renderBibleNavigator(); document.getElementById('modal-bible-navigator').style.display='flex'; document.getElementById('modal-bible-navigator').classList.remove('hidden'); }
+        function bibleGoBack() { 
+            if(bibleNavState.step==='verse') bibleNavState.step='chapter'; 
+            else if(bibleNavState.step==='chapter') bibleNavState.step='book'; 
+            renderBibleNavigator(); 
+        }
+        function renderBibleNavigator() {
+            const area = document.getElementById('bible-content-area'); area.innerHTML='';
+            const crumbs = document.getElementById('bible-crumbs');
+            const back = document.getElementById('bible-back-btn');
+            
+            if(bibleNavState.step === 'book') {
+                back.style.display='none'; crumbs.innerText='';
+                const grid = document.createElement('div'); grid.className='bible-books-grid';
+                grid.innerHTML += `<div class="testament-label">Velho Testamento</div>`;
+                bibleBooks.slice(0,39).forEach((b,i)=>grid.appendChild(createBookBtn(b,i)));
+                grid.innerHTML += `<div class="testament-label">Novo Testamento</div>`;
+                bibleBooks.slice(39).forEach((b,i)=>grid.appendChild(createBookBtn(b,i+39)));
+                area.appendChild(grid);
+            } else if (bibleNavState.step === 'chapter') {
+                back.style.display='flex'; crumbs.innerText=`> ${bibleBooks[bibleNavState.bookIdx].name}`;
+                const grid = document.createElement('div'); grid.className='bible-chapters-grid';
+                for(let c=1; c<=bibleChapterCounts[bibleNavState.bookIdx]; c++) {
+                    const btn = document.createElement('div'); btn.className='bible-chapter-btn'; btn.innerText=c;
+                    btn.onclick=()=>{ bibleNavState.chapter=c; bibleNavState.step='verse'; renderBibleNavigator(); };
+                    grid.appendChild(btn);
+                }
+                area.appendChild(grid);
+            } else if (bibleNavState.step === 'verse') {
+                area.innerHTML = '<div style="padding:20px; text-align:center; color:#888">Carregando...</div>';
+                const vKey = document.getElementById('bible-version-select').value;
+                const book = bibleBooks[bibleNavState.bookIdx];
+                const ch = bibleNavState.chapter;
+                
+                (async()=>{
+                    try { return await getChapterFromLocalDB(vKey, bibleNavState.bookIdx, ch); } catch(e){}
+                    try { const r=await fetch(`https://bible-api.com/${book.id.replace(/\s/g,'+')}+${ch}?translation=almeida`); return await r.json(); } catch(e){}
+                    return null;
+                })().then(data=>{
+                    area.innerHTML='';
+                    if(data && data.verses) {
+                         const list = document.createElement('div'); list.className='bible-verse-list-full';
+                         data.verses.forEach(v=>{
+                             const row=document.createElement('div'); row.className='bible-verse-item-full';
+                             const vn = v.verse||v.pk;
+                             row.innerHTML=`<span class="bible-verse-num">${vn}</span> ${v.text}`;
+                             row.onclick=()=>{ updateDisplay(`${v.text}\n\n(${book.name} ${ch}:${vn})`); row.style.background='#2563eb'; setTimeout(()=>row.style.background='',300); };
+                             list.appendChild(row);
+                         });
+                         area.appendChild(list);
+                    } else area.innerText="Erro ao carregar.";
+                });
+            }
+        }
+        function createBookBtn(b,i) { const btn=document.createElement('div'); btn.className='bible-book-btn'; btn.innerText=b.name; btn.onclick=()=>{bibleNavState.bookIdx=i; bibleNavState.step='chapter'; renderBibleNavigator();}; return btn;}
+
+
+        // --- MODALS ---
+        function openModal(t) {
+            if(t==='verse' || t==='gallery' || t==='sm') {
+                const m = document.getElementById(`modal-${t}`);
+                m.style.display='flex'; m.classList.remove('hidden');
+                if(t==='verse') { document.getElementById('new-verse-title').value=''; document.getElementById('new-verse-content').value=''; }
+                if(t==='sm') { document.getElementById('new-sm-title').value=''; document.getElementById('new-sm-content').value=''; }
+            }
+        }
+        
+        function closeModal(t) { 
+            const m = document.getElementById(t === 'bible-navigator' ? 'modal-bible-navigator' : `modal-${t}`);
+            if(m) m.style.display='none';
+            if(t==='sm') { if(document.getElementById('sm-viewer').style.display === 'none') currentSmIndex = -1; }
+        }
+        
+        // --- DISPLAY & UI ---
+        function updateDisplay(text) { document.getElementById('text-display').innerText = text; if(!isProjector && !isStage) { document.getElementById('live-text').value = text; channel.postMessage({ type: 'text', payload: text }); } }
+        function removeBackground() { currentSettings.bgType='color'; currentSettings.bgUrl=''; saveAndApplySettings(); renderGallery(); }
+        function saveAndApplySettings() { try{localStorage.setItem('appSettings', JSON.stringify(currentSettings));}catch(e){} applyStyles(currentSettings); channel.postMessage({type:'settings', payload:currentSettings}); }
+        function updateSettings() {
+             currentSettings.autoOpenProjector = document.getElementById('cfg-auto-open').checked;
+             // ... (Settings update logic from previous version, kept short here but fully implemented in final file)
+             // Re-implementing full for safety:
+             currentSettings.showTimer = document.getElementById('cfg-show-timer').checked;
+             currentSettings.showText = document.getElementById('cfg-show-text').checked;
+             currentSettings.timerPos = document.getElementById('cfg-timer-pos').value;
+             currentSettings.bgColor = document.getElementById('cfg-bg-color').value;
+             currentSettings.overlayOpacity = document.getElementById('cfg-overlay-opacity').value;
+             currentSettings.textColor = document.getElementById('cfg-text-color').value;
+             currentSettings.textSize = document.getElementById('cfg-text-size').value;
+             currentSettings.fontFamily = document.getElementById('cfg-font-family').value;
+             currentSettings.timerColor = document.getElementById('cfg-timer-color').value;
+             currentSettings.timerSize = document.getElementById('cfg-timer-size').value;
+             const alertMin = parseInt(document.getElementById('cfg-alert-min').value) || 0;
+             const alertSec = parseInt(document.getElementById('cfg-alert-sec').value) || 0;
+             currentSettings.alertTime = (alertMin * 60) + alertSec;
+             saveAndApplySettings();
+        }
+        function loadSettingsToInputs() {
+            if(isProjector || isStage) return;
+            // ... (Load logic from previous version) ...
+            document.getElementById('cfg-auto-open').checked = currentSettings.autoOpenProjector;
+            document.getElementById('cfg-show-timer').checked = currentSettings.showTimer;
+            document.getElementById('cfg-show-text').checked = currentSettings.showText;
+            document.getElementById('cfg-timer-pos').value = currentSettings.timerPos;
+            document.getElementById('cfg-bg-color').value = currentSettings.bgColor;
+            document.getElementById('cfg-overlay-opacity').value = currentSettings.overlayOpacity;
+            document.getElementById('cfg-text-color').value = currentSettings.textColor;
+            document.getElementById('cfg-text-size').value = currentSettings.textSize;
+            document.getElementById('cfg-font-family').value = currentSettings.fontFamily;
+            document.getElementById('cfg-timer-color').value = currentSettings.timerColor;
+            document.getElementById('cfg-timer-size').value = currentSettings.timerSize;
+            
+            const totalAlert = currentSettings.alertTime || 60;
+            const m = Math.floor(totalAlert / 60);
+            const s = totalAlert % 60;
+            document.getElementById('cfg-alert-min').value = m;
+            document.getElementById('cfg-alert-sec').value = s;
+
+            updateAlignButtons(currentSettings.textAlign);
+        }
+        function updateAlignButtons(align) { if(isProjector || isStage) return; document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active')); document.getElementById(`btn-align-${align}`).classList.add('active'); }
+        function setAlignment(align) { currentSettings.textAlign = align; updateAlignButtons(align); saveAndApplySettings(); }
+        function resetSettings() { currentSettings = {...defaultSettings}; loadSettingsToInputs(); saveAndApplySettings(); }
 
         // TIMER Logic
         function startTimer() { if (isRunning) return; if (!isProjector && !timerInterval) { const m = parseInt(document.getElementById('min').value)||0; const s = parseInt(document.getElementById('sec').value)||0; totalSeconds = m * 60 + s; } isRunning = true; timerInterval = setInterval(() => { if (totalSeconds <= 0) { clearInterval(timerInterval); isRunning = false; updateTimerUI(true); return; } totalSeconds--; updateTimerUI(false); }, 1000); }
@@ -881,51 +720,51 @@
             if(!isProjector) channel.postMessage({ type: 'timer', payload: { text: txt, danger, fontSize: size } });
         }
 
-        function updateDisplay(text) { document.getElementById('text-display').innerText = text; if(!isProjector) { document.getElementById('live-text').value = text; channel.postMessage({ type: 'text', payload: text }); } }
-        
+        // --- RESTORED FUNCTIONS ---
         function renderList() {
-            if(isProjector) return;
-            const list = document.getElementById('verse-list'); list.innerHTML = '';
+            if(isProjector || isStage) return;
+            const list = document.getElementById('verse-list');
+            list.innerHTML = '';
             verses.forEach((v, index) => {
-                const card = document.createElement('div'); card.className = 'list-card';
-                card.onclick = (e) => { if(e.target.closest('.delete-btn')) return; updateDisplay(v.content); };
-                card.innerHTML = `<div class="list-info"><div class="list-title">${v.title}</div><div class="list-preview">${v.content.replace(/\n/g, ' ')}</div></div><button class="delete-btn" onclick="deleteVerse(${index})"><span class="material-icons" style="font-size:18px">delete</span></button>`;
+                const card = document.createElement('div');
+                card.className = 'list-card';
+                card.onclick = (e) => {
+                    if(e.target.closest('.delete-btn')) return; 
+                    updateDisplay(v.content);
+                };
+                card.innerHTML = `
+                    <div class="list-info">
+                        <div class="list-title">${v.title}</div>
+                        <div class="list-preview">${v.content.replace(/\n/g, ' ')}</div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteVerse(${index})"><span class="material-icons" style="font-size:18px">delete</span></button>
+                `;
                 list.appendChild(card);
             });
         }
         function deleteVerse(index) { if(confirm('Apagar?')) { verses.splice(index, 1); localStorage.setItem('myVerses', JSON.stringify(verses)); renderList(); } }
         function saveVerse() { const t = document.getElementById('new-verse-title').value; const c = document.getElementById('new-verse-content').value; if(t&&c) { verses.push({title:t, content:c}); localStorage.setItem('myVerses', JSON.stringify(verses)); renderList(); closeModal('verse'); } }
 
-        function openModal(t) { 
-            if(t==='verse'){ document.getElementById('new-verse-title').value=''; document.getElementById('new-verse-content').value=''; document.getElementById('modal-verse').style.display='flex'; document.getElementById('modal-verse').classList.remove('hidden'); }
-            if(t==='gallery'){ document.getElementById('new-media-url').value=''; document.getElementById('new-media-file').value=''; document.getElementById('modal-gallery').style.display='flex'; document.getElementById('modal-gallery').classList.remove('hidden'); }
-        }
-        function closeModal(t) { 
-            if(document.getElementById(`modal-${t}`)) document.getElementById(`modal-${t}`).style.display='none'; 
-            if(t === 'bible-navigator') document.getElementById('modal-bible-navigator').style.display='none';
-        }
-        function toggleSidebar() { const sb = document.getElementById('sidebar'); sb.style.marginLeft = sb.style.marginLeft === '-320px' ? '0' : '-320px'; }
-        function toggleUI() { document.getElementById('controls-bar').classList.toggle('hidden'); document.getElementById('sidebar').classList.toggle('hidden'); }
-        function toggleFullScreen() { if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e=>{}); else if(document.exitFullscreen) document.exitFullscreen().catch(e=>{}); }
-
-        // --- EXEC ---
-        if (isProjector) {
-            document.body.classList.add('projector-mode'); document.title = "Projeção"; applyStyles(currentSettings);
-            channel.onmessage = (event) => {
-                if (event.data.type === 'timer') { const el = document.getElementById('timer-display'); el.innerText = event.data.payload.text; el.style.fontSize = event.data.payload.fontSize; if(event.data.payload.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode'); }
-                if (event.data.type === 'text') document.getElementById('text-display').innerText = event.data.payload;
-                if (event.data.type === 'settings') applyStyles(event.data.payload);
+        // --- INIT ---
+        if (isProjector || isStage) {
+            if(isProjector) { document.body.classList.add('projector-mode'); document.title = "Projeção"; }
+            if(isStage) { document.body.classList.add('stage-mode'); document.title = "Retorno (Palco)"; }
+            applyStyles(currentSettings);
+            channel.onmessage = (e) => {
+                if(e.data.type==='timer') { const el=document.getElementById('timer-display'); el.innerText=e.data.payload.text; if(!isStage) el.style.fontSize=e.data.payload.fontSize; if(e.data.payload.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode'); }
+                if(e.data.type==='text') document.getElementById('text-display').innerText=e.data.payload;
+                if(e.data.type==='settings') applyStyles(e.data.payload);
             };
         } else {
-            loadSettingsToInputs(); initBible(); applyStyles(currentSettings); renderGallery(); renderList(); updateTimerUI(false);
-            
-            // VERIFICA SE DEVE MOSTRAR OVERLAY INICIAL
-            if (currentSettings.autoOpenProjector) {
-                const ov = document.getElementById('startup-overlay');
-                ov.classList.remove('hidden');
-                ov.style.display = 'flex';
-            }
+            loadSettingsToInputs(); initBible(); renderSmList(); renderGallery(); renderList(); updateTimerUI(false); initOfflineBible(); 
+            if(currentSettings.autoOpenProjector) document.getElementById('startup-overlay').classList.remove('hidden');
         }
+        
+        function startProjectorFlow() { document.getElementById('startup-overlay').style.display='none'; openProjectorWindow(true); }
+        async function openProjectorWindow(click) { const p = 'width=800,height=600,menubar=no,toolbar=no'; window.open(window.location.href.split('?')[0]+'?view=projector', 'Proj', p); }
+        async function openStageWindow() { const p = 'width=800,height=600,menubar=no,toolbar=no'; window.open(window.location.href.split('?')[0]+'?view=stage', 'Retorno', p); }
+        function downloadSource() { const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([document.documentElement.outerHTML],{type:'text/html'})); a.download='louvor_app_pro.html'; a.click(); }
+        
     </script>
 </body>
 </html>
