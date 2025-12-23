@@ -24,6 +24,11 @@
         body.projector-mode #sidebar, body.projector-mode #controls-bar, body.projector-mode .modal-overlay, body.projector-mode .control-only, body.projector-mode #startup-overlay { display: none !important; }
         body.projector-mode #display-area { cursor: none; }
 
+        /* BLACKOUT MODE (F10) */
+        body.blackout-active #content-wrapper,
+        body.blackout-active #bg-video,
+        body.blackout-active #display-overlay { visibility: hidden !important; }
+
         /* Modo Retorno (Stage Monitor) */
         body.stage-mode #sidebar, body.stage-mode #controls-bar, body.stage-mode .modal-overlay, body.stage-mode .control-only, body.stage-mode #startup-overlay, body.stage-mode #bg-video, body.stage-mode #display-overlay { display: none !important; }
         body.stage-mode #display-area { 
@@ -318,14 +323,15 @@
         const urlParams = new URLSearchParams(window.location.search);
         const isProjector = urlParams.get('view') === 'projector';
         const isStage = urlParams.get('view') === 'stage';
+        let isBlackout = false;
 
         // --- DATA ---
         const bibleBooks = [{name: "Gênesis", id: "Genesis"},{name: "Êxodo", id: "Exodus"},{name: "Levítico", id: "Leviticus"},{name: "Números", id: "Numbers"},{name: "Deuteronômio", id: "Deuteronomy"},{name: "Josué", id: "Joshua"},{name: "Juízes", id: "Judges"},{name: "Rute", id: "Ruth"},{name: "1 Samuel", id: "1 Samuel"},{name: "2 Samuel", id: "2 Samuel"},{name: "1 Reis", id: "1 Kings"},{name: "2 Reis", id: "2 Kings"},{name: "1 Crônicas", id: "1 Chronicles"},{name: "2 Crônicas", id: "2 Chronicles"},{name: "Esdras", id: "Ezra"},{name: "Neemias", id: "Nehemiah"},{name: "Ester", id: "Esther"},{name: "Jó", id: "Job"},{name: "Salmos", id: "Psalms"},{name: "Provérbios", id: "Proverbs"},{name: "Eclesiastes", id: "Ecclesiastes"},{name: "Cânticos", id: "Song of Solomon"},{name: "Isaías", id: "Isaiah"},{name: "Jeremias", id: "Jeremiah"},{name: "Lamentações", id: "Lamentations"},{name: "Ezequiel", id: "Ezekiel"},{name: "Daniel", id: "Daniel"},{name: "Oseias", id: "Hosea"},{name: "Joel", id: "Joel"},{name: "Amós", id: "Amos"},{name: "Obadias", id: "Obadiah"},{name: "Jonas", id: "Jonah"},{name: "Miqueias", id: "Micah"},{name: "Naum", id: "Nahum"},{name: "Habacuque", id: "Habakkuk"},{name: "Sofonias", id: "Zephaniah"},{name: "Ageu", id: "Haggai"},{name: "Zacarias", id: "Zechariah"},{name: "Malaquias", id: "Malachi"},{name: "Mateus", id: "Matthew"},{name: "Marcos", id: "Mark"},{name: "Lucas", id: "Luke"},{name: "João", id: "John"},{name: "Atos", id: "Acts"},{name: "Romanos", id: "Romans"},{name: "1 Coríntios", id: "1 Corinthians"},{name: "2 Coríntios", id: "2 Corinthians"},{name: "Gálatas", id: "Galatians"},{name: "Efésios", id: "Ephesians"},{name: "Filipenses", id: "Philippians"},{name: "Colossenses", id: "Colossians"},{name: "1 Tessalonicenses", id: "1 Thessalonians"},{name: "2 Tessalonicenses", id: "2 Thessalonians"},{name: "1 Timóteo", id: "1 Timothy"},{name: "2 Timóteo", id: "2 Timothy"},{name: "Tito", id: "Titus"},{name: "Filemom", id: "Philemon"},{name: "Hebreus", id: "Hebrews"},{name: "Tiago", id: "James"},{name: "1 Pedro", id: "1 Peter"},{name: "2 Pedro", id: "2 Peter"},{name: "1 João", id: "1 John"},{name: "2 João", id: "2 John"},{name: "3 João", id: "3 John"},{name: "Judas", id: "Jude"},{name: "Apocalipse", id: "Revelation"}];
         const bibleChapterCounts = [50,40,27,36,34,24,21,4,31,24,22,25,29,36,10,13,10,42,150,31,12,8,66,52,5,48,12,14,3,9,1,4,7,3,3,3,2,14,4,28,16,24,21,28,16,16,13,6,6,4,4,5,3,6,1,13,5,5,3,5,1,1,1,22];
         const bibleVersions = {
-            'aa': { name: 'Almeida Atualizada', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_aa.json' },
-            'acf': { name: 'Almeida Corr. Fiel', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_acf.json' },
-            'nvi': { name: 'Nova Versão Int.', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_nvi.json' }
+            'aa': { name: 'Almeida Atualizada (PT)', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_aa.json' },
+            'acf': { name: 'Almeida Corr. Fiel (PT)', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_acf.json' },
+            'nvi': { name: 'Nova Versão Int. (PT)', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_nvi.json' }
         };
 
         let currentSettings = JSON.parse(localStorage.getItem('appSettings')) || { autoOpenProjector: false, showTimer: true, showText: true, timerPos: 'top', bgColor: '#000000', bgType: 'color', bgUrl: '', overlayOpacity: 0.5, textColor: '#ffffff', textSize: 80, fontFamily: "'Segoe UI', sans-serif", textAlign: 'center', timerColor: '#4ade80', timerSize: 180, alertTime: 60 };
@@ -338,6 +344,64 @@
         let downloadedVersions = {};
         let bibleDB;
         let currentSmIndex = -1; // SM Index
+
+        // --- GLOBAL KEY LISTENERS (ARROWS & F10) ---
+        document.addEventListener('keydown', (e) => {
+            if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+            // F10 - BLACKOUT
+            if(e.key === 'F10') {
+                e.preventDefault();
+                toggleBlackout();
+            }
+
+            // ARROWS - SLIDE NAVIGATION
+            if(e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                e.preventDefault();
+                navigateSlide(1);
+            }
+            if(e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                e.preventDefault();
+                navigateSlide(-1);
+            }
+        });
+
+        function toggleBlackout() {
+            isBlackout = !isBlackout;
+            updateBlackoutState();
+        }
+
+        function updateBlackoutState() {
+            if(isBlackout) document.body.classList.add('blackout-active');
+            else document.body.classList.remove('blackout-active');
+            
+            if(!isProjector && !isStage) {
+                // Sync to secondary screens
+                channel.postMessage({ type: 'blackout', payload: isBlackout });
+                localStorage.setItem('blackoutState', isBlackout);
+            }
+        }
+
+        function navigateSlide(step) {
+            // Only works if SM Viewer is open
+            if(document.getElementById('sm-viewer').style.display !== 'none') {
+                const container = document.getElementById('sm-slides-container');
+                const slides = Array.from(container.getElementsByClassName('slide-card'));
+                if(slides.length === 0) return;
+
+                let activeIndex = slides.findIndex(s => s.classList.contains('active-slide'));
+                let newIndex = activeIndex + step;
+
+                // Bounds
+                if(newIndex < 0) newIndex = 0;
+                if(newIndex >= slides.length) newIndex = slides.length - 1;
+
+                if(newIndex !== activeIndex) {
+                    slides[newIndex].click();
+                    slides[newIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }
+        }
 
         // --- SM LOGIC (NEW) ---
         function renderSmList() {
@@ -683,6 +747,14 @@
                          if(el.classList.contains('danger-mode')) el.classList.remove('danger-mode');
                     }
                 }
+                const storedBlackout = localStorage.getItem('blackoutState');
+                if(storedBlackout !== null) {
+                     const isBO = (storedBlackout === 'true');
+                     if(isBO !== document.body.classList.contains('blackout-active')) {
+                         if(isBO) document.body.classList.add('blackout-active');
+                         else document.body.classList.remove('blackout-active');
+                     }
+                }
             }, 500); // Check every 500ms
         }
 
@@ -777,6 +849,10 @@
                 if(type === 'settings') {
                     applyStyles(payload);
                 }
+                if(type === 'blackout') {
+                    isBlackout = payload;
+                    updateBlackoutState();
+                }
                 if(type === 'state_sync') {
                     document.getElementById('text-display').innerText = payload.text;
                     applyStyles(payload.settings);
@@ -813,6 +889,7 @@
                         fontSize: timerEl.style.fontSize 
                     }));
                     localStorage.setItem('appSettings', JSON.stringify(currentSettings));
+                    localStorage.setItem('blackoutState', isBlackout);
 
                     channel.postMessage({
                         type: 'state_sync',
@@ -845,6 +922,10 @@
                 el.innerText = state.text;
                 if(!isStage) el.style.fontSize = state.fontSize;
                 if(state.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
+            }
+            if(e.key === 'blackoutState') {
+                isBlackout = (e.newValue === 'true');
+                updateBlackoutState();
             }
         });
         
