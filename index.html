@@ -24,11 +24,6 @@
         body.projector-mode #sidebar, body.projector-mode #controls-bar, body.projector-mode .modal-overlay, body.projector-mode .control-only, body.projector-mode #startup-overlay { display: none !important; }
         body.projector-mode #display-area { cursor: none; }
 
-        /* BLACKOUT MODE (F10) */
-        body.blackout-active #content-wrapper,
-        body.blackout-active #bg-video,
-        body.blackout-active #display-overlay { visibility: hidden !important; }
-
         /* Modo Retorno (Stage Monitor) */
         body.stage-mode #sidebar, body.stage-mode #controls-bar, body.stage-mode .modal-overlay, body.stage-mode .control-only, body.stage-mode #startup-overlay, body.stage-mode #bg-video, body.stage-mode #display-overlay { display: none !important; }
         body.stage-mode #display-area { 
@@ -72,6 +67,8 @@
         .list-preview { font-size: 0.8rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .delete-btn { background: transparent; border: none; color: #666; cursor: pointer; padding: 8px; }
         .delete-btn:hover { color: var(--danger-color); }
+        .edit-btn { background: transparent; border: none; color: #666; cursor: pointer; padding: 8px; margin-right: 5px; }
+        .edit-btn:hover { color: var(--accent-color); }
 
         /* --- ABA SLIDES (SM) --- */
         #sm-list { display: flex; flex-direction: column; gap: 5px; }
@@ -159,7 +156,7 @@
 
         /* MODAIS */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(5px); }
-        .modal { background: #2a2a2a; padding: 25px; border-radius: 12px; width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); border: 1px solid #444; max-height: 90vh; display: flex; flex-direction: column; }
+        .modal { background: #2a2a2a; padding: 25px; border-radius: 12px; width: 500px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); border: 1px solid #444; max-height: 90vh; display: flex; flex-direction: column; overflow-y: auto;}
         .modal input[type="text"], .modal textarea, .modal select { width: 100%; margin-bottom: 15px; padding: 12px; background: #1a1a1a; border: 1px solid #444; color: white; box-sizing: border-box; border-radius: 6px; }
         .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;}
         .divider { display: flex; align-items: center; text-align: center; color: #666; font-size: 12px; margin: 15px 0; }
@@ -190,6 +187,14 @@
         .bible-verse-num { color: var(--accent-color); font-weight: bold; margin-right: 8px; }
 
         .hidden { display: none !important; }
+        
+        /* Collapsible Section for Styles */
+        .style-options-header {
+            background: #333; padding: 10px; border-radius: 6px; cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
+        }
+        .style-options-content { display: none; padding: 10px; background: #222; border-radius: 6px; margin-bottom: 15px; }
+        .style-options-content.open { display: block; }
     </style>
 </head>
 <body>
@@ -263,7 +268,7 @@
         <div id="tab-appearance" class="tab-content">
             <div class="config-group"><h4>Projeção</h4><div class="config-item"><label>Abrir Projetor ao Iniciar</label><input type="checkbox" id="cfg-auto-open" onchange="updateSettings()"></div></div>
             <div class="config-group"><h4>Layout</h4><div class="config-item"><label>Mostrar Timer</label><input type="checkbox" id="cfg-show-timer" onchange="updateSettings()" checked></div><div class="config-item"><label>Mostrar Texto</label><input type="checkbox" id="cfg-show-text" onchange="updateSettings()" checked></div><div class="config-item"><label>Posição</label><select id="cfg-timer-pos" class="config-select" onchange="updateSettings()"><option value="top">Timer Acima</option><option value="bottom">Timer Abaixo</option></select></div></div>
-            <div class="config-group"><h4>Estilo</h4><div class="config-item"><label>Cor Fundo</label><input type="color" id="cfg-bg-color" value="#000000" oninput="updateSettings()"></div><div class="config-item"><label>Escurecer</label><input type="range" id="cfg-overlay-opacity" min="0" max="1" step="0.1" value="0.5" oninput="updateSettings()"></div><div class="config-item"><label>Cor Texto</label><input type="color" id="cfg-text-color" value="#ffffff" oninput="updateSettings()"></div><div class="config-item"><label>Tam. Texto</label><input type="number" id="cfg-text-size" min="10" max="800" value="80" oninput="updateSettings()"></div><div class="config-item" style="display:block"><label style="display:block; margin-bottom:5px;">Fonte</label><select id="cfg-font-family" class="font-select" onchange="updateSettings()"><option value="'Segoe UI', sans-serif">Padrão</option><option value="'Courier New', monospace">Máquina</option><option value="'Times New Roman', serif">Clássico</option><option value="Arial, sans-serif">Simples</option><option value="cursive">Manuscrito</option></select></div><div class="config-item" style="display:block; margin-top:10px;"><label style="display:block; margin-bottom:5px;">Alinhamento</label><div class="align-btn-group"><button class="align-btn" onclick="setAlignment('left')" id="btn-align-left"><span class="material-icons">format_align_left</span></button><button class="align-btn" onclick="setAlignment('center')" id="btn-align-center"><span class="material-icons">format_align_center</span></button><button class="align-btn" onclick="setAlignment('right')" id="btn-align-right"><span class="material-icons">format_align_right</span></button></div></div></div>
+            <div class="config-group"><h4>Estilo Global</h4><div class="config-item"><label>Cor Fundo</label><input type="color" id="cfg-bg-color" value="#000000" oninput="updateSettings()"></div><div class="config-item"><label>Escurecer</label><input type="range" id="cfg-overlay-opacity" min="0" max="1" step="0.1" value="0.5" oninput="updateSettings()"></div><div class="config-item"><label>Cor Texto</label><input type="color" id="cfg-text-color" value="#ffffff" oninput="updateSettings()"></div><div class="config-item"><label>Tam. Texto</label><input type="number" id="cfg-text-size" min="10" max="800" value="80" oninput="updateSettings()"></div><div class="config-item" style="display:block"><label style="display:block; margin-bottom:5px;">Fonte</label><select id="cfg-font-family" class="font-select" onchange="updateSettings()"><option value="'Segoe UI', sans-serif">Padrão</option><option value="'Courier New', monospace">Máquina</option><option value="'Times New Roman', serif">Clássico</option><option value="Arial, sans-serif">Simples</option><option value="cursive">Manuscrito</option></select></div><div class="config-item" style="display:block; margin-top:10px;"><label style="display:block; margin-bottom:5px;">Alinhamento</label><div class="align-btn-group"><button class="align-btn" onclick="setAlignment('left')" id="btn-align-left"><span class="material-icons">format_align_left</span></button><button class="align-btn" onclick="setAlignment('center')" id="btn-align-center"><span class="material-icons">format_align_center</span></button><button class="align-btn" onclick="setAlignment('right')" id="btn-align-right"><span class="material-icons">format_align_right</span></button></div></div></div>
             <div class="config-group"><h4>Timer</h4><div class="config-item"><label>Cor Normal</label><input type="color" id="cfg-timer-color" value="#4ade80" oninput="updateSettings()"></div><div class="config-item"><label>Tamanho (px)</label><input type="number" id="cfg-timer-size" min="10" max="800" value="180" oninput="updateSettings()"></div><div class="config-item"><label>Alertar quando faltar:</label><div class="input-group" style="justify-content: flex-end;"><input type="number" id="cfg-alert-min" value="1" oninput="updateSettings()" placeholder="m" style="width: 40px;"><span>:</span><input type="number" id="cfg-alert-sec" value="00" oninput="updateSettings()" placeholder="s" style="width: 40px;"></div></div></div>
             <button class="ctrl-btn" onclick="resetSettings()" style="width:100%; justify-content:center; background:#444; margin-bottom: 10px;">Restaurar Padrões</button>
             <div style="border-top: 1px solid #333; margin: 15px 0;"></div>
@@ -305,8 +310,35 @@
     <!-- MODAIS -->
     <div id="modal-verse" class="modal-overlay hidden"><div class="modal"><h3 style="margin-top:0">Novo Texto</h3><input type="text" id="new-verse-title" placeholder="Título"><textarea id="new-verse-content" rows="5" placeholder="Conteúdo..."></textarea><div class="modal-actions"><button class="ctrl-btn" onclick="closeModal('verse')">Cancelar</button><button class="ctrl-btn play" onclick="saveVerse()">Salvar</button></div></div></div>
     
-    <!-- MODAL SM -->
-    <div id="modal-sm" class="modal-overlay hidden"><div class="modal" style="width: 600px;"><h3 style="margin-top:0">Novo Slide SM</h3><input type="text" id="new-sm-title" placeholder="Título"><small style="color:#aaa; display:block; margin-bottom:5px;">Dê 2 ENTERS para separar os slides.</small><textarea id="new-sm-content" rows="10" placeholder="Conteúdo dos slides..."></textarea><div class="modal-actions"><button class="ctrl-btn" onclick="closeModal('sm')">Cancelar</button><button class="ctrl-btn play" onclick="saveSmSlide()">Salvar</button></div></div></div>
+    <!-- MODAL SM COM ESTILO PERSONALIZADO -->
+    <div id="modal-sm" class="modal-overlay hidden">
+        <div class="modal" style="width: 600px;">
+            <h3 style="margin-top:0">Novo Slide SM</h3>
+            <input type="text" id="new-sm-title" placeholder="Título da Música/Aviso">
+            
+            <div class="style-options-header" onclick="toggleStyleOptions()">
+                <span>🎨 Personalizar Estilo (Opcional)</span>
+                <span class="material-icons">expand_more</span>
+            </div>
+            <div id="sm-style-options" class="style-options-content">
+                <div class="config-item"><label>Cor Fundo</label><input type="color" id="sm-style-bg" value="#000000"></div>
+                <div class="config-item"><label>Cor Texto</label><input type="color" id="sm-style-color" value="#ffffff"></div>
+                <div class="config-item"><label>Tam. Texto (px)</label><input type="number" id="sm-style-size" placeholder="80"></div>
+                <div class="config-item" style="display:block">
+                    <label>Imagem de Fundo (URL)</label>
+                    <input type="text" id="sm-style-img" placeholder="https://..." style="width:100%; margin-top:5px; padding:8px;">
+                </div>
+            </div>
+
+            <small style="color:#aaa; display:block; margin-bottom:5px;">Dê 2 ENTERS para separar os slides.</small>
+            <textarea id="new-sm-content" rows="8" placeholder="Conteúdo dos slides..."></textarea>
+            
+            <div class="modal-actions">
+                <button class="ctrl-btn" onclick="closeModal('sm')">Cancelar</button>
+                <button class="ctrl-btn play" onclick="saveSmSlide()">Salvar</button>
+            </div>
+        </div>
+    </div>
     
     <div id="modal-gallery" class="modal-overlay hidden"><div class="modal"><h3 style="margin-top:0">Nova Mídia</h3><label style="color:#ddd; font-size:12px">Tipo:</label><select id="new-media-type" onchange="toggleMediaType()"><option value="image">Imagem</option><option value="video">Vídeo</option></select><label for="new-media-file" class="file-upload-label"><span class="material-icons" style="font-size:30px">cloud_upload</span><span id="file-label-text">Clique para escolher</span></label><input type="file" id="new-media-file" accept="image/*,video/*" onchange="updateFileLabel(this)"><div class="divider">OU</div><input type="text" id="new-media-url" placeholder="URL..."><div class="modal-actions"><button class="ctrl-btn" onclick="closeModal('gallery')">Cancelar</button><button class="ctrl-btn play" onclick="saveMedia()">Adicionar</button></div></div></div>
     <div id="modal-bible-navigator" class="modal-overlay hidden"><div class="bible-full-window"><div class="bible-header"><h3><span class="material-icons">auto_stories</span> Bíblia <span id="bible-crumbs" class="bible-crumbs"></span></h3><div style="display:flex; gap:10px;"><button class="ctrl-btn" id="bible-back-btn" onclick="bibleGoBack()" style="display:none;"><span class="material-icons">arrow_back</span> Voltar</button><button class="ctrl-btn stop" onclick="closeModal('bible-navigator')"><span class="material-icons">close</span></button></div></div><div class="bible-content-area" id="bible-content-area"></div></div></div>
@@ -337,73 +369,43 @@
         let currentSettings = JSON.parse(localStorage.getItem('appSettings')) || { autoOpenProjector: false, showTimer: true, showText: true, timerPos: 'top', bgColor: '#000000', bgType: 'color', bgUrl: '', overlayOpacity: 0.5, textColor: '#ffffff', textSize: 80, fontFamily: "'Segoe UI', sans-serif", textAlign: 'center', timerColor: '#4ade80', timerSize: 180, alertTime: 60 };
         let verses = JSON.parse(localStorage.getItem('myVerses')) || [{ title: "Boas Vindas", content: "Sejam bem-vindos!\nO culto começará em instantes." }];
         let galleryItems = JSON.parse(localStorage.getItem('myGallery')) || [{ type: 'image', url: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?auto=format&fit=crop&w=1000&q=80' }];
-        let smSlides = JSON.parse(localStorage.getItem('mySmSlides')) || []; // SM SLIDES
+        let smSlides = JSON.parse(localStorage.getItem('mySmSlides')) || []; 
 
         let timerInterval, totalSeconds = 300, isRunning = false;
         let bibleNavState = { step: 'book', selectedBookIndex: -1, selectedChapter: -1 };
         let downloadedVersions = {};
         let bibleDB;
-        let currentSmIndex = -1; // SM Index
+        let currentSmIndex = -1; 
 
-        // --- GLOBAL KEY LISTENERS (ARROWS & F10) ---
+        // --- GLOBAL KEY LISTENERS ---
         document.addEventListener('keydown', (e) => {
             if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-            // F10 - BLACKOUT
-            if(e.key === 'F10') {
-                e.preventDefault();
-                toggleBlackout();
-            }
-
-            // ARROWS - SLIDE NAVIGATION
-            if(e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-                e.preventDefault();
-                navigateSlide(1);
-            }
-            if(e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-                e.preventDefault();
-                navigateSlide(-1);
-            }
+            if(e.key === 'F10') { e.preventDefault(); toggleBlackout(); }
+            if(e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); navigateSlide(1); }
+            if(e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); navigateSlide(-1); }
         });
-
-        function toggleBlackout() {
-            isBlackout = !isBlackout;
-            updateBlackoutState();
-        }
-
+        function toggleBlackout() { isBlackout = !isBlackout; updateBlackoutState(); }
         function updateBlackoutState() {
-            if(isBlackout) document.body.classList.add('blackout-active');
-            else document.body.classList.remove('blackout-active');
-            
-            if(!isProjector && !isStage) {
-                // Sync to secondary screens
-                channel.postMessage({ type: 'blackout', payload: isBlackout });
-                localStorage.setItem('blackoutState', isBlackout);
-            }
+            if(isBlackout) document.body.classList.add('blackout-active'); else document.body.classList.remove('blackout-active');
+            if(!isProjector && !isStage) { channel.postMessage({ type: 'blackout', payload: isBlackout }); localStorage.setItem('blackoutState', isBlackout); }
         }
-
         function navigateSlide(step) {
-            // Only works if SM Viewer is open
             if(document.getElementById('sm-viewer').style.display !== 'none') {
                 const container = document.getElementById('sm-slides-container');
                 const slides = Array.from(container.getElementsByClassName('slide-card'));
                 if(slides.length === 0) return;
-
                 let activeIndex = slides.findIndex(s => s.classList.contains('active-slide'));
                 let newIndex = activeIndex + step;
-
-                // Bounds
-                if(newIndex < 0) newIndex = 0;
-                if(newIndex >= slides.length) newIndex = slides.length - 1;
-
-                if(newIndex !== activeIndex) {
-                    slides[newIndex].click();
-                    slides[newIndex].scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
+                if(newIndex < 0) newIndex = 0; if(newIndex >= slides.length) newIndex = slides.length - 1;
+                if(newIndex !== activeIndex) { slides[newIndex].click(); slides[newIndex].scrollIntoView({ behavior: 'smooth', block: 'center' }); }
             }
         }
 
-        // --- SM LOGIC (NEW) ---
+        // --- SM LOGIC (ENHANCED) ---
+        function toggleStyleOptions() {
+            document.getElementById('sm-style-options').classList.toggle('open');
+        }
+
         function renderSmList() {
             if(isProjector || isStage) return;
             const list = document.getElementById('sm-list');
@@ -417,13 +419,15 @@
             smSlides.forEach((item, index) => {
                 const card = document.createElement('div');
                 card.className = 'list-card';
-                card.onclick = () => openSmViewer(index);
                 card.innerHTML = `
-                    <div class="list-info">
-                        <div class="list-title">${item.title}</div>
+                    <div class="list-info" onclick="openSmViewer(${index})">
+                        <div class="list-title">${item.title} ${item.style ? '<span style="color:var(--accent-color); font-size:12px;">★</span>' : ''}</div>
                         <div class="list-preview">${item.content.substring(0, 30).replace(/\n/g, ' ')}...</div>
                     </div>
-                    <span class="material-icons" style="color:#666; font-size:18px;">chevron_right</span>
+                    <div>
+                         <button class="edit-btn" onclick="editSmSlide(${index})"><span class="material-icons" style="font-size:16px">edit</span></button>
+                        <span class="material-icons" style="color:#666; font-size:18px;">chevron_right</span>
+                    </div>
                 `;
                 list.appendChild(card);
             });
@@ -433,14 +437,65 @@
             const title = document.getElementById('new-sm-title').value;
             const content = document.getElementById('new-sm-content').value;
             
+            // Capture Styles if visible/changed
+            const style = {
+                bg: document.getElementById('sm-style-bg').value,
+                color: document.getElementById('sm-style-color').value,
+                size: document.getElementById('sm-style-size').value,
+                img: document.getElementById('sm-style-img').value
+            };
+            
+            // Check if styles are default, if so make it null to save space
+            let cleanStyle = null;
+            if (style.bg !== '#000000' || style.color !== '#ffffff' || style.size || style.img) {
+                cleanStyle = style;
+            }
+
             if(title && content) {
-                smSlides.push({ title, content });
+                if (currentSmIndex > -1) {
+                    smSlides[currentSmIndex] = { title, content, style: cleanStyle };
+                } else {
+                    smSlides.push({ title, content, style: cleanStyle });
+                }
                 localStorage.setItem('mySmSlides', JSON.stringify(smSlides));
                 renderSmList();
+                
+                // If viewing this song currently, reload it to apply changes
+                if(currentSmIndex > -1 && document.getElementById('sm-viewer').style.display !== 'none') {
+                    openSmViewer(currentSmIndex);
+                }
+                
                 closeModal('sm');
             } else {
                 alert("Preencha título e conteúdo.");
             }
+        }
+        
+        function editSmSlide(index) {
+            currentSmIndex = index;
+            const item = smSlides[index];
+            document.getElementById('new-sm-title').value = item.title;
+            document.getElementById('new-sm-content').value = item.content;
+            
+            // Load Styles
+            if(item.style) {
+                document.getElementById('sm-style-bg').value = item.style.bg || '#000000';
+                document.getElementById('sm-style-color').value = item.style.color || '#ffffff';
+                document.getElementById('sm-style-size').value = item.style.size || '';
+                document.getElementById('sm-style-img').value = item.style.img || '';
+                document.getElementById('sm-style-options').classList.add('open');
+            } else {
+                // Reset to defaults
+                document.getElementById('sm-style-bg').value = '#000000';
+                document.getElementById('sm-style-color').value = '#ffffff';
+                document.getElementById('sm-style-size').value = '';
+                document.getElementById('sm-style-img').value = '';
+                document.getElementById('sm-style-options').classList.remove('open');
+            }
+            
+            // Open Modal manually for edit
+            const m = document.getElementById('modal-sm');
+            m.style.display='flex'; m.classList.remove('hidden');
         }
 
         function deleteCurrentSmSlide() {
@@ -457,6 +512,22 @@
             const item = smSlides[index];
             document.getElementById('sm-viewer').style.display = 'flex';
             document.getElementById('sm-title-display').innerText = item.title;
+            
+            // APPLY CUSTOM STYLES ON OPEN
+            if(item.style) {
+                 const tempSettings = { ...currentSettings };
+                 if(item.style.bg) tempSettings.bgColor = item.style.bg;
+                 if(item.style.color) tempSettings.textColor = item.style.color;
+                 if(item.style.size) tempSettings.textSize = item.style.size;
+                 if(item.style.img) { tempSettings.bgType = 'image'; tempSettings.bgUrl = item.style.img; } 
+                 else { tempSettings.bgType = 'color'; } // Reset image if color overrides
+                 
+                 // Send temporary settings to projector
+                 if(!isProjector && !isStage) {
+                    channel.postMessage({ type: 'settings', payload: tempSettings });
+                    // Also save to localstorage transiently? No, broadcast is better for temp.
+                 }
+            }
             
             const container = document.getElementById('sm-slides-container');
             container.innerHTML = '';
@@ -479,6 +550,10 @@
         function closeSmViewer() {
             document.getElementById('sm-viewer').style.display = 'none';
             currentSmIndex = -1;
+            // REVERT TO GLOBAL SETTINGS
+            if(!isProjector && !isStage) {
+                channel.postMessage({ type: 'settings', payload: currentSettings });
+            }
         }
 
         // --- GALLERY LOGIC ---
@@ -516,8 +591,6 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
-            // Map index manually to ensure correctness
-            // 0: Verses, 1: SM, 2: Bible, 3: Gallery, 4: Appearance
             const tabs = ['tab-verses', 'tab-sm', 'tab-bible', 'tab-gallery', 'tab-appearance'];
             let index = 0;
             if(tabName === 'sm') index = 1;
@@ -598,7 +671,6 @@
              const list = document.getElementById('bible-verse-list');
              list.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Buscando...</div>';
 
-             // 1. Offline
              if(downloadedVersions[vKey]) {
                  try {
                      const data = await getChapterFromLocalDB(vKey, bIdx, ch);
@@ -708,7 +780,17 @@
                 const m = document.getElementById(`modal-${t}`);
                 m.style.display='flex'; m.classList.remove('hidden');
                 if(t==='verse') { document.getElementById('new-verse-title').value=''; document.getElementById('new-verse-content').value=''; }
-                if(t==='sm') { document.getElementById('new-sm-title').value=''; document.getElementById('new-sm-content').value=''; }
+                if(t==='sm') { 
+                    currentSmIndex = -1; // New mode
+                    document.getElementById('new-sm-title').value=''; 
+                    document.getElementById('new-sm-content').value='';
+                    // Reset Styles UI in Modal
+                    document.getElementById('sm-style-bg').value = '#000000';
+                    document.getElementById('sm-style-color').value = '#ffffff';
+                    document.getElementById('sm-style-size').value = '';
+                    document.getElementById('sm-style-img').value = '';
+                    document.getElementById('sm-style-options').classList.remove('open');
+                }
             }
         }
         
