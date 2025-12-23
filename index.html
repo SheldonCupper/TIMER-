@@ -186,8 +186,6 @@
         .bible-verse-item-full:hover { background: #333; border-left-color: var(--accent-color); color: white; padding-left: 20px;}
         .bible-verse-num { color: var(--accent-color); font-weight: bold; margin-right: 8px; }
 
-        .hidden { display: none !important; }
-        
         /* Collapsible Section for Styles */
         .style-options-header {
             background: #333; padding: 10px; border-radius: 6px; cursor: pointer;
@@ -324,9 +322,12 @@
                 <div class="config-item"><label>Cor Fundo</label><input type="color" id="sm-style-bg" value="#000000"></div>
                 <div class="config-item"><label>Cor Texto</label><input type="color" id="sm-style-color" value="#ffffff"></div>
                 <div class="config-item"><label>Tam. Texto (px)</label><input type="number" id="sm-style-size" placeholder="80"></div>
+                <!-- NOVO SELETOR DE GALERIA AQUI -->
                 <div class="config-item" style="display:block">
-                    <label>Imagem de Fundo (URL)</label>
-                    <input type="text" id="sm-style-img" placeholder="https://..." style="width:100%; margin-top:5px; padding:8px;">
+                    <label>Fundo da Galeria</label>
+                    <select id="sm-style-media" style="width:100%; margin-top:5px; padding:8px; background:#111; color:white; border:1px solid #444; border-radius:4px;">
+                        <option value="">Nenhum (Usar Cor de Fundo)</option>
+                    </select>
                 </div>
             </div>
 
@@ -404,6 +405,25 @@
         // --- SM LOGIC (ENHANCED) ---
         function toggleStyleOptions() {
             document.getElementById('sm-style-options').classList.toggle('open');
+            // Auto update gallery select when opening options
+            if(document.getElementById('sm-style-options').classList.contains('open')) {
+                // If editing, pass current url to select correct option
+                const currentUrl = currentSmIndex > -1 ? (smSlides[currentSmIndex].style ? smSlides[currentSmIndex].style.img : '') : '';
+                updateSmMediaOptions(currentUrl);
+            }
+        }
+        
+        function updateSmMediaOptions(selectedUrl) {
+            const sel = document.getElementById('sm-style-media');
+            sel.innerHTML = '<option value="">Nenhum (Usar Cor de Fundo)</option>';
+            galleryItems.forEach((item, idx) => {
+                const opt = document.createElement('option');
+                // Store type and url in value as JSON string for easy retrieval
+                opt.value = JSON.stringify({ type: item.type, url: item.url });
+                opt.innerText = `Mídia ${idx + 1} (${item.type === 'image' ? 'Imagem' : 'Vídeo'})`;
+                if (item.url === selectedUrl) opt.selected = true;
+                sel.appendChild(opt);
+            });
         }
 
         function renderSmList() {
@@ -426,7 +446,7 @@
                     </div>
                     <div>
                          <button class="edit-btn" onclick="editSmSlide(${index})"><span class="material-icons" style="font-size:16px">edit</span></button>
-                        <span class="material-icons" style="color:#666; font-size:18px;">chevron_right</span>
+                        <span class="material-icons" style="color:#666; font-size:18px;" onclick="openSmViewer(${index})">chevron_right</span>
                     </div>
                 `;
                 list.appendChild(card);
@@ -437,15 +457,20 @@
             const title = document.getElementById('new-sm-title').value;
             const content = document.getElementById('new-sm-content').value;
             
-            // Capture Styles if visible/changed
+            // Capture Styles from Select
+            const mediaVal = document.getElementById('sm-style-media').value;
+            let mediaObj = { type: 'image', url: '' };
+            if (mediaVal) mediaObj = JSON.parse(mediaVal);
+
             const style = {
                 bg: document.getElementById('sm-style-bg').value,
                 color: document.getElementById('sm-style-color').value,
                 size: document.getElementById('sm-style-size').value,
-                img: document.getElementById('sm-style-img').value
+                img: mediaObj.url,
+                mediaType: mediaObj.type
             };
             
-            // Check if styles are default, if so make it null to save space
+            // Check if styles are default
             let cleanStyle = null;
             if (style.bg !== '#000000' || style.color !== '#ffffff' || style.size || style.img) {
                 cleanStyle = style;
@@ -482,14 +507,14 @@
                 document.getElementById('sm-style-bg').value = item.style.bg || '#000000';
                 document.getElementById('sm-style-color').value = item.style.color || '#ffffff';
                 document.getElementById('sm-style-size').value = item.style.size || '';
-                document.getElementById('sm-style-img').value = item.style.img || '';
+                updateSmMediaOptions(item.style.img || ''); // Populate select with correct selection
                 document.getElementById('sm-style-options').classList.add('open');
             } else {
                 // Reset to defaults
                 document.getElementById('sm-style-bg').value = '#000000';
                 document.getElementById('sm-style-color').value = '#ffffff';
                 document.getElementById('sm-style-size').value = '';
-                document.getElementById('sm-style-img').value = '';
+                updateSmMediaOptions('');
                 document.getElementById('sm-style-options').classList.remove('open');
             }
             
@@ -519,13 +544,20 @@
                  if(item.style.bg) tempSettings.bgColor = item.style.bg;
                  if(item.style.color) tempSettings.textColor = item.style.color;
                  if(item.style.size) tempSettings.textSize = item.style.size;
-                 if(item.style.img) { tempSettings.bgType = 'image'; tempSettings.bgUrl = item.style.img; } 
-                 else { tempSettings.bgType = 'color'; } // Reset image if color overrides
+                 if(item.style.img) { 
+                     tempSettings.bgType = item.style.mediaType || 'image'; 
+                     tempSettings.bgUrl = item.style.img; 
+                 } else { 
+                     // Reset if specific color overrides image
+                     tempSettings.bgType = 'color'; 
+                     tempSettings.bgUrl = '';
+                 }
                  
                  // Send temporary settings to projector
                  if(!isProjector && !isStage) {
                     channel.postMessage({ type: 'settings', payload: tempSettings });
-                    // Also save to localstorage transiently? No, broadcast is better for temp.
+                    // Force LS sync for polling
+                    localStorage.setItem('appSettings', JSON.stringify(tempSettings));
                  }
             }
             
@@ -552,6 +584,9 @@
             currentSmIndex = -1;
             // REVERT TO GLOBAL SETTINGS
             if(!isProjector && !isStage) {
+                // Restore original settings from memory (currentSettings var holds global state)
+                // We need to re-save it to LS to trigger pollers to revert
+                localStorage.setItem('appSettings', JSON.stringify(currentSettings));
                 channel.postMessage({ type: 'settings', payload: currentSettings });
             }
         }
@@ -591,6 +626,8 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
+            // Map index manually to ensure correctness
+            // 0: Verses, 1: SM, 2: Bible, 3: Gallery, 4: Appearance
             const tabs = ['tab-verses', 'tab-sm', 'tab-bible', 'tab-gallery', 'tab-appearance'];
             let index = 0;
             if(tabName === 'sm') index = 1;
@@ -788,7 +825,7 @@
                     document.getElementById('sm-style-bg').value = '#000000';
                     document.getElementById('sm-style-color').value = '#ffffff';
                     document.getElementById('sm-style-size').value = '';
-                    document.getElementById('sm-style-img').value = '';
+                    updateSmMediaOptions(''); // Reset select
                     document.getElementById('sm-style-options').classList.remove('open');
                 }
             }
@@ -836,6 +873,16 @@
                          if(isBO) document.body.classList.add('blackout-active');
                          else document.body.classList.remove('blackout-active');
                      }
+                }
+                // Poll Settings
+                const storedSettings = localStorage.getItem('appSettings');
+                if(storedSettings) {
+                    const settings = JSON.parse(storedSettings);
+                    // Compare simple equality to avoid redraws if same (deep compare is expensive, doing simple check on bgUrl/type)
+                    if(settings.bgUrl !== currentSettings.bgUrl || settings.bgType !== currentSettings.bgType || settings.textColor !== currentSettings.textColor || settings.bgColor !== currentSettings.bgColor) {
+                        currentSettings = settings;
+                        applyStyles(settings);
+                    }
                 }
             }, 500); // Check every 500ms
         }
