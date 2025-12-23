@@ -331,7 +331,7 @@
         let currentSettings = JSON.parse(localStorage.getItem('appSettings')) || { autoOpenProjector: false, showTimer: true, showText: true, timerPos: 'top', bgColor: '#000000', bgType: 'color', bgUrl: '', overlayOpacity: 0.5, textColor: '#ffffff', textSize: 80, fontFamily: "'Segoe UI', sans-serif", textAlign: 'center', timerColor: '#4ade80', timerSize: 180, alertTime: 60 };
         let verses = JSON.parse(localStorage.getItem('myVerses')) || [{ title: "Boas Vindas", content: "Sejam bem-vindos!\nO culto começará em instantes." }];
         let galleryItems = JSON.parse(localStorage.getItem('myGallery')) || [{ type: 'image', url: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?auto=format&fit=crop&w=1000&q=80' }];
-        let smSlides = JSON.parse(localStorage.getItem('mySmSlides')) || []; // SM SLIDES
+        let smSlides = JSON.parse(localStorage.getItem('mySmSlides')) || []; 
 
         let timerInterval, totalSeconds = 300, isRunning = false;
         let bibleNavState = { step: 'book', selectedBookIndex: -1, selectedChapter: -1 };
@@ -339,7 +339,7 @@
         let bibleDB;
         let currentSmIndex = -1; 
 
-        // --- SM LOGIC (NEW) ---
+        // --- SM LOGIC ---
         function renderSmList() {
             if(isProjector || isStage) return;
             const list = document.getElementById('sm-list');
@@ -452,7 +452,6 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
-            // Map index manually to ensure correctness
             const tabs = ['tab-verses', 'tab-sm', 'tab-bible', 'tab-gallery', 'tab-appearance'];
             let index = 0;
             if(tabName === 'sm') index = 1;
@@ -730,15 +729,66 @@
             if(isProjector) { document.body.classList.add('projector-mode'); document.title = "Projeção"; }
             if(isStage) { document.body.classList.add('stage-mode'); document.title = "Retorno (Palco)"; }
             applyStyles(currentSettings);
+            
+            // Handshake Handler
             channel.onmessage = (e) => {
-                if(e.data.type==='timer') { const el=document.getElementById('timer-display'); el.innerText=e.data.payload.text; if(!isStage) el.style.fontSize=e.data.payload.fontSize; if(e.data.payload.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode'); }
-                if(e.data.type==='text') document.getElementById('text-display').innerText=e.data.payload;
-                if(e.data.type==='settings') applyStyles(e.data.payload);
+                const { type, payload } = e.data;
+                if(type === 'timer') {
+                    const el = document.getElementById('timer-display');
+                    el.innerText = payload.text;
+                    if(!isStage) el.style.fontSize = payload.fontSize;
+                    if(payload.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
+                }
+                if(type === 'text') {
+                    document.getElementById('text-display').innerText = payload;
+                }
+                if(type === 'settings') {
+                    applyStyles(payload);
+                }
+                if(type === 'state_sync') {
+                    document.getElementById('text-display').innerText = payload.text;
+                    applyStyles(payload.settings);
+                    const el = document.getElementById('timer-display');
+                    el.innerText = payload.timerText;
+                    if(!isStage) el.style.fontSize = payload.timerSize;
+                    if(payload.timerDanger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
+                }
             };
+            
+            // Request State on Init
+            channel.postMessage({ type: 'request_state' });
+
         } else {
             loadSettingsToInputs(); initBible(); renderSmList(); renderGallery(); renderList(); updateTimerUI(false); initOfflineBible(); 
             if(currentSettings.autoOpenProjector) document.getElementById('startup-overlay').classList.remove('hidden');
+            
+            // Controller Listener
+            channel.onmessage = (e) => {
+                if (e.data.type === 'request_state') {
+                    const currentText = document.getElementById('live-text').value;
+                    const timerEl = document.getElementById('timer-display');
+                    channel.postMessage({
+                        type: 'state_sync',
+                        payload: {
+                            text: currentText,
+                            settings: currentSettings,
+                            timerText: timerEl.innerText,
+                            timerDanger: timerEl.classList.contains('danger-mode'),
+                            timerSize: timerEl.style.fontSize || (currentSettings.timerSize + "px")
+                        }
+                    });
+                }
+            };
         }
+        
+        // --- STORAGE FALLBACK ---
+        window.addEventListener('storage', (e) => {
+            if (e.key === 'appSettings') {
+                const newSettings = JSON.parse(e.newValue);
+                currentSettings = newSettings;
+                applyStyles(newSettings);
+            }
+        });
         
         function startProjectorFlow() { document.getElementById('startup-overlay').style.display='none'; openProjectorWindow(true); }
         async function openProjectorWindow(click) { 
