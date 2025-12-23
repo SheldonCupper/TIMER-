@@ -10,7 +10,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABmJLR0QA/wD/AP+gvaeTAAAAjklEQVRoge3ywQmAMAwF0EwlTtIlnKdrOoun0wlSqCFIQ/sP34PAQyAJ4D/i2c7d5666q6q7e7d5666q7u7d5q27qrq7d5u37qrq7t5t3rqrqrt7t3nrrqru7t3mrbuqurt3m7fuquru3m3euququ3u3eeuuqu7u3eatuyq6+zJ/4r6f4B/4u/u2eQAAAABJRU5ErkJggg==" id="app-icon">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABmJLR0QA/wD/AP+gvaeTAAAAjklEQVRoge3ywQmAMAwF0EwlTtIlnKdrOoun0wlSqCFIQ/sP34PAQyAJ4D/i2c7d5666q6q7e7d5666q7u7d5q27qrq7d5t3rqrqrt7t3nrrqru7t3mrbuqurt3m7fuquru3m3euququ3u3eeuuqu7u3eatuyq6+zJ/4r6f4B/4u/u2eQAAAABJRU5ErkJggg==" id="app-icon">
     <!-- Placeholder para o Manifesto -->
     <link rel="manifest" id="app-manifest">
 
@@ -34,20 +34,18 @@
             height: 100vh;
             display: flex;
             overflow: hidden;
-            -webkit-user-select: none; /* App feel: disable text selection mostly */
+            -webkit-user-select: none;
             user-select: none;
         }
 
-        /* Permitir seleção onde importa */
         input, textarea { -webkit-user-select: text; user-select: text; }
 
         /* --- MODO PROJETOR --- */
         body.projector-mode #sidebar,
         body.projector-mode #controls-bar,
-        body.projector-mode #modal-overlay,
+        body.projector-mode .modal-overlay, /* Esconde todos os modais */
         body.projector-mode .control-only,
-        body.projector-mode #modal-gallery,
-        body.projector-mode #modal-verse {
+        body.projector-mode #startup-overlay {
             display: none !important;
         }
 
@@ -102,7 +100,6 @@
         }
         .tab-content.active { display: flex; flex-direction: column; gap: 15px; }
 
-        /* Estilo da Lista de Versículos e Galeria */
         .sidebar-header {
             display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
         }
@@ -143,11 +140,6 @@
         
         .gallery-thumb { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; transition: 0.2s; }
         .gallery-item:hover .gallery-thumb { opacity: 1; }
-        
-        .gallery-type-icon {
-            position: absolute; top: 5px; left: 5px; background: rgba(0,0,0,0.6);
-            color: white; padding: 3px; border-radius: 4px; pointer-events: none;
-        }
         .gallery-delete {
             position: absolute; top: 5px; right: 5px; background: rgba(200,0,0,0.8);
             color: white; border: none; border-radius: 4px; width: 24px; height: 24px;
@@ -156,19 +148,16 @@
         }
         .gallery-item:hover .gallery-delete { opacity: 1; }
 
-        /* --- PAINEL DE CONFIGURAÇÕES --- */
+        /* CONFIGURAÇÕES */
         .config-group {
-            background: #252525; padding: 15px; border-radius: 8px;
-            border: 1px solid #333; margin-bottom: 10px;
+            background: #252525; padding: 15px; border-radius: 8px; border: 1px solid #333; margin-bottom: 10px;
         }
         .config-group h4 { margin: 0 0 10px 0; color: #aaa; font-size: 0.85rem; text-transform: uppercase; border-bottom: 1px solid #333; padding-bottom: 8px;}
         .config-item { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 0.95rem; }
         .config-item label { color: #ddd; flex-grow: 1; }
         
         input[type="color"] { border: none; width: 35px; height: 35px; cursor: pointer; background: none; padding: 0; }
-        input[type="number"] {
-            background: #111; border: 1px solid #444; color: white; padding: 6px; border-radius: 4px; width: 65px; text-align: center; font-size: 14px;
-        }
+        input[type="number"] { background: #111; border: 1px solid #444; color: white; padding: 6px; border-radius: 4px; width: 65px; text-align: center; }
         input[type="range"] { flex-grow: 1; margin-left: 10px; cursor: pointer; }
         input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent-color); }
         select.font-select { width: 100%; padding: 8px; background: #111; border: 1px solid #444; color: white; border-radius: 4px; }
@@ -179,25 +168,14 @@
         .align-btn:hover { color: white; }
         .align-btn.active { background: #333; color: white; }
 
-        /* Botão de Instalar */
         #install-btn {
-            display: none; /* Só aparece se suportado */
-            width: 100%;
-            padding: 12px;
-            background: linear-gradient(45deg, #2563eb, #3b82f6);
-            border: none;
-            border-radius: 6px;
-            color: white;
-            font-weight: bold;
-            margin-bottom: 15px;
-            cursor: pointer;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            display: none; width: 100%; padding: 12px; background: linear-gradient(45deg, #2563eb, #3b82f6);
+            border: none; border-radius: 6px; color: white; font-weight: bold; margin-bottom: 15px;
+            cursor: pointer; align-items: center; justify-content: center; gap: 8px;
         }
         #install-btn:hover { filter: brightness(1.1); }
 
-        /* --- CONTEÚDO PRINCIPAL --- */
+        /* MAIN CONTENT */
         #main-content { flex-grow: 1; display: flex; flex-direction: column; position: relative; }
 
         #controls-bar {
@@ -218,7 +196,6 @@
 
         textarea#live-text { flex-grow: 1; height: 42px; background: #222; border: 1px solid #444; color: white; padding: 10px; border-radius: 6px; resize: none; font-family: inherit; font-size: 14px; }
 
-        /* --- DISPLAY GIGANTE --- */
         #display-area {
             flex-grow: 1; display: flex; flex-direction: column;
             justify-content: center; align-items: center; text-align: center;
@@ -259,48 +236,106 @@
         }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
 
-        /* MODAIS */
-        #modal-overlay, .modal-overlay {
+        /* --- MODAIS GERAIS --- */
+        .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 100;
+            background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 100;
+            backdrop-filter: blur(5px);
         }
         .modal { background: #2a2a2a; padding: 25px; border-radius: 12px; width: 450px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); border: 1px solid #444;}
         .modal input[type="text"], .modal textarea, .modal select { width: 100%; margin-bottom: 15px; padding: 12px; background: #1a1a1a; border: 1px solid #444; color: white; box-sizing: border-box; border-radius: 6px; }
         .modal-actions { display: flex; justify-content: flex-end; gap: 10px; }
-        
         .divider { display: flex; align-items: center; text-align: center; color: #666; font-size: 12px; margin: 15px 0; }
         .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #444; }
         .divider:not(:empty)::before { margin-right: .5em; }
         .divider:not(:empty)::after { margin-left: .5em; }
-
-        .file-upload-label {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            padding: 25px; border: 2px dashed #444; border-radius: 8px; cursor: pointer;
-            transition: 0.2s; color: #888; margin-bottom: 10px; background: rgba(255,255,255,0.02);
-        }
+        .file-upload-label { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px; border: 2px dashed #444; border-radius: 8px; cursor: pointer; transition: 0.2s; color: #888; margin-bottom: 10px; background: rgba(255,255,255,0.02); }
         .file-upload-label:hover { border-color: var(--accent-color); color: var(--accent-color); background: rgba(59, 130, 246, 0.1); }
         input[type="file"] { display: none; }
+        
+        /* --- ESTILOS DO NAVEGADOR BÍBLICO (MODAL GRANDE) --- */
+        #modal-bible-navigator {
+            align-items: flex-start; /* Começa do topo */
+            padding-top: 50px;
+        }
+        .bible-full-window {
+            background: #1a1a1a; width: 90%; max-width: 1000px; height: 80vh; 
+            border-radius: 12px; border: 1px solid #333; display: flex; flex-direction: column;
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+        .bible-header {
+            padding: 15px; background: #222; border-bottom: 1px solid #333; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .bible-header h3 { margin: 0; color: #fff; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+        .bible-crumbs { color: var(--accent-color); font-size: 0.9rem; margin-left: 10px; font-weight: normal;}
+        
+        .bible-content-area {
+            flex-grow: 1; overflow-y: auto; padding: 20px;
+        }
+
+        /* GRID DE LIVROS */
+        .bible-books-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px;
+        }
+        .bible-book-btn {
+            background: #333; border: 1px solid #444; color: #ddd; padding: 15px 5px;
+            border-radius: 6px; cursor: pointer; text-align: center; font-weight: bold; font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .bible-book-btn:hover { background: #444; border-color: var(--accent-color); color: white; }
+        .testament-label { grid-column: 1 / -1; color: #666; margin: 15px 0 5px 0; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* GRID DE CAPÍTULOS */
+        .bible-chapters-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(50px, 1fr)); gap: 10px;
+        }
+        .bible-chapter-btn {
+            background: #252525; border: 1px solid #333; color: white; aspect-ratio: 1;
+            display: flex; align-items: center; justify-content: center; font-size: 1.2rem; font-weight: bold;
+            border-radius: 6px; cursor: pointer; transition: 0.2s;
+        }
+        .bible-chapter-btn:hover { background: var(--accent-color); border-color: var(--accent-color); }
+
+        /* LISTA DE VERSÍCULOS (MODAL) */
+        .bible-verse-list-full { display: flex; flex-direction: column; gap: 8px; }
+        .bible-verse-item-full {
+            background: #252525; padding: 15px; border-radius: 6px; border-left: 4px solid #444;
+            cursor: pointer; font-size: 1.1rem; line-height: 1.5; color: #ddd; transition: 0.2s;
+        }
+        .bible-verse-item-full:hover { background: #333; border-left-color: var(--accent-color); color: white; padding-left: 20px;}
+        .bible-verse-num { color: var(--accent-color); font-weight: bold; margin-right: 8px; }
 
         .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
+    <!-- OVERLAY DE INICIALIZAÇÃO (AUTO OPEN) -->
+    <div id="startup-overlay" class="modal-overlay hidden" style="background: #121212; z-index: 200;">
+        <div style="text-align: center; color: white;">
+            <h2 style="margin-bottom: 20px;">Bem-vindo ao Louvor Pro</h2>
+            <p style="margin-bottom: 30px; color: #aaa;">Detetámos que a projeção automática está ativa.</p>
+            <button class="ctrl-btn play" onclick="startProjectorFlow()" style="font-size: 1.2rem; padding: 15px 30px;">
+                <span class="material-icons" style="margin-right: 10px;">connected_tv</span> 
+                INICIAR PROJEÇÃO
+            </button>
+            <p style="margin-top: 20px; font-size: 0.8rem; color: #666;">Clique para autorizar a detecção da 2ª tela.</p>
+        </div>
+    </div>
+
     <!-- SIDEBAR -->
     <div id="sidebar">
-        <!-- ABAS -->
         <div class="sidebar-tabs">
             <button class="tab-btn active" onclick="switchTab('verses')">Versos</button>
+            <button class="tab-btn" onclick="switchTab('bible')">Bíblia</button>
             <button class="tab-btn" onclick="switchTab('gallery')">Galeria</button>
             <button class="tab-btn" onclick="switchTab('appearance')">Ajustes</button>
         </div>
 
-        <!-- CONTEÚDO ABA 1: VERSÍCULOS -->
+        <!-- ABA 1: VERSÍCULOS -->
         <div id="tab-verses" class="tab-content active">
-            <button id="install-btn" onclick="installPWA()">
-                <span class="material-icons">download</span> Instalar App
-            </button>
-
+            <button id="install-btn" onclick="installPWA()"><span class="material-icons">download</span> Instalar App</button>
             <div class="sidebar-header">
                 <span class="sidebar-title">Lista de Textos</span>
                 <button class="add-btn" onclick="openModal('verse')" title="Adicionar Novo">+</button>
@@ -308,7 +343,17 @@
             <div id="verse-list"></div>
         </div>
 
-        <!-- CONTEÚDO ABA 2: GALERIA -->
+        <!-- ABA 2: BÍBLIA (SIMPLIFICADA) -->
+        <div id="tab-bible" class="tab-content">
+            <button class="ctrl-btn" onclick="openBibleNavigator()" style="width:100%; height:60px; font-size:1.1rem; background: var(--accent-color); margin-bottom: 20px;">
+                <span class="material-icons">menu_book</span> Abrir Bíblia
+            </button>
+            <div style="text-align:center; color:#666; font-size:0.9rem;">
+                Clique acima para abrir o navegador de livros e capítulos.
+            </div>
+        </div>
+
+        <!-- ABA 3: GALERIA -->
         <div id="tab-gallery" class="tab-content">
             <div class="sidebar-header">
                 <span class="sidebar-title">Mídia de Fundo</span>
@@ -316,113 +361,25 @@
             </div>
             <div style="margin-bottom:10px;">
                 <button class="list-card" onclick="removeBackground()" style="width:100%; justify-content:center; color:#aaa; font-size:12px;">
-                    <span class="material-icons" style="font-size:16px; margin-right:5px;">block</span> Remover Fundo (Usar Cor)
+                    <span class="material-icons" style="font-size:16px; margin-right:5px;">block</span> Remover Fundo
                 </button>
             </div>
             <div id="gallery-grid" class="gallery-grid"></div>
         </div>
 
-        <!-- CONTEÚDO ABA 3: APARÊNCIA -->
+        <!-- ABA 4: APARÊNCIA -->
         <div id="tab-appearance" class="tab-content">
-            
-            <div class="config-group">
-                <h4>Projeção</h4>
-                <div class="config-item">
-                    <label>Abrir Projetor ao Iniciar</label>
-                    <input type="checkbox" id="cfg-auto-open" onchange="updateSettings()">
-                </div>
-            </div>
-
-            <div class="config-group">
-                <h4>Layout & Exibição</h4>
-                <div class="config-item">
-                    <label>Mostrar Timer</label>
-                    <input type="checkbox" id="cfg-show-timer" onchange="updateSettings()" checked>
-                </div>
-                <div class="config-item">
-                    <label>Mostrar Texto</label>
-                    <input type="checkbox" id="cfg-show-text" onchange="updateSettings()" checked>
-                </div>
-                <div class="config-item">
-                    <label>Posição do Timer</label>
-                    <select id="cfg-timer-pos" class="config-select" onchange="updateSettings()">
-                        <option value="top">Acima do Texto</option>
-                        <option value="bottom">Abaixo do Texto</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="config-group">
-                <h4>Geral</h4>
-                <div class="config-item">
-                    <label>Cor de Fundo Base</label>
-                    <input type="color" id="cfg-bg-color" value="#000000" oninput="updateSettings()">
-                </div>
-                <div class="config-item">
-                    <label>Escurecer Mídia</label>
-                    <input type="range" id="cfg-overlay-opacity" min="0" max="1" step="0.1" value="0.5" oninput="updateSettings()">
-                </div>
-            </div>
-
-            <div class="config-group">
-                <h4>Texto</h4>
-                <div class="config-item">
-                    <label>Cor</label>
-                    <input type="color" id="cfg-text-color" value="#ffffff" oninput="updateSettings()">
-                </div>
-                <div class="config-item">
-                    <label>Tamanho (px)</label>
-                    <input type="number" id="cfg-text-size" min="10" max="800" value="80" oninput="updateSettings()">
-                </div>
-                <div class="config-item" style="display:block">
-                     <label style="display:block; margin-bottom:5px;">Fonte</label>
-                     <select id="cfg-font-family" class="font-select" onchange="updateSettings()">
-                         <option value="'Segoe UI', sans-serif">Padrão (Segoe UI)</option>
-                         <option value="'Courier New', monospace">Máquina (Courier)</option>
-                         <option value="'Times New Roman', serif">Clássico (Serifa)</option>
-                         <option value="Arial, sans-serif">Simples (Arial)</option>
-                         <option value="cursive">Manuscrito</option>
-                     </select>
-                </div>
-                <div class="config-item" style="display:block; margin-top:10px;">
-                    <label style="display:block; margin-bottom:5px;">Alinhamento</label>
-                    <div class="align-btn-group">
-                        <button class="align-btn" onclick="setAlignment('left')" id="btn-align-left"><span class="material-icons" style="font-size:16px">format_align_left</span></button>
-                        <button class="align-btn" onclick="setAlignment('center')" id="btn-align-center"><span class="material-icons" style="font-size:16px">format_align_center</span></button>
-                        <button class="align-btn" onclick="setAlignment('right')" id="btn-align-right"><span class="material-icons" style="font-size:16px">format_align_right</span></button>
-                    </div>
-                </div>
-            </div>
-
-            <div class="config-group">
-                <h4>Timer</h4>
-                <div class="config-item">
-                    <label>Cor Normal</label>
-                    <input type="color" id="cfg-timer-color" value="#4ade80" oninput="updateSettings()">
-                </div>
-                <div class="config-item">
-                    <label>Tamanho (px)</label>
-                    <input type="number" id="cfg-timer-size" min="10" max="800" value="180" oninput="updateSettings()">
-                </div>
-                
-                <div class="config-item">
-                    <label>Alertar quando faltar:</label>
-                    <div class="input-group" style="justify-content: flex-end;">
-                        <input type="number" id="cfg-alert-min" value="1" oninput="updateSettings()" placeholder="m" style="width: 40px;">
-                        <span>:</span>
-                        <input type="number" id="cfg-alert-sec" value="00" oninput="updateSettings()" placeholder="s" style="width: 40px;">
-                    </div>
-                </div>
-            </div>
-
+            <!-- (Conteúdo mantido igual ao anterior) -->
+            <div class="config-group"><h4>Projeção</h4><div class="config-item"><label>Abrir Projetor ao Iniciar</label><input type="checkbox" id="cfg-auto-open" onchange="updateSettings()"></div></div>
+            <div class="config-group"><h4>Layout & Exibição</h4><div class="config-item"><label>Mostrar Timer</label><input type="checkbox" id="cfg-show-timer" onchange="updateSettings()" checked></div><div class="config-item"><label>Mostrar Texto</label><input type="checkbox" id="cfg-show-text" onchange="updateSettings()" checked></div><div class="config-item"><label>Posição do Timer</label><select id="cfg-timer-pos" class="config-select" onchange="updateSettings()"><option value="top">Acima do Texto</option><option value="bottom">Abaixo do Texto</option></select></div></div>
+            <div class="config-group"><h4>Geral</h4><div class="config-item"><label>Cor de Fundo Base</label><input type="color" id="cfg-bg-color" value="#000000" oninput="updateSettings()"></div><div class="config-item"><label>Escurecer Mídia</label><input type="range" id="cfg-overlay-opacity" min="0" max="1" step="0.1" value="0.5" oninput="updateSettings()"></div></div>
+            <div class="config-group"><h4>Texto</h4><div class="config-item"><label>Cor</label><input type="color" id="cfg-text-color" value="#ffffff" oninput="updateSettings()"></div><div class="config-item"><label>Tamanho (px)</label><input type="number" id="cfg-text-size" min="10" max="800" value="80" oninput="updateSettings()"></div><div class="config-item" style="display:block"><label style="display:block; margin-bottom:5px;">Fonte</label><select id="cfg-font-family" class="font-select" onchange="updateSettings()"><option value="'Segoe UI', sans-serif">Padrão</option><option value="'Courier New', monospace">Máquina</option><option value="'Times New Roman', serif">Clássico</option><option value="Arial, sans-serif">Simples</option><option value="cursive">Manuscrito</option></select></div><div class="config-item" style="display:block; margin-top:10px;"><label style="display:block; margin-bottom:5px;">Alinhamento</label><div class="align-btn-group"><button class="align-btn" onclick="setAlignment('left')" id="btn-align-left"><span class="material-icons">format_align_left</span></button><button class="align-btn" onclick="setAlignment('center')" id="btn-align-center"><span class="material-icons">format_align_center</span></button><button class="align-btn" onclick="setAlignment('right')" id="btn-align-right"><span class="material-icons">format_align_right</span></button></div></div></div>
+            <div class="config-group"><h4>Timer</h4><div class="config-item"><label>Cor Normal</label><input type="color" id="cfg-timer-color" value="#4ade80" oninput="updateSettings()"></div><div class="config-item"><label>Tamanho (px)</label><input type="number" id="cfg-timer-size" min="10" max="800" value="180" oninput="updateSettings()"></div><div class="config-item"><label>Alertar quando faltar:</label><div class="input-group" style="justify-content: flex-end;"><input type="number" id="cfg-alert-min" value="1" oninput="updateSettings()" placeholder="m" style="width: 40px;"><span>:</span><input type="number" id="cfg-alert-sec" value="00" oninput="updateSettings()" placeholder="s" style="width: 40px;"></div></div></div>
             <button class="ctrl-btn" onclick="resetSettings()" style="width:100%; justify-content:center; background:#444; margin-bottom: 10px;">Restaurar Padrões</button>
-            
             <div style="border-top: 1px solid #333; margin: 15px 0;"></div>
-
             <button class="ctrl-btn" onclick="downloadSource()" style="width:100%; justify-content:center; background: #2563eb;">
                 <span class="material-icons">download</span> Download App
             </button>
-            <p style="color:#666; font-size:11px; text-align:center; margin-top:5px;">Baixar arquivo HTML para backup.</p>
         </div>
     </div>
 
@@ -441,7 +398,6 @@
             <button class="ctrl-btn" onclick="toggleFullScreen()"><span class="material-icons">fullscreen</span></button>
         </div>
 
-        <!-- PROJEÇÃO -->
         <div id="display-area">
             <video id="bg-video" loop muted playsinline></video>
             <div id="display-overlay"></div>
@@ -453,192 +409,272 @@
         </div>
     </div>
 
-    <!-- MODAL VERSÍCULO -->
+    <!-- MODAIS PEQUENOS -->
     <div id="modal-verse" class="modal-overlay hidden">
         <div class="modal">
             <h3 style="margin-top:0">Novo Texto</h3>
             <input type="text" id="new-verse-title" placeholder="Título">
             <textarea id="new-verse-content" rows="5" placeholder="Conteúdo..."></textarea>
-            <div class="modal-actions">
-                <button class="ctrl-btn" onclick="closeModal('verse')">Cancelar</button>
-                <button class="ctrl-btn play" onclick="saveVerse()">Salvar</button>
-            </div>
+            <div class="modal-actions"><button class="ctrl-btn" onclick="closeModal('verse')">Cancelar</button><button class="ctrl-btn play" onclick="saveVerse()">Salvar</button></div>
         </div>
     </div>
 
-    <!-- MODAL GALERIA -->
     <div id="modal-gallery" class="modal-overlay hidden">
         <div class="modal">
             <h3 style="margin-top:0">Nova Mídia</h3>
-            <label style="color:#ddd; font-size:12px">Tipo de Mídia:</label>
-            <select id="new-media-type" onchange="toggleMediaType()">
-                <option value="image">Imagem (JPG, PNG)</option>
-                <option value="video">Vídeo (MP4, WebM)</option>
-            </select>
-            <label for="new-media-file" class="file-upload-label">
-                <span class="material-icons" style="font-size:30px">cloud_upload</span>
-                <span id="file-label-text">Clique para escolher do Computador</span>
-            </label>
+            <label style="color:#ddd; font-size:12px">Tipo:</label>
+            <select id="new-media-type" onchange="toggleMediaType()"><option value="image">Imagem</option><option value="video">Vídeo</option></select>
+            <label for="new-media-file" class="file-upload-label"><span class="material-icons" style="font-size:30px">cloud_upload</span><span id="file-label-text">Clique para escolher</span></label>
             <input type="file" id="new-media-file" accept="image/*,video/*" onchange="updateFileLabel(this)">
             <div class="divider">OU</div>
-            <input type="text" id="new-media-url" placeholder="Cole um link da internet (URL)...">
-            <div class="modal-actions">
-                <button class="ctrl-btn" onclick="closeModal('gallery')">Cancelar</button>
-                <button class="ctrl-btn play" onclick="saveMedia()">Adicionar</button>
+            <input type="text" id="new-media-url" placeholder="URL da internet...">
+            <div class="modal-actions"><button class="ctrl-btn" onclick="closeModal('gallery')">Cancelar</button><button class="ctrl-btn play" onclick="saveMedia()">Adicionar</button></div>
+        </div>
+    </div>
+
+    <!-- NOVO MODAL: NAVEGADOR BÍBLICO FULL -->
+    <div id="modal-bible-navigator" class="modal-overlay hidden">
+        <div class="bible-full-window">
+            <div class="bible-header">
+                <h3><span class="material-icons">auto_stories</span> Bíblia <span id="bible-crumbs" class="bible-crumbs"></span></h3>
+                <div style="display:flex; gap:10px;">
+                    <button class="ctrl-btn" id="bible-back-btn" onclick="bibleGoBack()" style="display:none;"><span class="material-icons">arrow_back</span> Voltar</button>
+                    <button class="ctrl-btn stop" onclick="closeModal('bible-navigator')"><span class="material-icons">close</span></button>
+                </div>
+            </div>
+            <div class="bible-content-area" id="bible-content-area">
+                <!-- Conteúdo Dinâmico Aqui -->
             </div>
         </div>
     </div>
 
     <script>
-        // --- PWA CONFIG ---
-        // Criação dinâmica do manifesto para permitir "Instalar App"
-        const manifestData = {
-            "name": "Louvor Pro App",
-            "short_name": "LouvorPro",
-            "start_url": ".",
-            "display": "standalone",
-            "background_color": "#121212",
-            "theme_color": "#121212",
-            "icons": [{
-                "src": document.getElementById('app-icon').href,
-                "sizes": "192x192",
-                "type": "image/png"
-            }]
-        };
-        const stringManifest = JSON.stringify(manifestData);
-        const blobManifest = new Blob([stringManifest], {type: 'application/json'});
-        const manifestURL = URL.createObjectURL(blobManifest);
-        document.getElementById('app-manifest').setAttribute('href', manifestURL);
-
-        // Lógica de instalação PWA
+        // --- PWA SETUP ---
+        const manifestData = { "name": "Louvor Pro", "short_name": "Louvor", "start_url": ".", "display": "standalone", "background_color": "#121212", "theme_color": "#121212", "icons": [{"src": document.getElementById('app-icon').href, "sizes": "192x192", "type": "image/png"}] };
+        document.getElementById('app-manifest').setAttribute('href', URL.createObjectURL(new Blob([JSON.stringify(manifestData)], {type: 'application/json'})));
         let deferredPrompt;
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            document.getElementById('install-btn').style.display = 'flex';
-        });
+        window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; document.getElementById('install-btn').style.display = 'flex'; });
+        async function installPWA() { if (deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; if (outcome === 'accepted') document.getElementById('install-btn').style.display = 'none'; deferredPrompt = null; } }
 
-        async function installPWA() {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    document.getElementById('install-btn').style.display = 'none';
-                }
-                deferredPrompt = null;
-            }
-        }
-
-        // --- INICIALIZAÇÃO ---
+        // --- CORE VARIABLES ---
         const channel = new BroadcastChannel('louvor_app_v2');
         const urlParams = new URLSearchParams(window.location.search);
         const isProjector = urlParams.get('view') === 'projector';
+        
+        // --- BIBLE DATA ---
+        const bibleBooks = [
+            {name: "Gênesis", id: "Genesis"}, {name: "Êxodo", id: "Exodus"}, {name: "Levítico", id: "Leviticus"}, {name: "Números", id: "Numbers"}, {name: "Deuteronômio", id: "Deuteronomy"},
+            {name: "Josué", id: "Joshua"}, {name: "Juízes", id: "Judges"}, {name: "Rute", id: "Ruth"}, {name: "1 Samuel", id: "1Samuel"}, {name: "2 Samuel", id: "2Samuel"},
+            {name: "1 Reis", id: "1Kings"}, {name: "2 Reis", id: "2Kings"}, {name: "1 Crônicas", id: "1Chronicles"}, {name: "2 Crônicas", id: "2Chronicles"}, {name: "Esdras", id: "Ezra"},
+            {name: "Neemias", id: "Nehemiah"}, {name: "Ester", id: "Esther"}, {name: "Jó", id: "Job"}, {name: "Salmos", id: "Psalms"}, {name: "Provérbios", id: "Proverbs"},
+            {name: "Eclesiastes", id: "Ecclesiastes"}, {name: "Cânticos", id: "Song of Solomon"}, {name: "Isaías", id: "Isaiah"}, {name: "Jeremias", id: "Jeremiah"}, {name: "Lamentações", id: "Lamentations"},
+            {name: "Ezequiel", id: "Ezekiel"}, {name: "Daniel", id: "Daniel"}, {name: "Oseias", id: "Hosea"}, {name: "Joel", id: "Joel"}, {name: "Amós", id: "Amos"},
+            {name: "Obadias", id: "Obadiah"}, {name: "Jonas", id: "Jonah"}, {name: "Miqueias", id: "Micah"}, {name: "Naum", id: "Nahum"}, {name: "Habacuque", id: "Habakkuk"},
+            {name: "Sofonias", id: "Zephaniah"}, {name: "Ageu", id: "Haggai"}, {name: "Zacarias", id: "Zechariah"}, {name: "Malaquias", id: "Malachi"},
+            {name: "Mateus", id: "Matthew"}, {name: "Marcos", id: "Mark"}, {name: "Lucas", id: "Luke"}, {name: "João", id: "John"}, {name: "Atos", id: "Acts"},
+            {name: "Romanos", id: "Romans"}, {name: "1 Coríntios", id: "1Corinthians"}, {name: "2 Coríntios", id: "2Corinthians"}, {name: "Gálatas", id: "Galatians"}, {name: "Efésios", id: "Ephesians"},
+            {name: "Filipenses", id: "Philippians"}, {name: "Colossenses", id: "Colossians"}, {name: "1 Tessalonicenses", id: "1Thessalonians"}, {name: "2 Tessalonicenses", id: "2Thessalonians"}, {name: "1 Timóteo", id: "1Timothy"},
+            {name: "2 Timóteo", id: "2Timothy"}, {name: "Tito", id: "Titus"}, {name: "Filemom", id: "Philemon"}, {name: "Hebreus", id: "Hebrews"}, {name: "Tiago", id: "James"},
+            {name: "1 Pedro", id: "1Peter"}, {name: "2 Pedro", id: "2Peter"}, {name: "1 João", id: "1John"}, {name: "2 João", id: "2John"}, {name: "3 João", id: "3John"},
+            {name: "Judas", id: "Jude"}, {name: "Apocalipse", id: "Revelation"}
+        ];
+        // Quantidade de capítulos por livro (ordem Gênesis -> Apocalipse)
+        const bibleChapterCounts = [50,40,27,36,34,24,21,4,31,24,22,25,29,36,10,13,10,42,150,31,12,8,66,52,5,48,12,14,3,9,1,4,7,3,3,3,2,14,4,28,16,24,21,28,16,16,13,6,6,4,4,5,3,6,1,13,5,5,3,5,1,1,1,22];
 
+        // Bible Navigator State
+        let bibleNavState = { step: 'book', selectedBookIndex: -1, selectedChapter: -1 };
+
+        // --- SETTINGS & STATE ---
         const defaultSettings = {
-            autoOpenProjector: false,
-            showTimer: true,
-            showText: true,
-            timerPos: 'top',
-            bgColor: '#000000',
-            bgType: 'color', 
-            bgUrl: '',
-            overlayOpacity: 0.5,
-            textColor: '#ffffff',
-            textSize: 80,
-            fontFamily: "'Segoe UI', sans-serif",
-            textAlign: 'center',
-            timerColor: '#4ade80',
-            timerSize: 180,
-            alertTime: 60
+            autoOpenProjector: false, showTimer: true, showText: true, timerPos: 'top',
+            bgColor: '#000000', bgType: 'color', bgUrl: '', overlayOpacity: 0.5,
+            textColor: '#ffffff', textSize: 80, fontFamily: "'Segoe UI', sans-serif", textAlign: 'center',
+            timerColor: '#4ade80', timerSize: 180, alertTime: 60
         };
         let currentSettings = JSON.parse(localStorage.getItem('appSettings')) || defaultSettings;
 
-        const defaultVerses = [
-            { title: "Boas Vindas", content: "Sejam bem-vindos!\nO culto começará em instantes." },
-            { title: "Salmos 119:105", content: "Lâmpada para os meus pés é tua palavra,\ne luz para o meu caminho." }
-        ];
+        const defaultVerses = [{ title: "Boas Vindas", content: "Sejam bem-vindos!\nO culto começará em instantes." }];
         let verses = JSON.parse(localStorage.getItem('myVerses')) || defaultVerses;
-
-        const MAX_FILE_SIZE_MB = 4.5; 
-
         let galleryItems = JSON.parse(localStorage.getItem('myGallery')) || [
             { type: 'image', url: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?auto=format&fit=crop&w=1000&q=80' },
             { type: 'image', url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1000&q=80' }
         ];
 
-        let timerInterval;
-        let totalSeconds = 300;
-        let isRunning = false;
-        const timerDisplay = document.getElementById('timer-display');
-        const textDisplay = document.getElementById('text-display');
+        let timerInterval, totalSeconds = 300, isRunning = false;
 
-        // --- FUNÇÃO DE JANELA ---
-        async function openProjectorWindow(fromClick = false) {
-            let params = 'width=800,height=600,menubar=no,toolbar=no,location=no,status=no';
+        // --- AUTO START LOGIC ---
+        async function startProjectorFlow() {
+            document.getElementById('startup-overlay').style.display = 'none';
+            // Chama com true para garantir user gesture
+            await openProjectorWindow(true);
+        }
+
+        // --- BIBLE NAVIGATOR LOGIC (NEW) ---
+        function openBibleNavigator() {
+            bibleNavState = { step: 'book', selectedBookIndex: -1, selectedChapter: -1 };
+            renderBibleNavigator();
+            document.getElementById('modal-bible-navigator').style.display = 'flex';
+            document.getElementById('modal-bible-navigator').classList.remove('hidden');
+        }
+
+        function bibleGoBack() {
+            if(bibleNavState.step === 'verse') {
+                bibleNavState.step = 'chapter';
+                renderBibleNavigator();
+            } else if(bibleNavState.step === 'chapter') {
+                bibleNavState.step = 'book';
+                renderBibleNavigator();
+            }
+        }
+
+        function renderBibleNavigator() {
+            const area = document.getElementById('bible-content-area');
+            const crumbs = document.getElementById('bible-crumbs');
+            const backBtn = document.getElementById('bible-back-btn');
             
-            if (fromClick && window.getScreenDetails) {
-                try {
-                    const screenDetails = await window.getScreenDetails();
-                    const secondaryScreen = screenDetails.screens.find(s => s !== screenDetails.currentScreen);
-                    if (secondaryScreen) {
-                        params = `left=${secondaryScreen.left},top=${secondaryScreen.top},width=${secondaryScreen.width},height=${secondaryScreen.height},menubar=no,toolbar=no,location=no,status=no`;
-                    }
-                } catch (e) {
-                    console.warn("Permissão de tela negada ou cancelada. Abrindo janela padrão.");
+            area.innerHTML = '';
+
+            if (bibleNavState.step === 'book') {
+                backBtn.style.display = 'none';
+                crumbs.innerText = '';
+                
+                const grid = document.createElement('div');
+                grid.className = 'bible-books-grid';
+                
+                // VT Label
+                grid.innerHTML += `<div class="testament-label">Velho Testamento</div>`;
+                bibleBooks.slice(0, 39).forEach((b, i) => {
+                    grid.appendChild(createBookBtn(b, i));
+                });
+                // NT Label
+                grid.innerHTML += `<div class="testament-label">Novo Testamento</div>`;
+                bibleBooks.slice(39).forEach((b, i) => {
+                    grid.appendChild(createBookBtn(b, i + 39));
+                });
+                
+                area.appendChild(grid);
+
+            } else if (bibleNavState.step === 'chapter') {
+                backBtn.style.display = 'flex';
+                const bookName = bibleBooks[bibleNavState.selectedBookIndex].name;
+                crumbs.innerText = `> ${bookName}`;
+                
+                const grid = document.createElement('div');
+                grid.className = 'bible-chapters-grid';
+                
+                const count = bibleChapterCounts[bibleNavState.selectedBookIndex];
+                for(let c = 1; c <= count; c++) {
+                    const btn = document.createElement('div');
+                    btn.className = 'bible-chapter-btn';
+                    btn.innerText = c;
+                    btn.onclick = () => {
+                        bibleNavState.selectedChapter = c;
+                        bibleNavState.step = 'verse';
+                        renderBibleNavigator();
+                    };
+                    grid.appendChild(btn);
                 }
-            }
+                area.appendChild(grid);
 
-            const newWin = window.open(window.location.href.split('?')[0] + '?view=projector', 'ProjectorWindow', params);
-            
-            if(!newWin || newWin.closed || typeof newWin.closed=='undefined') {
-                alert("O navegador bloqueou a janela do projetor. Por favor, permita POP-UPS para este site na barra de endereço.");
+            } else if (bibleNavState.step === 'verse') {
+                backBtn.style.display = 'flex';
+                const book = bibleBooks[bibleNavState.selectedBookIndex];
+                const chapter = bibleNavState.selectedChapter;
+                crumbs.innerText = `> ${book.name} > Cap ${chapter}`;
+                
+                area.innerHTML = '<div style="text-align:center; padding:40px; color:#aaa;">Carregando Texto Sagrado...</div>';
+                
+                // Fetch Verses
+                fetch(`https://bible-api.com/${book.id}+${chapter}?translation=almeida`)
+                    .then(res => res.json())
+                    .then(data => {
+                        area.innerHTML = '';
+                        if(data.verses) {
+                            const list = document.createElement('div');
+                            list.className = 'bible-verse-list-full';
+                            
+                            data.verses.forEach(v => {
+                                const row = document.createElement('div');
+                                row.className = 'bible-verse-item-full';
+                                row.innerHTML = `<span class="bible-verse-num">${v.verse}</span> ${v.text}`;
+                                row.onclick = () => {
+                                    const projText = `${v.text}\n\n(${book.name} ${chapter}:${v.verse})`;
+                                    updateDisplay(projText);
+                                    // Feedback visual
+                                    row.style.background = '#2563eb';
+                                    setTimeout(()=> row.style.background = '', 300);
+                                };
+                                list.appendChild(row);
+                            });
+                            area.appendChild(list);
+                        } else {
+                            area.innerHTML = '<div style="text-align:center; color:red;">Erro ao carregar versículos.</div>';
+                        }
+                    })
+                    .catch(e => {
+                        area.innerHTML = '<div style="text-align:center; color:red;">Erro de conexão.</div>';
+                    });
             }
         }
 
-        // --- DOWNLOAD SOURCE ---
-        function downloadSource() {
-            const clone = document.documentElement.cloneNode(true);
-            clone.querySelectorAll('.modal-overlay').forEach(el => el.classList.add('hidden'));
-            clone.classList.remove('projector-mode');
-            
-            const htmlContent = clone.outerHTML;
-            const blob = new Blob([htmlContent], {type: 'text/html'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = 'app_louvor_pro.html';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+        function createBookBtn(book, index) {
+            const btn = document.createElement('div');
+            btn.className = 'bible-book-btn';
+            btn.innerText = book.name;
+            btn.onclick = () => {
+                bibleNavState.selectedBookIndex = index;
+                bibleNavState.step = 'chapter';
+                renderBibleNavigator();
+            };
+            return btn;
         }
 
-        // --- FUNÇÕES GERAIS ---
-
+        // --- TAB & UI LOGIC ---
         function switchTab(tabName) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
-            if(tabName === 'verses') {
-                document.querySelectorAll('.tab-btn')[0].classList.add('active');
-                document.getElementById('tab-verses').classList.add('active');
-            } else if(tabName === 'gallery') {
-                document.querySelectorAll('.tab-btn')[1].classList.add('active');
-                document.getElementById('tab-gallery').classList.add('active');
-            } else {
-                document.querySelectorAll('.tab-btn')[2].classList.add('active');
-                document.getElementById('tab-appearance').classList.add('active');
+            const buttons = document.querySelectorAll('.tab-btn');
+            const tabs = ['tab-verses', 'tab-bible', 'tab-gallery', 'tab-appearance'];
+            let index = 0;
+            if(tabName === 'bible') index = 1;
+            if(tabName === 'gallery') index = 2;
+            if(tabName === 'appearance') index = 3;
+
+            buttons[index].classList.add('active');
+            document.getElementById(tabs[index]).classList.add('active');
+        }
+
+        // --- SYSTEM FUNCTIONS ---
+        async function openProjectorWindow(fromClick = false) {
+            let params = 'width=800,height=600,menubar=no,toolbar=no,location=no,status=no';
+            if (fromClick && window.getScreenDetails) {
+                try {
+                    const screenDetails = await window.getScreenDetails();
+                    const secondaryScreen = screenDetails.screens.find(s => s !== screenDetails.currentScreen);
+                    if (secondaryScreen) params = `left=${secondaryScreen.left},top=${secondaryScreen.top},width=${secondaryScreen.width},height=${secondaryScreen.height},menubar=no,toolbar=no,location=no,status=no`;
+                } catch (e) { console.warn("Permissão tela negada."); }
             }
+            const newWin = window.open(window.location.href.split('?')[0] + '?view=projector', 'ProjectorWindow', params);
+            if(!newWin || newWin.closed || typeof newWin.closed=='undefined') alert("Pop-up bloqueado. Permita na barra de endereço.");
+        }
+
+        function downloadSource() {
+            const clone = document.documentElement.cloneNode(true);
+            clone.querySelectorAll('.modal-overlay').forEach(el => el.classList.add('hidden'));
+            clone.classList.remove('projector-mode');
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(new Blob([clone.outerHTML], {type: 'text/html'}));
+            a.download = 'app_louvor_pro.html';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
         }
 
         function loadSettingsToInputs() {
             if(isProjector) return;
             document.getElementById('cfg-auto-open').checked = currentSettings.autoOpenProjector || false; 
-
             document.getElementById('cfg-show-timer').checked = currentSettings.showTimer !== false; 
             document.getElementById('cfg-show-text').checked = currentSettings.showText !== false;
             document.getElementById('cfg-timer-pos').value = currentSettings.timerPos || 'top';
-
             document.getElementById('cfg-bg-color').value = currentSettings.bgColor;
             document.getElementById('cfg-overlay-opacity').value = currentSettings.overlayOpacity;
             document.getElementById('cfg-text-color').value = currentSettings.textColor;
@@ -646,13 +682,10 @@
             document.getElementById('cfg-font-family').value = currentSettings.fontFamily;
             document.getElementById('cfg-timer-color').value = currentSettings.timerColor;
             document.getElementById('cfg-timer-size').value = currentSettings.timerSize;
-            
-            const totalAlertSeconds = currentSettings.alertTime || 60;
-            const alertMin = Math.floor(totalAlertSeconds / 60);
-            const alertSec = totalAlertSeconds % 60;
+            const alertMin = Math.floor((currentSettings.alertTime || 60) / 60);
+            const alertSec = (currentSettings.alertTime || 60) % 60;
             document.getElementById('cfg-alert-min').value = alertMin;
             document.getElementById('cfg-alert-sec').value = alertSec;
-
             updateAlignButtons(currentSettings.textAlign);
         }
 
@@ -661,20 +694,13 @@
             document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(`btn-align-${align}`).classList.add('active');
         }
-
-        function setAlignment(align) {
-            currentSettings.textAlign = align;
-            updateAlignButtons(align);
-            saveAndApplySettings();
-        }
+        function setAlignment(align) { currentSettings.textAlign = align; updateAlignButtons(align); saveAndApplySettings(); }
 
         function updateSettings() {
-            currentSettings.autoOpenProjector = document.getElementById('cfg-auto-open').checked; 
-
+            currentSettings.autoOpenProjector = document.getElementById('cfg-auto-open').checked;
             currentSettings.showTimer = document.getElementById('cfg-show-timer').checked;
             currentSettings.showText = document.getElementById('cfg-show-text').checked;
             currentSettings.timerPos = document.getElementById('cfg-timer-pos').value;
-
             currentSettings.bgColor = document.getElementById('cfg-bg-color').value;
             currentSettings.overlayOpacity = document.getElementById('cfg-overlay-opacity').value;
             currentSettings.textColor = document.getElementById('cfg-text-color').value;
@@ -682,43 +708,14 @@
             currentSettings.fontFamily = document.getElementById('cfg-font-family').value;
             currentSettings.timerColor = document.getElementById('cfg-timer-color').value;
             currentSettings.timerSize = document.getElementById('cfg-timer-size').value;
-            
-            const alertMin = parseInt(document.getElementById('cfg-alert-min').value) || 0;
-            const alertSec = parseInt(document.getElementById('cfg-alert-sec').value) || 0;
-            currentSettings.alertTime = (alertMin * 60) + alertSec;
-
+            currentSettings.alertTime = (parseInt(document.getElementById('cfg-alert-min').value)||0)*60 + (parseInt(document.getElementById('cfg-alert-sec').value)||0);
             saveAndApplySettings();
         }
 
-        function removeBackground() {
-            currentSettings.bgType = 'color';
-            currentSettings.bgUrl = '';
-            saveAndApplySettings();
-            renderGallery();
-        }
-
-        function setBackground(url, type) {
-            currentSettings.bgType = type;
-            currentSettings.bgUrl = url;
-            saveAndApplySettings();
-            renderGallery();
-        }
-
-        function resetSettings() {
-            currentSettings = {...defaultSettings};
-            loadSettingsToInputs();
-            saveAndApplySettings();
-        }
-
-        function saveAndApplySettings() {
-            try {
-                localStorage.setItem('appSettings', JSON.stringify(currentSettings));
-            } catch (e) {
-                console.error("Erro ao salvar settings", e);
-            }
-            applyStyles(currentSettings);
-            channel.postMessage({ type: 'settings', payload: currentSettings });
-        }
+        function removeBackground() { currentSettings.bgType = 'color'; currentSettings.bgUrl = ''; saveAndApplySettings(); renderGallery(); }
+        function setBackground(url, type) { currentSettings.bgType = type; currentSettings.bgUrl = url; saveAndApplySettings(); renderGallery(); }
+        function resetSettings() { currentSettings = {...defaultSettings}; loadSettingsToInputs(); saveAndApplySettings(); }
+        function saveAndApplySettings() { try { localStorage.setItem('appSettings', JSON.stringify(currentSettings)); } catch(e){} applyStyles(currentSettings); channel.postMessage({ type: 'settings', payload: currentSettings }); }
 
         function applyStyles(s) {
             const display = document.getElementById('display-area');
@@ -730,334 +727,114 @@
 
             timer.style.display = (s.showTimer !== false) ? 'block' : 'none';
             text.style.display = (s.showText !== false) ? 'block' : 'none';
-
-            if (s.timerPos === 'bottom') {
-                wrapper.style.flexDirection = 'column-reverse';
-            } else {
-                wrapper.style.flexDirection = 'column';
-            }
-
+            wrapper.style.flexDirection = s.timerPos === 'bottom' ? 'column-reverse' : 'column';
             display.style.backgroundColor = s.bgColor;
             
             if (s.bgType === 'video' && s.bgUrl) {
-                display.style.backgroundImage = 'none';
-                videoEl.style.display = 'block';
-                if (videoEl.src !== s.bgUrl) {
-                    videoEl.src = s.bgUrl;
-                    videoEl.play().catch(e => console.log("Erro ao tocar vídeo:", e));
-                } else {
-                    if(videoEl.paused) videoEl.play();
-                }
+                display.style.backgroundImage = 'none'; videoEl.style.display = 'block';
+                if (videoEl.src !== s.bgUrl) { videoEl.src = s.bgUrl; videoEl.play().catch(e=>{}); } else if(videoEl.paused) videoEl.play();
             } else if (s.bgType === 'image' && s.bgUrl) {
-                videoEl.style.display = 'none';
-                videoEl.pause();
-                display.style.backgroundImage = `url('${s.bgUrl}')`;
+                videoEl.style.display = 'none'; videoEl.pause(); display.style.backgroundImage = `url('${s.bgUrl}')`;
             } else {
-                videoEl.style.display = 'none';
-                videoEl.pause();
-                display.style.backgroundImage = 'none';
+                videoEl.style.display = 'none'; videoEl.pause(); display.style.backgroundImage = 'none';
             }
-
-            if (s.bgType !== 'color') {
-                overlay.style.backgroundColor = `rgba(0,0,0,${s.overlayOpacity})`;
-            } else {
-                overlay.style.backgroundColor = 'transparent';
-            }
-
-            text.style.color = s.textColor;
-            text.style.fontSize = `${s.textSize}px`; 
-            text.style.fontFamily = s.fontFamily;
-            text.style.textAlign = s.textAlign;
+            overlay.style.backgroundColor = s.bgType !== 'color' ? `rgba(0,0,0,${s.overlayOpacity})` : 'transparent';
+            text.style.color = s.textColor; text.style.fontSize = `${s.textSize}px`; text.style.fontFamily = s.fontFamily; text.style.textAlign = s.textAlign;
             wrapper.style.alignItems = s.textAlign === 'center' ? 'center' : (s.textAlign === 'left' ? 'flex-start' : 'flex-end');
-
             timer.style.color = s.timerColor; 
-            if(timer.innerText !== "ACABOU SEU TEMPO") {
-                timer.style.fontSize = `${s.timerSize}px`; 
-            }
+            if(timer.innerText !== "ACABOU SEU TEMPO") timer.style.fontSize = `${s.timerSize}px`; 
         }
 
         function renderGallery() {
             if(isProjector) return;
-            const grid = document.getElementById('gallery-grid');
-            grid.innerHTML = '';
-            
+            const grid = document.getElementById('gallery-grid'); grid.innerHTML = '';
             galleryItems.forEach((item, index) => {
                 const div = document.createElement('div');
-                const isSelected = (currentSettings.bgUrl === item.url);
-                div.className = `gallery-item ${isSelected ? 'selected' : ''}`;
-                div.onclick = (e) => {
-                    if(e.target.closest('.gallery-delete')) return;
-                    setBackground(item.url, item.type);
-                };
-
-                let icon = item.type === 'video' ? 'videocam' : 'image';
-                let imgTag = item.type === 'image' 
-                    ? `<img src="${item.url}" class="gallery-thumb" onerror="this.src='https://via.placeholder.com/150?text=Erro'">`
-                    : `<div class="gallery-thumb" style="background:#333; display:flex; align-items:center; justify-content:center; color:#555;"><span class="material-icons" style="font-size:30px">movie</span></div>`;
-
-                div.innerHTML = `
-                    ${imgTag}
-                    <div class="gallery-type-icon"><span class="material-icons" style="font-size:14px">${icon}</span></div>
-                    <button class="gallery-delete" onclick="deleteMedia(${index})"><span class="material-icons" style="font-size:14px">close</span></button>
-                `;
+                div.className = `gallery-item ${currentSettings.bgUrl === item.url ? 'selected' : ''}`;
+                div.onclick = (e) => { if(e.target.closest('.gallery-delete')) return; setBackground(item.url, item.type); };
+                let imgTag = item.type === 'image' ? `<img src="${item.url}" class="gallery-thumb" onerror="this.src='https://via.placeholder.com/150'">` : `<div class="gallery-thumb" style="background:#333; display:flex; align-items:center; justify-content:center;"><span class="material-icons">movie</span></div>`;
+                div.innerHTML = `${imgTag}<div class="gallery-type-icon"><span class="material-icons" style="font-size:14px">${item.type==='video'?'videocam':'image'}</span></div><button class="gallery-delete" onclick="deleteMedia(${index})"><span class="material-icons" style="font-size:14px">close</span></button>`;
                 grid.appendChild(div);
             });
-        }
-
-        function toggleMediaType() {
-            const type = document.getElementById('new-media-type').value;
-            const fileInput = document.getElementById('new-media-file');
-            fileInput.accept = type === 'video' ? 'video/*' : 'image/*';
-        }
-
-        function updateFileLabel(input) {
-            const label = document.getElementById('file-label-text');
-            if (input.files && input.files[0]) {
-                label.innerText = input.files[0].name;
-            } else {
-                label.innerText = "Clique para escolher do Computador";
-            }
         }
 
         function saveMedia() {
             const type = document.getElementById('new-media-type').value;
             const urlInput = document.getElementById('new-media-url').value;
             const fileInput = document.getElementById('new-media-file');
-            
             if (fileInput.files && fileInput.files[0]) {
-                const file = fileInput.files[0];
-                const fileSizeMB = file.size / 1024 / 1024;
-                if (fileSizeMB > MAX_FILE_SIZE_MB) {
-                    alert(`Arquivo muito grande (${fileSizeMB.toFixed(2)}MB). O navegador só permite salvar arquivos pequenos (aprox 4MB).`);
-                    return;
-                }
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    addToGalleryAndSave(type, e.target.result);
-                };
-                reader.readAsDataURL(file);
-            } else if (urlInput) {
-                addToGalleryAndSave(type, urlInput);
-            } else {
-                alert("Por favor, selecione um arquivo ou cole uma URL.");
-            }
+                if (fileInput.files[0].size/1024/1024 > 4.5) return alert("Arquivo muito grande (>4.5MB).");
+                const reader = new FileReader(); reader.onload = (e) => addToGalleryAndSave(type, e.target.result); reader.readAsDataURL(fileInput.files[0]);
+            } else if (urlInput) addToGalleryAndSave(type, urlInput);
         }
+        function addToGalleryAndSave(type, url) { try { galleryItems.push({ type, url }); localStorage.setItem('myGallery', JSON.stringify(galleryItems)); renderGallery(); closeModal('gallery'); } catch(e){ galleryItems.pop(); alert("Espaço cheio!"); } }
+        function deleteMedia(index) { if(confirm('Remover?')) { galleryItems.splice(index, 1); localStorage.setItem('myGallery', JSON.stringify(galleryItems)); renderGallery(); } }
+        function toggleMediaType() { document.getElementById('new-media-file').accept = document.getElementById('new-media-type').value === 'video' ? 'video/*' : 'image/*'; }
+        function updateFileLabel(input) { document.getElementById('file-label-text').innerText = input.files[0] ? input.files[0].name : "Clique para escolher"; }
 
-        function addToGalleryAndSave(type, url) {
-            try {
-                galleryItems.push({ type, url });
-                localStorage.setItem('myGallery', JSON.stringify(galleryItems));
-                renderGallery();
-                closeModal('gallery');
-            } catch (e) {
-                galleryItems.pop(); 
-                alert("Erro: Espaço cheio! Exclua alguns itens da galeria.");
-                console.error(e);
-            }
-        }
-
-        function deleteMedia(index) {
-            if(confirm('Remover da galeria?')) {
-                galleryItems.splice(index, 1);
-                localStorage.setItem('myGallery', JSON.stringify(galleryItems));
-                renderGallery();
-            }
-        }
-
-        function startTimer() {
-            if (isRunning) return;
-            if (!isProjector && !timerInterval) {
-                 const m = parseInt(document.getElementById('min').value) || 0;
-                 const s = parseInt(document.getElementById('sec').value) || 0;
-                 totalSeconds = m * 60 + s;
-            }
-            isRunning = true;
-            timerInterval = setInterval(() => {
-                if (totalSeconds <= 0) {
-                    clearInterval(timerInterval);
-                    timerInterval = null;
-                    isRunning = false;
-                    updateTimerUI(true);
-                    return;
-                }
-                totalSeconds--;
-                updateTimerUI(false);
-            }, 1000);
-        }
-
-        function pauseTimer() {
-            clearInterval(timerInterval);
-            timerInterval = null;
-            isRunning = false;
-        }
-
-        function resetTimer() {
-            pauseTimer();
-            if (!isProjector) {
-                const m = parseInt(document.getElementById('min').value) || 0;
-                const s = parseInt(document.getElementById('sec').value) || 0;
-                totalSeconds = m * 60 + s;
-                updateTimerUI(false);
-            }
-        }
-
+        // TIMER Logic
+        function startTimer() { if (isRunning) return; if (!isProjector && !timerInterval) { const m = parseInt(document.getElementById('min').value)||0; const s = parseInt(document.getElementById('sec').value)||0; totalSeconds = m * 60 + s; } isRunning = true; timerInterval = setInterval(() => { if (totalSeconds <= 0) { clearInterval(timerInterval); isRunning = false; updateTimerUI(true); return; } totalSeconds--; updateTimerUI(false); }, 1000); }
+        function pauseTimer() { clearInterval(timerInterval); timerInterval = null; isRunning = false; }
+        function resetTimer() { pauseTimer(); if (!isProjector) { const m = parseInt(document.getElementById('min').value)||0; const s = parseInt(document.getElementById('sec').value)||0; totalSeconds = m * 60 + s; updateTimerUI(false); } }
         function updateTimerUI(finished) {
-            let displayText = "";
-            let currentFontSize = "";
-            let isDanger = false;
-            const alertThreshold = currentSettings.alertTime || 60;
-
-            if (finished) {
-                displayText = "ACABOU SEU TEMPO";
-                currentFontSize = (currentSettings.timerSize * 0.4) + "px"; 
-                isDanger = true;
-            } else {
-                const m = Math.floor(totalSeconds / 60);
-                const s = totalSeconds % 60;
-                displayText = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
-                currentFontSize = currentSettings.timerSize + "px"; 
-                isDanger = (totalSeconds < alertThreshold && totalSeconds > 0);
+            let txt = "", size = "", danger = false;
+            if(finished) { txt = "ACABOU SEU TEMPO"; size = (currentSettings.timerSize * 0.4) + "px"; danger = true; }
+            else { 
+                const m = Math.floor(totalSeconds / 60); const s = totalSeconds % 60;
+                txt = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                size = currentSettings.timerSize + "px";
+                danger = (totalSeconds < (currentSettings.alertTime||60) && totalSeconds > 0);
             }
-
-            timerDisplay.innerText = displayText;
-            timerDisplay.style.fontSize = currentFontSize;
-            if(isDanger) timerDisplay.classList.add('danger-mode');
-            else timerDisplay.classList.remove('danger-mode');
-            
-            broadcastTimer(displayText, isDanger, currentFontSize);
+            const el = document.getElementById('timer-display'); el.innerText = txt; el.style.fontSize = size;
+            if(danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
+            if(!isProjector) channel.postMessage({ type: 'timer', payload: { text: txt, danger, fontSize: size } });
         }
 
-        function updateDisplay(text) {
-            textDisplay.innerText = text;
-            if(!isProjector) document.getElementById('live-text').value = text;
-            broadcastText(text);
-        }
-
+        function updateDisplay(text) { document.getElementById('text-display').innerText = text; if(!isProjector) { document.getElementById('live-text').value = text; channel.postMessage({ type: 'text', payload: text }); } }
+        
         function renderList() {
             if(isProjector) return;
-            const list = document.getElementById('verse-list');
-            list.innerHTML = '';
+            const list = document.getElementById('verse-list'); list.innerHTML = '';
             verses.forEach((v, index) => {
-                const card = document.createElement('div');
-                card.className = 'list-card';
-                card.onclick = (e) => {
-                    if(e.target.closest('.delete-btn')) return; 
-                    updateDisplay(v.content);
-                };
-                card.innerHTML = `
-                    <div class="list-info">
-                        <div class="list-title">${v.title}</div>
-                        <div class="list-preview">${v.content.replace(/\n/g, ' ')}</div>
-                    </div>
-                    <button class="delete-btn" onclick="deleteVerse(${index})"><span class="material-icons" style="font-size:18px">delete</span></button>
-                `;
+                const card = document.createElement('div'); card.className = 'list-card';
+                card.onclick = (e) => { if(e.target.closest('.delete-btn')) return; updateDisplay(v.content); };
+                card.innerHTML = `<div class="list-info"><div class="list-title">${v.title}</div><div class="list-preview">${v.content.replace(/\n/g, ' ')}</div></div><button class="delete-btn" onclick="deleteVerse(${index})"><span class="material-icons" style="font-size:18px">delete</span></button>`;
                 list.appendChild(card);
             });
         }
+        function deleteVerse(index) { if(confirm('Apagar?')) { verses.splice(index, 1); localStorage.setItem('myVerses', JSON.stringify(verses)); renderList(); } }
+        function saveVerse() { const t = document.getElementById('new-verse-title').value; const c = document.getElementById('new-verse-content').value; if(t&&c) { verses.push({title:t, content:c}); localStorage.setItem('myVerses', JSON.stringify(verses)); renderList(); closeModal('verse'); } }
 
-        function deleteVerse(index) {
-            if(confirm('Apagar?')) {
-                verses.splice(index, 1);
-                localStorage.setItem('myVerses', JSON.stringify(verses));
-                renderList();
-            }
+        function openModal(t) { 
+            if(t==='verse'){ document.getElementById('new-verse-title').value=''; document.getElementById('new-verse-content').value=''; document.getElementById('modal-verse').style.display='flex'; document.getElementById('modal-verse').classList.remove('hidden'); }
+            if(t==='gallery'){ document.getElementById('new-media-url').value=''; document.getElementById('new-media-file').value=''; document.getElementById('modal-gallery').style.display='flex'; document.getElementById('modal-gallery').classList.remove('hidden'); }
         }
+        function closeModal(t) { 
+            if(document.getElementById(`modal-${t}`)) document.getElementById(`modal-${t}`).style.display='none'; 
+            if(t === 'bible-navigator') document.getElementById('modal-bible-navigator').style.display='none';
+        }
+        function toggleSidebar() { const sb = document.getElementById('sidebar'); sb.style.marginLeft = sb.style.marginLeft === '-320px' ? '0' : '-320px'; }
+        function toggleUI() { document.getElementById('controls-bar').classList.toggle('hidden'); document.getElementById('sidebar').classList.toggle('hidden'); }
+        function toggleFullScreen() { if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(e=>{}); else if(document.exitFullscreen) document.exitFullscreen().catch(e=>{}); }
 
-        function openModal(type) {
-            if(type === 'verse') {
-                document.getElementById('new-verse-title').value = '';
-                document.getElementById('new-verse-content').value = '';
-                document.getElementById('modal-verse').style.display = 'flex';
-                document.getElementById('modal-verse').classList.remove('hidden');
-            } else if (type === 'gallery') {
-                document.getElementById('new-media-url').value = '';
-                document.getElementById('new-media-file').value = '';
-                document.getElementById('file-label-text').innerText = "Clique para escolher do Computador";
-                document.getElementById('modal-gallery').style.display = 'flex';
-                document.getElementById('modal-gallery').classList.remove('hidden');
-            }
-        }
-        function closeModal(type) {
-            if(type === 'verse') document.getElementById('modal-verse').style.display = 'none';
-            if(type === 'gallery') document.getElementById('modal-gallery').style.display = 'none';
-        }
-
-        function saveVerse() {
-            const title = document.getElementById('new-verse-title').value;
-            const content = document.getElementById('new-verse-content').value;
-            if (title && content) {
-                verses.push({ title, content });
-                localStorage.setItem('myVerses', JSON.stringify(verses));
-                renderList();
-                closeModal('verse');
-            }
-        }
-
-        function toggleSidebar() {
-            const sb = document.getElementById('sidebar');
-            sb.style.marginLeft = sb.style.marginLeft === '-320px' ? '0' : '-320px';
-        }
-        function toggleUI() {
-            document.getElementById('controls-bar').classList.toggle('hidden');
-            document.getElementById('sidebar').classList.toggle('hidden');
-        }
-        
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(e => {
-                    console.warn("Fullscreen blocked:", e);
-                    alert("O ecrã inteiro foi bloqueado pelas permissões do navegador.");
-                });
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen().catch(e => console.warn("Exit fullscreen blocked:", e));
-                }
-            }
-        }
-
-        function broadcastTimer(text, isDanger, fontSize) {
-            if (!isProjector) channel.postMessage({ type: 'timer', payload: { text, danger: isDanger, fontSize } });
-        }
-        function broadcastText(text) {
-            if (!isProjector) channel.postMessage({ type: 'text', payload: text });
-        }
-        function updateTimerDisplayDirectly(text, danger, fontSize) {
-            const el = document.getElementById('timer-display');
-            el.innerText = text;
-            el.style.fontSize = fontSize;
-            if(danger) el.classList.add('danger-mode');
-            else el.classList.remove('danger-mode');
-        }
-
-        // --- EXECUÇÃO PRINCIPAL ---
+        // --- EXEC ---
         if (isProjector) {
-            document.body.classList.add('projector-mode');
-            document.title = "Projeção";
-            applyStyles(currentSettings);
-
+            document.body.classList.add('projector-mode'); document.title = "Projeção"; applyStyles(currentSettings);
             channel.onmessage = (event) => {
-                const { type, payload } = event.data;
-                if (type === 'timer') updateTimerDisplayDirectly(payload.text, payload.danger, payload.fontSize);
-                if (type === 'text') document.getElementById('text-display').innerText = payload;
-                if (type === 'settings') applyStyles(payload);
+                if (event.data.type === 'timer') { const el = document.getElementById('timer-display'); el.innerText = event.data.payload.text; el.style.fontSize = event.data.payload.fontSize; if(event.data.payload.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode'); }
+                if (event.data.type === 'text') document.getElementById('text-display').innerText = event.data.payload;
+                if (event.data.type === 'settings') applyStyles(event.data.payload);
             };
         } else {
-            // Modo Controle
-            loadSettingsToInputs();
-            applyStyles(currentSettings);
-            renderGallery();
-            renderList();
-            updateTimerUI(false);
-
-            // TENTATIVA DE AUTO-ABRIR SE CONFIGURADO
+            loadSettingsToInputs(); applyStyles(currentSettings); renderGallery(); renderList(); updateTimerUI(false);
+            
+            // VERIFICA SE DEVE MOSTRAR OVERLAY INICIAL
             if (currentSettings.autoOpenProjector) {
-                // Pequeno delay para garantir que o navegador esteja "pronto"
-                setTimeout(() => {
-                    openProjectorWindow(false);
-                }, 500);
+                const ov = document.getElementById('startup-overlay');
+                ov.classList.remove('hidden');
+                ov.style.display = 'flex';
             }
         }
-
     </script>
 </body>
 </html>
