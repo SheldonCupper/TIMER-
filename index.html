@@ -323,9 +323,9 @@
         const bibleBooks = [{name: "Gênesis", id: "Genesis"},{name: "Êxodo", id: "Exodus"},{name: "Levítico", id: "Leviticus"},{name: "Números", id: "Numbers"},{name: "Deuteronômio", id: "Deuteronomy"},{name: "Josué", id: "Joshua"},{name: "Juízes", id: "Judges"},{name: "Rute", id: "Ruth"},{name: "1 Samuel", id: "1 Samuel"},{name: "2 Samuel", id: "2 Samuel"},{name: "1 Reis", id: "1 Kings"},{name: "2 Reis", id: "2 Kings"},{name: "1 Crônicas", id: "1 Chronicles"},{name: "2 Crônicas", id: "2 Chronicles"},{name: "Esdras", id: "Ezra"},{name: "Neemias", id: "Nehemiah"},{name: "Ester", id: "Esther"},{name: "Jó", id: "Job"},{name: "Salmos", id: "Psalms"},{name: "Provérbios", id: "Proverbs"},{name: "Eclesiastes", id: "Ecclesiastes"},{name: "Cânticos", id: "Song of Solomon"},{name: "Isaías", id: "Isaiah"},{name: "Jeremias", id: "Jeremiah"},{name: "Lamentações", id: "Lamentations"},{name: "Ezequiel", id: "Ezekiel"},{name: "Daniel", id: "Daniel"},{name: "Oseias", id: "Hosea"},{name: "Joel", id: "Joel"},{name: "Amós", id: "Amos"},{name: "Obadias", id: "Obadiah"},{name: "Jonas", id: "Jonah"},{name: "Miqueias", id: "Micah"},{name: "Naum", id: "Nahum"},{name: "Habacuque", id: "Habakkuk"},{name: "Sofonias", id: "Zephaniah"},{name: "Ageu", id: "Haggai"},{name: "Zacarias", id: "Zechariah"},{name: "Malaquias", id: "Malachi"},{name: "Mateus", id: "Matthew"},{name: "Marcos", id: "Mark"},{name: "Lucas", id: "Luke"},{name: "João", id: "John"},{name: "Atos", id: "Acts"},{name: "Romanos", id: "Romans"},{name: "1 Coríntios", id: "1 Corinthians"},{name: "2 Coríntios", id: "2 Corinthians"},{name: "Gálatas", id: "Galatians"},{name: "Efésios", id: "Ephesians"},{name: "Filipenses", id: "Philippians"},{name: "Colossenses", id: "Colossians"},{name: "1 Tessalonicenses", id: "1 Thessalonians"},{name: "2 Tessalonicenses", id: "2 Thessalonians"},{name: "1 Timóteo", id: "1 Timothy"},{name: "2 Timóteo", id: "2 Timothy"},{name: "Tito", id: "Titus"},{name: "Filemom", id: "Philemon"},{name: "Hebreus", id: "Hebrews"},{name: "Tiago", id: "James"},{name: "1 Pedro", id: "1 Peter"},{name: "2 Pedro", id: "2 Peter"},{name: "1 João", id: "1 John"},{name: "2 João", id: "2 John"},{name: "3 João", id: "3 John"},{name: "Judas", id: "Jude"},{name: "Apocalipse", id: "Revelation"}];
         const bibleChapterCounts = [50,40,27,36,34,24,21,4,31,24,22,25,29,36,10,13,10,42,150,31,12,8,66,52,5,48,12,14,3,9,1,4,7,3,3,3,2,14,4,28,16,24,21,28,16,16,13,6,6,4,4,5,3,6,1,13,5,5,3,5,1,1,1,22];
         const bibleVersions = {
-            'aa': { name: 'Almeida Atualizada', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_aa.json' },
-            'acf': { name: 'Almeida Corr. Fiel', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_acf.json' },
-            'nvi': { name: 'Nova Versão Int.', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_nvi.json' }
+            'aa': { name: 'Almeida Atualizada (PT)', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_aa.json' },
+            'acf': { name: 'Almeida Corr. Fiel (PT)', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_acf.json' },
+            'nvi': { name: 'Nova Versão Int. (PT)', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_nvi.json' }
         };
 
         let currentSettings = JSON.parse(localStorage.getItem('appSettings')) || { autoOpenProjector: false, showTimer: true, showText: true, timerPos: 'top', bgColor: '#000000', bgType: 'color', bgUrl: '', overlayOpacity: 0.5, textColor: '#ffffff', textSize: 80, fontFamily: "'Segoe UI', sans-serif", textAlign: 'center', timerColor: '#4ade80', timerSize: 180, alertTime: 60 };
@@ -337,9 +337,9 @@
         let bibleNavState = { step: 'book', selectedBookIndex: -1, selectedChapter: -1 };
         let downloadedVersions = {};
         let bibleDB;
-        let currentSmIndex = -1; 
+        let currentSmIndex = -1; // SM Index
 
-        // --- SM LOGIC ---
+        // --- SM LOGIC (NEW) ---
         function renderSmList() {
             if(isProjector || isStage) return;
             const list = document.getElementById('sm-list');
@@ -452,6 +452,8 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
+            // Map index manually to ensure correctness
+            // 0: Verses, 1: SM, 2: Bible, 3: Gallery, 4: Appearance
             const tabs = ['tab-verses', 'tab-sm', 'tab-bible', 'tab-gallery', 'tab-appearance'];
             let index = 0;
             if(tabName === 'sm') index = 1;
@@ -459,8 +461,10 @@
             if(tabName === 'gallery') index = 3;
             if(tabName === 'appearance') index = 4;
 
-            document.querySelectorAll('.tab-btn')[index].classList.add('active');
-            document.getElementById(tabs[index]).classList.add('active');
+            const btn = document.querySelectorAll('.tab-btn')[index];
+            if(btn) btn.classList.add('active');
+            const content = document.getElementById(tabs[index]);
+            if(content) content.classList.add('active');
         }
 
         // --- BIBLE LOGIC ---
@@ -653,11 +657,13 @@
         }
         
         // --- DISPLAY & UI ---
-        function updateDisplay(text) { document.getElementById('text-display').innerText = text; if(!isProjector && !isStage) { document.getElementById('live-text').value = text; channel.postMessage({ type: 'text', payload: text }); } }
+        function updateDisplay(text) { document.getElementById('text-display').innerText = text; if(!isProjector && !isStage) { document.getElementById('live-text').value = text; channel.postMessage({ type: 'text', payload: text }); localStorage.setItem('liveText', text); } }
         function removeBackground() { currentSettings.bgType='color'; currentSettings.bgUrl=''; saveAndApplySettings(); renderGallery(); }
         function saveAndApplySettings() { try{localStorage.setItem('appSettings', JSON.stringify(currentSettings));}catch(e){} applyStyles(currentSettings); channel.postMessage({type:'settings', payload:currentSettings}); }
         function updateSettings() {
              currentSettings.autoOpenProjector = document.getElementById('cfg-auto-open').checked;
+             // ... (Settings update logic from previous version, kept short here but fully implemented in final file)
+             // Re-implementing full for safety:
              currentSettings.showTimer = document.getElementById('cfg-show-timer').checked;
              currentSettings.showText = document.getElementById('cfg-show-text').checked;
              currentSettings.timerPos = document.getElementById('cfg-timer-pos').value;
@@ -675,6 +681,7 @@
         }
         function loadSettingsToInputs() {
             if(isProjector || isStage) return;
+            // ... (Load logic from previous version) ...
             document.getElementById('cfg-auto-open').checked = currentSettings.autoOpenProjector;
             document.getElementById('cfg-show-timer').checked = currentSettings.showTimer;
             document.getElementById('cfg-show-text').checked = currentSettings.showText;
@@ -757,6 +764,11 @@
             
             // Request State on Init
             channel.postMessage({ type: 'request_state' });
+            
+            // LocalStorage Init
+            const savedText = localStorage.getItem('liveText');
+            if(savedText) document.getElementById('text-display').innerText = savedText;
+
 
         } else {
             loadSettingsToInputs(); initBible(); renderSmList(); renderGallery(); renderList(); updateTimerUI(false); initOfflineBible(); 
@@ -787,6 +799,17 @@
                 const newSettings = JSON.parse(e.newValue);
                 currentSettings = newSettings;
                 applyStyles(newSettings);
+            }
+             if (e.key === 'liveText') {
+                document.getElementById('text-display').innerText = e.newValue;
+                if(!isProjector && !isStage) document.getElementById('live-text').value = e.newValue;
+            }
+            if (e.key === 'timerState') {
+                const state = JSON.parse(e.newValue);
+                const el = document.getElementById('timer-display');
+                el.innerText = state.text;
+                if(!isStage) el.style.fontSize = state.fontSize;
+                if(state.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
             }
         });
         
@@ -836,7 +859,11 @@
             const el = document.getElementById('timer-display'); el.innerText = txt; 
             if (!isStage) el.style.fontSize = size;
             if(danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
-            if(!isProjector) channel.postMessage({ type: 'timer', payload: { text: txt, danger, fontSize: size } });
+            
+            if(!isProjector) {
+                channel.postMessage({ type: 'timer', payload: { text: txt, danger, fontSize: size } });
+                localStorage.setItem('timerState', JSON.stringify({ text: txt, danger, fontSize: size }));
+            }
         }
         
         function toggleFullScreen() {
