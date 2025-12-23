@@ -67,6 +67,8 @@
         .list-preview { font-size: 0.8rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .delete-btn { background: transparent; border: none; color: #666; cursor: pointer; padding: 8px; }
         .delete-btn:hover { color: var(--danger-color); }
+        .add-to-setlist-btn { background: transparent; border: none; color: var(--success-color); cursor: pointer; padding: 8px; margin-right: 5px; }
+        .add-to-setlist-btn:hover { color: #fff; }
         .edit-btn { background: transparent; border: none; color: #666; cursor: pointer; padding: 8px; margin-right: 5px; }
         .edit-btn:hover { color: var(--accent-color); }
 
@@ -308,35 +310,49 @@
     <!-- MODAIS -->
     <div id="modal-verse" class="modal-overlay hidden"><div class="modal"><h3 style="margin-top:0">Novo Texto</h3><input type="text" id="new-verse-title" placeholder="Título"><textarea id="new-verse-content" rows="5" placeholder="Conteúdo..."></textarea><div class="modal-actions"><button class="ctrl-btn" onclick="closeModal('verse')">Cancelar</button><button class="ctrl-btn play" onclick="saveVerse()">Salvar</button></div></div></div>
     
-    <!-- MODAL SM COM ESTILO PERSONALIZADO -->
+    <!-- MODAL SM COM PREVIEW -->
     <div id="modal-sm" class="modal-overlay hidden">
-        <div class="modal" style="width: 600px;">
-            <h3 style="margin-top:0">Novo Slide SM</h3>
-            <input type="text" id="new-sm-title" placeholder="Título da Música/Aviso">
-            
-            <div class="style-options-header" onclick="toggleStyleOptions()">
-                <span>🎨 Personalizar Estilo (Opcional)</span>
-                <span class="material-icons">expand_more</span>
-            </div>
-            <div id="sm-style-options" class="style-options-content">
-                <div class="config-item"><label>Cor Fundo</label><input type="color" id="sm-style-bg" value="#000000"></div>
-                <div class="config-item"><label>Cor Texto</label><input type="color" id="sm-style-color" value="#ffffff"></div>
-                <div class="config-item"><label>Tam. Texto (px)</label><input type="number" id="sm-style-size" placeholder="80"></div>
-                <!-- NOVO SELETOR DE GALERIA AQUI -->
-                <div class="config-item" style="display:block">
-                    <label>Fundo da Galeria</label>
-                    <select id="sm-style-media" style="width:100%; margin-top:5px; padding:8px; background:#111; color:white; border:1px solid #444; border-radius:4px;">
-                        <option value="">Nenhum (Usar Cor de Fundo)</option>
-                    </select>
+        <div class="modal" style="width: 90%; max-width: 800px; flex-direction: row; gap: 20px;">
+            <!-- Left Side: Inputs -->
+            <div style="flex: 1; display: flex; flex-direction: column; overflow-y: auto;">
+                <h3 style="margin-top:0">Editor de Slide</h3>
+                <input type="text" id="new-sm-title" placeholder="Título" oninput="updateSmPreview()">
+                
+                <div class="style-options-header" onclick="toggleStyleOptions()">
+                    <span>🎨 Estilo</span>
+                    <span class="material-icons">expand_more</span>
+                </div>
+                <div id="sm-style-options" class="style-options-content">
+                    <div class="config-item"><label>Cor Fundo</label><input type="color" id="sm-style-bg" value="#000000" oninput="updateSmPreview()"></div>
+                    <div class="config-item"><label>Cor Texto</label><input type="color" id="sm-style-color" value="#ffffff" oninput="updateSmPreview()"></div>
+                    <div class="config-item"><label>Tam. Texto (px)</label><input type="number" id="sm-style-size" placeholder="80" oninput="updateSmPreview()"></div>
+                    <div class="config-item" style="display:block">
+                        <label>Fundo da Galeria</label>
+                        <select id="sm-style-media" onchange="updateSmPreview()" style="width:100%; margin-top:5px; padding:8px; background:#111; color:white; border:1px solid #444; border-radius:4px;">
+                            <option value="">Nenhum (Usar Cor de Fundo)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <small style="color:#aaa; display:block; margin-bottom:5px;">Conteúdo:</small>
+                <textarea id="new-sm-content" rows="8" placeholder="Digite a letra..." oninput="updateSmPreview()" style="flex-grow: 1;"></textarea>
+                
+                <div class="modal-actions">
+                    <button class="ctrl-btn" onclick="closeModal('sm')">Cancelar</button>
+                    <button class="ctrl-btn play" onclick="saveSmSlide()">Salvar</button>
                 </div>
             </div>
 
-            <small style="color:#aaa; display:block; margin-bottom:5px;">Dê 2 ENTERS para separar os slides.</small>
-            <textarea id="new-sm-content" rows="8" placeholder="Conteúdo dos slides..."></textarea>
-            
-            <div class="modal-actions">
-                <button class="ctrl-btn" onclick="closeModal('sm')">Cancelar</button>
-                <button class="ctrl-btn play" onclick="saveSmSlide()">Salvar</button>
+            <!-- Right Side: Preview -->
+            <div style="flex: 1; display: flex; flex-direction: column;">
+                <h4 style="margin: 0 0 10px 0; color: #888;">Pré-visualização</h4>
+                <div id="sm-live-preview" style="width: 100%; aspect-ratio: 16/9; background: #000; border: 1px solid #444; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; box-sizing: border-box; overflow: hidden; position: relative;">
+                    <!-- Background Media Layer -->
+                     <div id="sm-preview-bg" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:0; background-size: cover; background-position: center;"></div>
+                     <!-- Text Layer -->
+                    <div id="sm-preview-text" style="position: relative; z-index: 1; font-weight: bold; white-space: pre-wrap;"></div>
+                </div>
+                <small style="color:#666; margin-top: 5px;">* A visualização pode variar ligeiramente no projetor.</small>
             </div>
         </div>
     </div>
@@ -402,12 +418,10 @@
             }
         }
 
-        // --- SM LOGIC (ENHANCED) ---
+        // --- SM LOGIC (ENHANCED WITH PREVIEW) ---
         function toggleStyleOptions() {
             document.getElementById('sm-style-options').classList.toggle('open');
-            // Auto update gallery select when opening options
             if(document.getElementById('sm-style-options').classList.contains('open')) {
-                // If editing, pass current url to select correct option
                 const currentUrl = currentSmIndex > -1 ? (smSlides[currentSmIndex].style ? smSlides[currentSmIndex].style.img : '') : '';
                 updateSmMediaOptions(currentUrl);
             }
@@ -418,12 +432,49 @@
             sel.innerHTML = '<option value="">Nenhum (Usar Cor de Fundo)</option>';
             galleryItems.forEach((item, idx) => {
                 const opt = document.createElement('option');
-                // Store type and url in value as JSON string for easy retrieval
                 opt.value = JSON.stringify({ type: item.type, url: item.url });
                 opt.innerText = `Mídia ${idx + 1} (${item.type === 'image' ? 'Imagem' : 'Vídeo'})`;
                 if (item.url === selectedUrl) opt.selected = true;
                 sel.appendChild(opt);
             });
+        }
+        
+        // --- LIVE PREVIEW FUNCTION ---
+        function updateSmPreview() {
+            const title = document.getElementById('new-sm-title').value;
+            // Get first paragraph of content for preview
+            const content = document.getElementById('new-sm-content').value.split(/\n\s*\n/)[0] || "Pré-visualização do Texto";
+            const bg = document.getElementById('sm-style-bg').value;
+            const color = document.getElementById('sm-style-color').value;
+            const size = document.getElementById('sm-style-size').value || '20'; // Relative size for preview box
+            const mediaVal = document.getElementById('sm-style-media').value;
+            
+            const previewBox = document.getElementById('sm-live-preview');
+            const previewBg = document.getElementById('sm-preview-bg');
+            const previewText = document.getElementById('sm-preview-text');
+            
+            // Set styles
+            previewBox.style.backgroundColor = bg;
+            previewText.style.color = color;
+            // Scale font size down for preview box (approx ratio)
+            previewText.style.fontSize = (parseInt(size) / 4) + 'px'; 
+            previewText.innerText = content;
+            
+            // Handle Media Background
+            if(mediaVal) {
+                const mediaObj = JSON.parse(mediaVal);
+                if(mediaObj.type === 'image') {
+                    previewBg.style.backgroundImage = `url('${mediaObj.url}')`;
+                    previewBg.innerHTML = '';
+                } else {
+                    // Simple representation for video
+                    previewBg.style.backgroundImage = 'none';
+                    previewBg.innerHTML = '<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); color:white;"><span class="material-icons">play_circle</span></div>';
+                }
+            } else {
+                previewBg.style.backgroundImage = 'none';
+                previewBg.innerHTML = '';
+            }
         }
 
         function renderSmList() {
@@ -457,7 +508,6 @@
             const title = document.getElementById('new-sm-title').value;
             const content = document.getElementById('new-sm-content').value;
             
-            // Capture Styles from Select
             const mediaVal = document.getElementById('sm-style-media').value;
             let mediaObj = { type: 'image', url: '' };
             if (mediaVal) mediaObj = JSON.parse(mediaVal);
@@ -470,7 +520,6 @@
                 mediaType: mediaObj.type
             };
             
-            // Check if styles are default
             let cleanStyle = null;
             if (style.bg !== '#000000' || style.color !== '#ffffff' || style.size || style.img) {
                 cleanStyle = style;
@@ -485,7 +534,6 @@
                 localStorage.setItem('mySmSlides', JSON.stringify(smSlides));
                 renderSmList();
                 
-                // If viewing this song currently, reload it to apply changes
                 if(currentSmIndex > -1 && document.getElementById('sm-viewer').style.display !== 'none') {
                     openSmViewer(currentSmIndex);
                 }
@@ -507,10 +555,9 @@
                 document.getElementById('sm-style-bg').value = item.style.bg || '#000000';
                 document.getElementById('sm-style-color').value = item.style.color || '#ffffff';
                 document.getElementById('sm-style-size').value = item.style.size || '';
-                updateSmMediaOptions(item.style.img || ''); // Populate select with correct selection
+                updateSmMediaOptions(item.style.img || ''); 
                 document.getElementById('sm-style-options').classList.add('open');
             } else {
-                // Reset to defaults
                 document.getElementById('sm-style-bg').value = '#000000';
                 document.getElementById('sm-style-color').value = '#ffffff';
                 document.getElementById('sm-style-size').value = '';
@@ -518,7 +565,7 @@
                 document.getElementById('sm-style-options').classList.remove('open');
             }
             
-            // Open Modal manually for edit
+            updateSmPreview(); // Trigger initial preview
             const m = document.getElementById('modal-sm');
             m.style.display='flex'; m.classList.remove('hidden');
         }
@@ -538,7 +585,6 @@
             document.getElementById('sm-viewer').style.display = 'flex';
             document.getElementById('sm-title-display').innerText = item.title;
             
-            // APPLY CUSTOM STYLES ON OPEN
             if(item.style) {
                  const tempSettings = { ...currentSettings };
                  if(item.style.bg) tempSettings.bgColor = item.style.bg;
@@ -548,15 +594,12 @@
                      tempSettings.bgType = item.style.mediaType || 'image'; 
                      tempSettings.bgUrl = item.style.img; 
                  } else { 
-                     // Reset if specific color overrides image
                      tempSettings.bgType = 'color'; 
                      tempSettings.bgUrl = '';
                  }
                  
-                 // Send temporary settings to projector
                  if(!isProjector && !isStage) {
                     channel.postMessage({ type: 'settings', payload: tempSettings });
-                    // Force LS sync for polling
                     localStorage.setItem('appSettings', JSON.stringify(tempSettings));
                  }
             }
@@ -582,10 +625,12 @@
         function closeSmViewer() {
             document.getElementById('sm-viewer').style.display = 'none';
             currentSmIndex = -1;
-            // REVERT TO GLOBAL SETTINGS
             if(!isProjector && !isStage) {
-                // Restore original settings from memory (currentSettings var holds global state)
-                // We need to re-save it to LS to trigger pollers to revert
+                // Restore to actual global settings from reset (we modified LS temporarily above)
+                // Actually, above we modified LS. That persists "temp" settings if we close. 
+                // We should probably NOT modify LS for temp preview, only broadcast. 
+                // But polling relies on LS. 
+                // Let's restore from memory variable 'currentSettings' which holds the true global state.
                 localStorage.setItem('appSettings', JSON.stringify(currentSettings));
                 channel.postMessage({ type: 'settings', payload: currentSettings });
             }
@@ -626,8 +671,6 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
-            // Map index manually to ensure correctness
-            // 0: Verses, 1: SM, 2: Bible, 3: Gallery, 4: Appearance
             const tabs = ['tab-verses', 'tab-sm', 'tab-bible', 'tab-gallery', 'tab-appearance'];
             let index = 0;
             if(tabName === 'sm') index = 1;
@@ -821,12 +864,12 @@
                     currentSmIndex = -1; // New mode
                     document.getElementById('new-sm-title').value=''; 
                     document.getElementById('new-sm-content').value='';
-                    // Reset Styles UI in Modal
                     document.getElementById('sm-style-bg').value = '#000000';
                     document.getElementById('sm-style-color').value = '#ffffff';
                     document.getElementById('sm-style-size').value = '';
-                    updateSmMediaOptions(''); // Reset select
+                    updateSmMediaOptions('');
                     document.getElementById('sm-style-options').classList.remove('open');
+                    updateSmPreview(); // Init preview
                 }
             }
         }
