@@ -148,6 +148,26 @@
         }
         .gallery-item:hover .gallery-delete { opacity: 1; }
 
+        /* ABA BÍBLIA */
+        #bible-controls {
+            display: flex; gap: 5px; margin-bottom: 10px;
+        }
+        #bible-book { flex-grow: 2; padding: 8px; background: #222; color: white; border: 1px solid #444; border-radius: 4px; }
+        #bible-chapter { width: 50px; padding: 8px; background: #222; color: white; border: 1px solid #444; border-radius: 4px; text-align: center; }
+        #bible-go { background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer; padding: 0 10px; font-weight: bold; }
+        
+        #bible-search-local { width: 100%; padding: 8px; background: #111; border: 1px solid #333; color: white; border-radius: 4px; box-sizing: border-box; margin-bottom: 10px; font-size: 13px; }
+        
+        #bible-verse-list {
+            display: flex; flex-direction: column; gap: 5px; max-height: calc(100vh - 200px); overflow-y: auto;
+        }
+        .bible-verse-item {
+            background: #252525; padding: 10px; border-radius: 4px; border-left: 3px solid #444;
+            cursor: pointer; transition: 0.2s; font-size: 0.9rem; color: #ddd; line-height: 1.4;
+        }
+        .bible-verse-item:hover { background: #333; border-left-color: var(--accent-color); color: white; }
+        .bible-verse-ref { font-size: 0.75rem; color: #888; font-weight: bold; margin-bottom: 3px; display: block; }
+
         /* CONFIGURAÇÕES */
         .config-group {
             background: #252525; padding: 15px; border-radius: 8px; border: 1px solid #333; margin-bottom: 10px;
@@ -236,7 +256,7 @@
         }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
 
-        /* --- MODAIS GERAIS --- */
+        /* MODAIS */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 100;
@@ -345,11 +365,17 @@
 
         <!-- ABA 2: BÍBLIA (SIMPLIFICADA) -->
         <div id="tab-bible" class="tab-content">
-            <button class="ctrl-btn" onclick="openBibleNavigator()" style="width:100%; height:60px; font-size:1.1rem; background: var(--accent-color); margin-bottom: 20px;">
-                <span class="material-icons">menu_book</span> Abrir Bíblia
-            </button>
-            <div style="text-align:center; color:#666; font-size:0.9rem;">
-                Clique acima para abrir o navegador de livros e capítulos.
+            <div class="sidebar-header">
+                <span class="sidebar-title">Pesquisa Bíblica</span>
+            </div>
+            <div id="bible-controls">
+                <select id="bible-book"></select>
+                <input type="number" id="bible-chapter" value="1" min="1">
+                <button id="bible-go" onclick="fetchBibleChapter()">Ir</button>
+            </div>
+            <input type="text" id="bible-search-local" placeholder="Filtrar resultado..." oninput="filterBibleVerses()">
+            <div id="bible-verse-list" style="margin-top: 10px; max-height: calc(100vh - 200px); overflow-y: auto;">
+                <div style="color:#666; text-align:center; padding:10px; font-size:13px;">Selecione e clique em IR</div>
             </div>
         </div>
 
@@ -478,7 +504,6 @@
             {name: "1 Pedro", id: "1Peter"}, {name: "2 Pedro", id: "2Peter"}, {name: "1 João", id: "1John"}, {name: "2 João", id: "2John"}, {name: "3 João", id: "3John"},
             {name: "Judas", id: "Jude"}, {name: "Apocalipse", id: "Revelation"}
         ];
-        // Quantidade de capítulos por livro (ordem Gênesis -> Apocalipse)
         const bibleChapterCounts = [50,40,27,36,34,24,21,4,31,24,22,25,29,36,10,13,10,42,150,31,12,8,66,52,5,48,12,14,3,9,1,4,7,3,3,3,2,14,4,28,16,24,21,28,16,16,13,6,6,4,4,5,3,6,1,13,5,5,3,5,1,1,1,22];
 
         // Bible Navigator State
@@ -505,11 +530,107 @@
         // --- AUTO START LOGIC ---
         async function startProjectorFlow() {
             document.getElementById('startup-overlay').style.display = 'none';
-            // Chama com true para garantir user gesture
             await openProjectorWindow(true);
         }
 
-        // --- BIBLE NAVIGATOR LOGIC (NEW) ---
+        // --- BIBLE STRATEGY ---
+        // 1. Tentar Gemini (IA)
+        async function getChapterFromGemini(bookName, chapter) {
+            const apiKey = "AIzaSyCD1tXgDGMa8H4UJR7s1eEOPFjbjI7dd4Y"; 
+            const prompt = `Retorne o texto bíblico de ${bookName} ${chapter} na versão João Ferreira de Almeida. Retorne estritamente um JSON válido neste formato: { "verses": [ { "verse": 1, "text": "texto..." } ] }`;
+
+            const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+            });
+            const data = await res.json();
+            let txt = data.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+            
+            // Robust Parsing: Encontra o primeiro { e o último }
+            const jsonMatch = txt.match(/\{[\s\S]*\}/);
+            if (jsonMatch) return JSON.parse(jsonMatch[0]);
+            throw new Error("JSON não encontrado na resposta da IA");
+        }
+
+        // 2. Fallback: API Pública
+        async function getChapterFromPublicAPI(bookIndex, chapter) {
+            const bookId = bibleBooks[bookIndex].id; // Use English ID for Public API
+            const res = await fetch(`https://bible-api.com/${bookId}+${chapter}?translation=almeida`);
+            return await res.json();
+        }
+
+        // --- BIBLE LOGIC MAIN ---
+        function initBible() {
+            const select = document.getElementById('bible-book');
+            if(!select) return;
+            bibleBooks.forEach((book, i) => {
+                const opt = document.createElement('option');
+                opt.value = i; // Armazena índice para facilitar fallback
+                opt.innerText = book.name;
+                select.appendChild(opt);
+            });
+        }
+
+        async function fetchBibleChapter() {
+            const bookIndex = document.getElementById('bible-book').value;
+            const bookName = bibleBooks[bookIndex].name;
+            const chapter = document.getElementById('bible-chapter').value;
+            const list = document.getElementById('bible-verse-list');
+            
+            list.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Buscando Texto...</div>';
+            
+            try {
+                // Tenta IA Primeiro
+                try {
+                    const jsonBible = await getChapterFromGemini(bookName, chapter);
+                    if(jsonBible.verses) {
+                        renderBibleVerses(jsonBible.verses, `${bookName} ${chapter}`);
+                        return;
+                    }
+                } catch (e) { console.warn("Gemini falhou, tentando API pública...", e); }
+
+                // Fallback para API Pública
+                const publicBible = await getChapterFromPublicAPI(bookIndex, chapter);
+                if(publicBible.verses) {
+                    renderBibleVerses(publicBible.verses, `${bookName} ${chapter}`);
+                } else {
+                    list.innerHTML = '<div style="color:red; text-align:center;">Capítulo não encontrado.</div>';
+                }
+
+            } catch (e) {
+                console.error(e);
+                list.innerHTML = '<div style="color:red; text-align:center;">Erro de conexão. Verifique a internet.</div>';
+            }
+        }
+
+        function renderBibleVerses(versesArray, referenceBase) {
+            const list = document.getElementById('bible-verse-list');
+            list.innerHTML = '';
+            versesArray.forEach(v => {
+                const item = document.createElement('div');
+                item.className = 'bible-verse-item';
+                const verseNum = v.verse || v.pk; // Public API uses 'verse' or 'pk' sometimes
+                const projectionText = `${v.text}\n\n(${referenceBase}:${verseNum})`;
+                item.innerHTML = `<span class="bible-verse-ref">${verseNum}</span>${v.text}`;
+                item.onclick = () => {
+                    updateDisplay(projectionText);
+                    item.style.backgroundColor = '#3b82f6'; setTimeout(() => item.style.backgroundColor = '', 200);
+                };
+                list.appendChild(item);
+            });
+        }
+
+        function filterBibleVerses() {
+            const term = document.getElementById('bible-search-local').value.toLowerCase();
+            const list = document.getElementById('bible-verse-list');
+            const items = list.getElementsByClassName('bible-verse-item');
+            for(let item of items) {
+                const text = item.innerText.toLowerCase();
+                if(text.includes(term)) item.style.display = 'block'; else item.style.display = 'none';
+            }
+        }
+
+        // --- BIBLE NAVIGATOR ---
         function openBibleNavigator() {
             bibleNavState = { step: 'book', selectedBookIndex: -1, selectedChapter: -1 };
             renderBibleNavigator();
@@ -518,13 +639,8 @@
         }
 
         function bibleGoBack() {
-            if(bibleNavState.step === 'verse') {
-                bibleNavState.step = 'chapter';
-                renderBibleNavigator();
-            } else if(bibleNavState.step === 'chapter') {
-                bibleNavState.step = 'book';
-                renderBibleNavigator();
-            }
+            if(bibleNavState.step === 'verse') { bibleNavState.step = 'chapter'; renderBibleNavigator(); }
+            else if(bibleNavState.step === 'chapter') { bibleNavState.step = 'book'; renderBibleNavigator(); }
         }
 
         function renderBibleNavigator() {
@@ -535,43 +651,23 @@
             area.innerHTML = '';
 
             if (bibleNavState.step === 'book') {
-                backBtn.style.display = 'none';
-                crumbs.innerText = '';
-                
-                const grid = document.createElement('div');
-                grid.className = 'bible-books-grid';
-                
-                // VT Label
+                backBtn.style.display = 'none'; crumbs.innerText = '';
+                const grid = document.createElement('div'); grid.className = 'bible-books-grid';
                 grid.innerHTML += `<div class="testament-label">Velho Testamento</div>`;
-                bibleBooks.slice(0, 39).forEach((b, i) => {
-                    grid.appendChild(createBookBtn(b, i));
-                });
-                // NT Label
+                bibleBooks.slice(0, 39).forEach((b, i) => grid.appendChild(createBookBtn(b, i)));
                 grid.innerHTML += `<div class="testament-label">Novo Testamento</div>`;
-                bibleBooks.slice(39).forEach((b, i) => {
-                    grid.appendChild(createBookBtn(b, i + 39));
-                });
-                
+                bibleBooks.slice(39).forEach((b, i) => grid.appendChild(createBookBtn(b, i + 39)));
                 area.appendChild(grid);
 
             } else if (bibleNavState.step === 'chapter') {
                 backBtn.style.display = 'flex';
                 const bookName = bibleBooks[bibleNavState.selectedBookIndex].name;
                 crumbs.innerText = `> ${bookName}`;
-                
-                const grid = document.createElement('div');
-                grid.className = 'bible-chapters-grid';
-                
+                const grid = document.createElement('div'); grid.className = 'bible-chapters-grid';
                 const count = bibleChapterCounts[bibleNavState.selectedBookIndex];
                 for(let c = 1; c <= count; c++) {
-                    const btn = document.createElement('div');
-                    btn.className = 'bible-chapter-btn';
-                    btn.innerText = c;
-                    btn.onclick = () => {
-                        bibleNavState.selectedChapter = c;
-                        bibleNavState.step = 'verse';
-                        renderBibleNavigator();
-                    };
+                    const btn = document.createElement('div'); btn.className = 'bible-chapter-btn'; btn.innerText = c;
+                    btn.onclick = () => { bibleNavState.selectedChapter = c; bibleNavState.step = 'verse'; renderBibleNavigator(); };
                     grid.appendChild(btn);
                 }
                 area.appendChild(grid);
@@ -582,50 +678,45 @@
                 const chapter = bibleNavState.selectedChapter;
                 crumbs.innerText = `> ${book.name} > Cap ${chapter}`;
                 
-                area.innerHTML = '<div style="text-align:center; padding:40px; color:#aaa;">Carregando Texto Sagrado...</div>';
+                area.innerHTML = '<div style="text-align:center; padding:40px; color:#aaa;">Carregando...</div>';
                 
-                // Fetch Verses
-                fetch(`https://bible-api.com/${book.id}+${chapter}?translation=almeida`)
-                    .then(res => res.json())
-                    .then(data => {
-                        area.innerHTML = '';
-                        if(data.verses) {
-                            const list = document.createElement('div');
-                            list.className = 'bible-verse-list-full';
-                            
-                            data.verses.forEach(v => {
-                                const row = document.createElement('div');
-                                row.className = 'bible-verse-item-full';
-                                row.innerHTML = `<span class="bible-verse-num">${v.verse}</span> ${v.text}`;
-                                row.onclick = () => {
-                                    const projText = `${v.text}\n\n(${book.name} ${chapter}:${v.verse})`;
-                                    updateDisplay(projText);
-                                    // Feedback visual
-                                    row.style.background = '#2563eb';
-                                    setTimeout(()=> row.style.background = '', 300);
-                                };
-                                list.appendChild(row);
-                            });
-                            area.appendChild(list);
-                        } else {
-                            area.innerHTML = '<div style="text-align:center; color:red;">Erro ao carregar versículos.</div>';
-                        }
-                    })
-                    .catch(e => {
-                        area.innerHTML = '<div style="text-align:center; color:red;">Erro de conexão.</div>';
-                    });
+                // Híbrido: IA -> Fallback Public
+                (async () => {
+                    let data = {};
+                    try {
+                        data = await getChapterFromGemini(book.name, chapter);
+                    } catch(e) {
+                        try {
+                            data = await getChapterFromPublicAPI(bibleNavState.selectedBookIndex, chapter);
+                        } catch(err) { return null; }
+                    }
+                    return data;
+                })().then(data => {
+                    area.innerHTML = '';
+                    if(data && data.verses) {
+                        const list = document.createElement('div'); list.className = 'bible-verse-list-full';
+                        data.verses.forEach(v => {
+                            const row = document.createElement('div'); row.className = 'bible-verse-item-full';
+                            const vNum = v.verse || v.pk;
+                            row.innerHTML = `<span class="bible-verse-num">${vNum}</span> ${v.text}`;
+                            row.onclick = () => {
+                                const projText = `${v.text}\n\n(${book.name} ${chapter}:${vNum})`;
+                                updateDisplay(projText);
+                                row.style.background = '#2563eb'; setTimeout(()=> row.style.background = '', 300);
+                            };
+                            list.appendChild(row);
+                        });
+                        area.appendChild(list);
+                    } else {
+                        area.innerHTML = '<div style="text-align:center; color:red;">Erro ao carregar texto.</div>';
+                    }
+                });
             }
         }
 
         function createBookBtn(book, index) {
-            const btn = document.createElement('div');
-            btn.className = 'bible-book-btn';
-            btn.innerText = book.name;
-            btn.onclick = () => {
-                bibleNavState.selectedBookIndex = index;
-                bibleNavState.step = 'chapter';
-                renderBibleNavigator();
-            };
+            const btn = document.createElement('div'); btn.className = 'bible-book-btn'; btn.innerText = book.name;
+            btn.onclick = () => { bibleNavState.selectedBookIndex = index; bibleNavState.step = 'chapter'; renderBibleNavigator(); };
             return btn;
         }
 
@@ -826,7 +917,7 @@
                 if (event.data.type === 'settings') applyStyles(event.data.payload);
             };
         } else {
-            loadSettingsToInputs(); applyStyles(currentSettings); renderGallery(); renderList(); updateTimerUI(false);
+            loadSettingsToInputs(); initBible(); applyStyles(currentSettings); renderGallery(); renderList(); updateTimerUI(false);
             
             // VERIFICA SE DEVE MOSTRAR OVERLAY INICIAL
             if (currentSettings.autoOpenProjector) {
