@@ -67,8 +67,6 @@
         .list-preview { font-size: 0.8rem; color: #888; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .delete-btn { background: transparent; border: none; color: #666; cursor: pointer; padding: 8px; }
         .delete-btn:hover { color: var(--danger-color); }
-        .add-to-setlist-btn { background: transparent; border: none; color: var(--success-color); cursor: pointer; padding: 8px; margin-right: 5px; }
-        .add-to-setlist-btn:hover { color: #fff; }
         .edit-btn { background: transparent; border: none; color: #666; cursor: pointer; padding: 8px; margin-right: 5px; }
         .edit-btn:hover { color: var(--accent-color); }
 
@@ -383,7 +381,14 @@
             'nvi': { name: 'Nova Versão Int. (PT)', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_nvi.json' }
         };
 
-        let currentSettings = JSON.parse(localStorage.getItem('appSettings')) || { autoOpenProjector: false, showTimer: true, showText: true, timerPos: 'top', bgColor: '#000000', bgType: 'color', bgUrl: '', overlayOpacity: 0.5, textColor: '#ffffff', textSize: 80, fontFamily: "'Segoe UI', sans-serif", textAlign: 'center', timerColor: '#4ade80', timerSize: 180, alertTime: 60 };
+        // Added 'timestamp' for version control
+        let currentSettings = JSON.parse(localStorage.getItem('appSettings')) || { 
+            timestamp: 0,
+            autoOpenProjector: false, showTimer: true, showText: true, timerPos: 'top', 
+            bgColor: '#000000', bgType: 'color', bgUrl: '', overlayOpacity: 0.5, 
+            textColor: '#ffffff', textSize: 80, fontFamily: "'Segoe UI', sans-serif", textAlign: 'center', 
+            timerColor: '#4ade80', timerSize: 180, alertTime: 60 
+        };
         let verses = JSON.parse(localStorage.getItem('myVerses')) || [{ title: "Boas Vindas", content: "Sejam bem-vindos!\nO culto começará em instantes." }];
         let galleryItems = JSON.parse(localStorage.getItem('myGallery')) || [{ type: 'image', url: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?auto=format&fit=crop&w=1000&q=80' }];
         let smSlides = JSON.parse(localStorage.getItem('mySmSlides')) || []; 
@@ -442,32 +447,27 @@
         // --- LIVE PREVIEW FUNCTION ---
         function updateSmPreview() {
             const title = document.getElementById('new-sm-title').value;
-            // Get first paragraph of content for preview
             const content = document.getElementById('new-sm-content').value.split(/\n\s*\n/)[0] || "Pré-visualização do Texto";
             const bg = document.getElementById('sm-style-bg').value;
             const color = document.getElementById('sm-style-color').value;
-            const size = document.getElementById('sm-style-size').value || '20'; // Relative size for preview box
+            const size = document.getElementById('sm-style-size').value || '20'; 
             const mediaVal = document.getElementById('sm-style-media').value;
             
             const previewBox = document.getElementById('sm-live-preview');
             const previewBg = document.getElementById('sm-preview-bg');
             const previewText = document.getElementById('sm-preview-text');
             
-            // Set styles
             previewBox.style.backgroundColor = bg;
             previewText.style.color = color;
-            // Scale font size down for preview box (approx ratio)
             previewText.style.fontSize = (parseInt(size) / 4) + 'px'; 
             previewText.innerText = content;
             
-            // Handle Media Background
             if(mediaVal) {
                 const mediaObj = JSON.parse(mediaVal);
                 if(mediaObj.type === 'image') {
                     previewBg.style.backgroundImage = `url('${mediaObj.url}')`;
                     previewBg.innerHTML = '';
                 } else {
-                    // Simple representation for video
                     previewBg.style.backgroundImage = 'none';
                     previewBg.innerHTML = '<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); color:white;"><span class="material-icons">play_circle</span></div>';
                 }
@@ -597,10 +597,11 @@
                      tempSettings.bgType = 'color'; 
                      tempSettings.bgUrl = '';
                  }
+                 tempSettings.timestamp = Date.now(); // FORCE UPDATE
                  
                  if(!isProjector && !isStage) {
                     channel.postMessage({ type: 'settings', payload: tempSettings });
-                    localStorage.setItem('appSettings', JSON.stringify(tempSettings));
+                    try { localStorage.setItem('appSettings', JSON.stringify(tempSettings)); } catch(e){}
                  }
             }
             
@@ -626,12 +627,8 @@
             document.getElementById('sm-viewer').style.display = 'none';
             currentSmIndex = -1;
             if(!isProjector && !isStage) {
-                // Restore to actual global settings from reset (we modified LS temporarily above)
-                // Actually, above we modified LS. That persists "temp" settings if we close. 
-                // We should probably NOT modify LS for temp preview, only broadcast. 
-                // But polling relies on LS. 
-                // Let's restore from memory variable 'currentSettings' which holds the true global state.
-                localStorage.setItem('appSettings', JSON.stringify(currentSettings));
+                currentSettings.timestamp = Date.now(); // FORCE RESTORE
+                try { localStorage.setItem('appSettings', JSON.stringify(currentSettings)); } catch(e){}
                 channel.postMessage({ type: 'settings', payload: currentSettings });
             }
         }
@@ -662,7 +659,12 @@
         function deleteMedia(index) { if(confirm('Remover?')) { galleryItems.splice(index, 1); localStorage.setItem('myGallery', JSON.stringify(galleryItems)); renderGallery(); } }
         function toggleMediaType() { document.getElementById('new-media-file').accept = document.getElementById('new-media-type').value === 'video' ? 'video/*' : 'image/*'; }
         function updateFileLabel(input) { document.getElementById('file-label-text').innerText = input.files[0] ? input.files[0].name : "Clique para escolher"; }
-        function setBackground(url, type) { currentSettings.bgType = type; currentSettings.bgUrl = url; saveAndApplySettings(); renderGallery(); }
+        function setBackground(url, type) { 
+            currentSettings.bgType = type; currentSettings.bgUrl = url; 
+            currentSettings.timestamp = Date.now(); // FORCE UPDATE
+            saveAndApplySettings(); 
+            renderGallery(); 
+        }
 
 
         // --- GENERIC APP LOGIC ---
@@ -917,12 +919,12 @@
                          else document.body.classList.remove('blackout-active');
                      }
                 }
-                // Poll Settings
+                // Poll Settings (Version Controlled)
                 const storedSettings = localStorage.getItem('appSettings');
                 if(storedSettings) {
                     const settings = JSON.parse(storedSettings);
-                    // Compare simple equality to avoid redraws if same (deep compare is expensive, doing simple check on bgUrl/type)
-                    if(settings.bgUrl !== currentSettings.bgUrl || settings.bgType !== currentSettings.bgType || settings.textColor !== currentSettings.textColor || settings.bgColor !== currentSettings.bgColor) {
+                    // Only update if newer
+                    if(settings.timestamp > currentSettings.timestamp) {
                         currentSettings = settings;
                         applyStyles(settings);
                     }
@@ -930,8 +932,19 @@
             }, 500); // Check every 500ms
         }
 
-        function removeBackground() { currentSettings.bgType='color'; currentSettings.bgUrl=''; saveAndApplySettings(); renderGallery(); }
-        function saveAndApplySettings() { try{localStorage.setItem('appSettings', JSON.stringify(currentSettings));}catch(e){} applyStyles(currentSettings); channel.postMessage({type:'settings', payload:currentSettings}); }
+        function removeBackground() { 
+            currentSettings.bgType='color'; currentSettings.bgUrl=''; 
+            currentSettings.timestamp = Date.now(); // FORCE UPDATE
+            saveAndApplySettings(); 
+            renderGallery(); 
+        }
+        
+        function saveAndApplySettings() { 
+            try { localStorage.setItem('appSettings', JSON.stringify(currentSettings)); } catch(e){} 
+            applyStyles(currentSettings); 
+            channel.postMessage({type:'settings', payload:currentSettings}); 
+        }
+        
         function updateSettings() {
              currentSettings.autoOpenProjector = document.getElementById('cfg-auto-open').checked;
              currentSettings.showTimer = document.getElementById('cfg-show-timer').checked;
@@ -947,6 +960,8 @@
              const alertMin = parseInt(document.getElementById('cfg-alert-min').value) || 0;
              const alertSec = parseInt(document.getElementById('cfg-alert-sec').value) || 0;
              currentSettings.alertTime = (alertMin * 60) + alertSec;
+             
+             currentSettings.timestamp = Date.now(); // FORCE UPDATE
              saveAndApplySettings();
         }
         function loadSettingsToInputs() {
@@ -973,7 +988,7 @@
         }
         function updateAlignButtons(align) { if(isProjector || isStage) return; document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active')); document.getElementById(`btn-align-${align}`).classList.add('active'); }
         function setAlignment(align) { currentSettings.textAlign = align; updateAlignButtons(align); saveAndApplySettings(); }
-        function resetSettings() { currentSettings = {...defaultSettings}; loadSettingsToInputs(); saveAndApplySettings(); }
+        function resetSettings() { currentSettings = {...defaultSettings}; currentSettings.timestamp = Date.now(); loadSettingsToInputs(); saveAndApplySettings(); }
 
         // --- RESTORED FUNCTIONS ---
         function renderList() {
@@ -1019,7 +1034,11 @@
                     document.getElementById('text-display').innerText = payload;
                 }
                 if(type === 'settings') {
-                    applyStyles(payload);
+                    // Update only if newer to avoid conflict
+                    if(payload.timestamp > currentSettings.timestamp) {
+                        currentSettings = payload;
+                        applyStyles(payload);
+                    }
                 }
                 if(type === 'blackout') {
                     isBlackout = payload;
@@ -1027,7 +1046,12 @@
                 }
                 if(type === 'state_sync') {
                     document.getElementById('text-display').innerText = payload.text;
-                    applyStyles(payload.settings);
+                    
+                    if(payload.settings.timestamp > currentSettings.timestamp) {
+                        currentSettings = payload.settings;
+                        applyStyles(payload.settings);
+                    }
+                    
                     const el = document.getElementById('timer-display');
                     el.innerText = payload.timerText;
                     if(!isStage) el.style.fontSize = payload.timerSize;
@@ -1060,6 +1084,8 @@
                         danger: timerEl.classList.contains('danger-mode'), 
                         fontSize: timerEl.style.fontSize 
                     }));
+                    // Force timestamp update on sync
+                    currentSettings.timestamp = Date.now();
                     localStorage.setItem('appSettings', JSON.stringify(currentSettings));
                     localStorage.setItem('blackoutState', isBlackout);
 
@@ -1081,8 +1107,10 @@
         window.addEventListener('storage', (e) => {
             if (e.key === 'appSettings') {
                 const newSettings = JSON.parse(e.newValue);
-                currentSettings = newSettings;
-                applyStyles(newSettings);
+                if(newSettings.timestamp > currentSettings.timestamp) {
+                    currentSettings = newSettings;
+                    applyStyles(newSettings);
+                }
             }
              if (e.key === 'liveText') {
                 document.getElementById('text-display').innerText = e.newValue;
@@ -1116,6 +1144,7 @@
             // Força salvamento antes de abrir
             if(!isProjector && !isStage) {
                  localStorage.setItem('liveText', document.getElementById('live-text').value);
+                 currentSettings.timestamp = Date.now();
                  localStorage.setItem('appSettings', JSON.stringify(currentSettings));
             }
             const newWin = window.open(window.location.href.split('?')[0] + '?view=projector', 'ProjectorWindow', params);
