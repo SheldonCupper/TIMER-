@@ -42,7 +42,18 @@
         body.blackout-active #display-overlay { visibility: hidden !important; }
 
         /* --- SIDEBAR --- */
-        #sidebar { width: 350px; background-color: var(--sidebar-bg); border-right: 1px solid #333; display: flex; flex-direction: column; transition: transform 0.3s ease; flex-shrink: 0; z-index: 20; position: relative; }
+        #sidebar { 
+            width: 350px; 
+            background-color: var(--sidebar-bg); 
+            border-right: 1px solid #333; 
+            display: flex; 
+            flex-direction: column; 
+            transition: transform 0.3s ease; 
+            flex-shrink: 0; 
+            z-index: 20; 
+            position: relative; 
+        }
+        
         .sidebar-tabs { display: flex; background: #111; overflow-x: auto; scrollbar-width: none; } 
         .sidebar-tabs::-webkit-scrollbar { display: none; }
         .tab-btn { flex: 1; padding: 12px 10px; background: transparent; color: #888; border: none; border-bottom: 2px solid transparent; cursor: pointer; font-weight: bold; font-size: 0.75rem; transition: 0.2s; text-transform: uppercase; white-space: nowrap; }
@@ -74,6 +85,21 @@
         .slide-card.active-slide { background: #1e3a8a; border-color: var(--accent-color); color: white; box-shadow: 0 0 10px rgba(59, 130, 246, 0.2); }
         .slide-number { font-size: 0.7rem; color: #666; display: block; margin-bottom: 4px; font-weight: bold; text-transform: uppercase; }
 
+        /* CARDS GALERIA */
+        .gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .gallery-item { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 16/9; cursor: pointer; border: 2px solid transparent; background: #000; }
+        .gallery-item:hover { border-color: #666; }
+        .gallery-item.selected { border-color: var(--accent-color); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); }
+        .gallery-thumb { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; transition: 0.2s; }
+        .gallery-item:hover .gallery-thumb { opacity: 1; }
+        .gallery-delete {
+            position: absolute; top: 5px; right: 5px; background: rgba(200,0,0,0.8);
+            color: white; border: none; border-radius: 4px; width: 24px; height: 24px;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            opacity: 0; transition: 0.2s;
+        }
+        .gallery-item:hover .gallery-delete { opacity: 1; }
+
         /* ABA BÍBLIA */
         #bible-status-card { background: #222; padding: 10px; border-radius: 6px; border: 1px solid #333; margin-bottom: 15px; }
         .version-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #333; }
@@ -94,9 +120,7 @@
         .bible-verse-item { background: #252525; padding: 10px; border-radius: 4px; border-left: 3px solid #444; cursor: pointer; transition: 0.2s; font-size: 0.9rem; color: #ddd; line-height: 1.4; }
         .bible-verse-item:hover { background: #333; border-left-color: var(--accent-color); color: white; }
         .bible-verse-item.highlight-verse { background: #1e3a8a; border-left-color: #fbbf24; }
-        /* Selected state for keyboard nav */
         .bible-verse-item.selected { background: #1e3a8a; border-left-color: var(--accent-color); color: white; }
-        
         .bible-verse-ref { font-size: 0.75rem; color: #888; font-weight: bold; margin-bottom: 3px; display: block; }
 
         /* CONFIGS */
@@ -121,7 +145,7 @@
         #controls-bar { background-color: #1a1a1a; padding: 10px 20px; display: flex; gap: 15px; align-items: center; border-bottom: 1px solid #333; height: 70px; }
         .input-group { display: flex; gap: 5px; align-items: center; }
         .input-group input[type="number"] { width: 50px; background: #222; padding: 8px; }
-        button.ctrl-btn { padding: 10px 18px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; color: white; display: flex; align-items: center; gap: 6px; background-color: #333; transition: 0.2s; font-size: 14px; }
+        button.ctrl-btn { padding: 10px 18px; border-radius: 6px; border: none; cursor: pointer; font-weight: bold; color: white; display: flex; align-items: center; gap: 6px; background-color: #333; transition: 0.2s; font-size: 14px; white-space: nowrap; }
         button.ctrl-btn:hover { background-color: #444; }
         button.play { background-color: var(--accent-color); }
         button.stop { background-color: var(--danger-color); }
@@ -157,6 +181,9 @@
         .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #444; }
         .divider:not(:empty)::before { margin-right: .5em; }
         .divider:not(:empty)::after { margin-left: .5em; }
+        .file-upload-label { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px; border: 2px dashed #444; border-radius: 8px; cursor: pointer; transition: 0.2s; color: #888; margin-bottom: 10px; background: rgba(255,255,255,0.02); }
+        .file-upload-label:hover { border-color: var(--accent-color); color: var(--accent-color); background: rgba(59, 130, 246, 0.1); }
+        input[type="file"] { display: none; }
         
         /* BIBLE NAVIGATOR */
         #modal-bible-navigator { align-items: flex-start; padding-top: 50px; }
@@ -184,6 +211,64 @@
         }
         .style-options-content { display: none; padding: 10px; background: #222; border-radius: 6px; margin-bottom: 15px; }
         .style-options-content.open { display: block; }
+        
+        /* RESPONSIVIDADE (MOBILE) */
+        @media (max-width: 768px) {
+            #sidebar {
+                position: absolute;
+                top: 0;
+                left: 0;
+                height: 100%;
+                transform: translateX(-100%);
+                box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+                transition: transform 0.3s;
+                width: 85%; /* Slightly wider on mobile for comfort */
+            }
+            #sidebar.active {
+                transform: translateX(0);
+            }
+            
+            /* Overlay to close sidebar on click outside */
+            .sidebar-overlay-mobile {
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.5); z-index: 15;
+                display: none;
+            }
+            #sidebar.active + .sidebar-overlay-mobile {
+                display: block;
+            }
+
+            #controls-bar {
+                overflow-x: auto;
+                justify-content: flex-start;
+                padding: 10px;
+                gap: 10px;
+            }
+            /* Make inputs smaller on mobile */
+            .input-group input[type="number"] { width: 40px; padding: 6px; }
+            button.ctrl-btn { padding: 8px 12px; font-size: 13px; }
+            
+            /* Modal Adjustments */
+            .modal {
+                width: 95% !important;
+                max-width: none !important;
+                padding: 15px;
+                height: auto;
+                max-height: 95vh;
+            }
+            
+            /* SM Modal Specifics for Mobile */
+            #modal-sm .modal {
+                flex-direction: column !important;
+            }
+            #sm-live-preview {
+                height: 200px;
+            }
+            
+            #display-area {
+                padding: 20px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -205,6 +290,9 @@
             <button class="tab-btn" onclick="switchTab('sm')">SM</button>
             <button class="tab-btn" onclick="switchTab('bible')">Bíblia</button>
             <button class="tab-btn" onclick="switchTab('appearance')">Ajustes</button>
+        </div>
+        <div style="position: absolute; top: 10px; right: 10px; display: none;" id="mobile-close-sidebar">
+             <button onclick="toggleSidebar()" style="background:none; border:none; color:#888;"><span class="material-icons">close</span></button>
         </div>
 
         <!-- ABA 1: VERSOS -->
@@ -293,6 +381,9 @@
             <button class="ctrl-btn" onclick="downloadSource()" style="width:100%; justify-content:center; background: #2563eb;"><span class="material-icons">download</span> Download App</button>
         </div>
     </div>
+
+    <!-- Mobile Overlay to Close Sidebar -->
+    <div class="sidebar-overlay-mobile" onclick="toggleSidebar()"></div>
 
     <!-- MAIN CONTENT -->
     <div id="main-content">
@@ -392,6 +483,7 @@
         </div>
     </div>
     
+    <div id="modal-gallery" class="modal-overlay hidden"><div class="modal"><h3 style="margin-top:0">Nova Mídia</h3><label style="color:#ddd; font-size:12px">Tipo:</label><select id="new-media-type" onchange="toggleMediaType()"><option value="image">Imagem</option><option value="video">Vídeo</option></select><label for="new-media-file" class="file-upload-label"><span class="material-icons" style="font-size:30px">cloud_upload</span><span id="file-label-text">Clique para escolher</span></label><input type="file" id="new-media-file" accept="image/*,video/*" onchange="updateFileLabel(this)"><div class="divider">OU</div><input type="text" id="new-media-url" placeholder="URL..."><div class="modal-actions"><button class="ctrl-btn" onclick="closeModal('gallery')">Cancelar</button><button class="ctrl-btn play" onclick="saveMedia()">Adicionar</button></div></div></div>
     <div id="modal-bible-navigator" class="modal-overlay hidden"><div class="bible-full-window"><div class="bible-header"><h3><span class="material-icons">auto_stories</span> Bíblia <span id="bible-crumbs" class="bible-crumbs"></span></h3><div style="display:flex; gap:10px;"><button class="ctrl-btn" id="bible-back-btn" onclick="bibleGoBack()" style="display:none;"><span class="material-icons">arrow_back</span> Voltar</button><button class="ctrl-btn stop" onclick="closeModal('bible-navigator')"><span class="material-icons">close</span></button></div></div><div class="bible-content-area" id="bible-content-area"></div></div></div>
 
     <script>
@@ -462,6 +554,12 @@
                  if(e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); navigateBible(-1); }
             }
         });
+
+        // FUNCTION ADDED FOR MOBILE SIDEBAR TOGGLE
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
         function toggleBlackout() { isBlackout = !isBlackout; updateBlackoutState(); }
         function updateBlackoutState() {
             if(isBlackout) document.body.classList.add('blackout-active'); else document.body.classList.remove('blackout-active');
@@ -748,6 +846,17 @@
                 channel.postMessage({ type: 'settings', payload: currentSettings });
             }
         }
+
+        // --- GALLERY LOGIC --- (Simplified as Gallery tab removed, but keeping functions for background management)
+        function setBackground(url, type) { 
+            // Sanitize
+            const cleanUrl = url.replace(/(\r\n|\n|\r)/gm, "");
+            currentSettings.bgType = type; 
+            currentSettings.bgUrl = cleanUrl; 
+            currentSettings.timestamp = Date.now(); // FORCE UPDATE
+            saveAndApplySettings(); 
+        }
+
 
         // --- GENERIC APP LOGIC ---
 
