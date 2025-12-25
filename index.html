@@ -74,21 +74,6 @@
         .slide-card.active-slide { background: #1e3a8a; border-color: var(--accent-color); color: white; box-shadow: 0 0 10px rgba(59, 130, 246, 0.2); }
         .slide-number { font-size: 0.7rem; color: #666; display: block; margin-bottom: 4px; font-weight: bold; text-transform: uppercase; }
 
-        /* CARDS GALERIA */
-        .gallery-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .gallery-item { position: relative; border-radius: 8px; overflow: hidden; aspect-ratio: 16/9; cursor: pointer; border: 2px solid transparent; background: #000; }
-        .gallery-item:hover { border-color: #666; }
-        .gallery-item.selected { border-color: var(--accent-color); box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); }
-        .gallery-thumb { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; transition: 0.2s; }
-        .gallery-item:hover .gallery-thumb { opacity: 1; }
-        .gallery-delete {
-            position: absolute; top: 5px; right: 5px; background: rgba(200,0,0,0.8);
-            color: white; border: none; border-radius: 4px; width: 24px; height: 24px;
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            opacity: 0; transition: 0.2s;
-        }
-        .gallery-item:hover .gallery-delete { opacity: 1; }
-
         /* ABA BÍBLIA */
         #bible-status-card { background: #222; padding: 10px; border-radius: 6px; border: 1px solid #333; margin-bottom: 15px; }
         .version-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #333; }
@@ -109,6 +94,9 @@
         .bible-verse-item { background: #252525; padding: 10px; border-radius: 4px; border-left: 3px solid #444; cursor: pointer; transition: 0.2s; font-size: 0.9rem; color: #ddd; line-height: 1.4; }
         .bible-verse-item:hover { background: #333; border-left-color: var(--accent-color); color: white; }
         .bible-verse-item.highlight-verse { background: #1e3a8a; border-left-color: #fbbf24; }
+        /* Selected state for keyboard nav */
+        .bible-verse-item.selected { background: #1e3a8a; border-left-color: var(--accent-color); color: white; }
+        
         .bible-verse-ref { font-size: 0.75rem; color: #888; font-weight: bold; margin-bottom: 3px; display: block; }
 
         /* CONFIGS */
@@ -169,9 +157,6 @@
         .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #444; }
         .divider:not(:empty)::before { margin-right: .5em; }
         .divider:not(:empty)::after { margin-left: .5em; }
-        .file-upload-label { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px; border: 2px dashed #444; border-radius: 8px; cursor: pointer; transition: 0.2s; color: #888; margin-bottom: 10px; background: rgba(255,255,255,0.02); }
-        .file-upload-label:hover { border-color: var(--accent-color); color: var(--accent-color); background: rgba(59, 130, 246, 0.1); }
-        input[type="file"] { display: none; }
         
         /* BIBLE NAVIGATOR */
         #modal-bible-navigator { align-items: flex-start; padding-top: 50px; }
@@ -219,7 +204,6 @@
             <button class="tab-btn active" onclick="switchTab('verses')">Versos</button>
             <button class="tab-btn" onclick="switchTab('sm')">SM</button>
             <button class="tab-btn" onclick="switchTab('bible')">Bíblia</button>
-            <button class="tab-btn" onclick="switchTab('gallery')">Galeria</button>
             <button class="tab-btn" onclick="switchTab('appearance')">Ajustes</button>
         </div>
 
@@ -278,13 +262,6 @@
                 <button id="bible-go" onclick="fetchBibleChapter()" style="width: 100%; padding: 10px; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; text-transform: uppercase;">Buscar</button>
             </div>
             <div id="bible-verse-list" style="margin-top: 15px;"><div style="color:#666; text-align:center; padding:10px; font-size:13px;">Selecione e clique em BUSCAR</div></div>
-        </div>
-
-        <!-- ABA 4: GALERIA -->
-        <div id="tab-gallery" class="tab-content">
-            <div class="sidebar-header"><span class="sidebar-title">Mídia de Fundo</span><button class="add-btn" onclick="openModal('gallery')" title="Adicionar">+</button></div>
-            <div style="margin-bottom:10px;"><button class="list-card" onclick="removeBackground()" style="width:100%; justify-content:center; color:#aaa; font-size:12px;"><span class="material-icons" style="font-size:16px; margin-right:5px;">block</span> Remover Fundo</button></div>
-            <div id="gallery-grid" class="gallery-grid"></div>
         </div>
 
         <!-- ABA 5: AJUSTES -->
@@ -367,11 +344,11 @@
                     <div class="config-item"><label>Cor Fundo</label><input type="color" id="sm-style-bg" value="#000000" oninput="updateSmPreview()"></div>
                     <div class="config-item"><label>Cor Texto</label><input type="color" id="sm-style-color" value="#ffffff" oninput="updateSmPreview()"></div>
                     <div class="config-item"><label>Tam. Texto (px)</label><input type="number" id="sm-style-size" placeholder="80" oninput="updateSmPreview()"></div>
+                    
+                    <!-- REPLACED GALLERY SELECT WITH URL INPUT -->
                     <div class="config-item" style="display:block">
-                        <label>Fundo da Galeria</label>
-                        <select id="sm-style-media" onchange="updateSmPreview()" style="width:100%; margin-top:5px; padding:8px; background:#111; color:white; border:1px solid #444; border-radius:4px;">
-                            <option value="">Nenhum (Usar Cor de Fundo)</option>
-                        </select>
+                        <label>Imagem de Fundo (URL)</label>
+                        <input type="text" id="sm-style-img" oninput="updateSmPreview()" placeholder="https://..." style="width:100%; margin-top:5px; padding:8px; background:#111; color:white; border:1px solid #444; border-radius:4px;">
                     </div>
                     
                     <!-- ALIGNMENT CONTROLS -->
@@ -415,7 +392,6 @@
         </div>
     </div>
     
-    <div id="modal-gallery" class="modal-overlay hidden"><div class="modal"><h3 style="margin-top:0">Nova Mídia</h3><label style="color:#ddd; font-size:12px">Tipo:</label><select id="new-media-type" onchange="toggleMediaType()"><option value="image">Imagem</option><option value="video">Vídeo</option></select><label for="new-media-file" class="file-upload-label"><span class="material-icons" style="font-size:30px">cloud_upload</span><span id="file-label-text">Clique para escolher</span></label><input type="file" id="new-media-file" accept="image/*,video/*" onchange="updateFileLabel(this)"><div class="divider">OU</div><input type="text" id="new-media-url" placeholder="URL..."><div class="modal-actions"><button class="ctrl-btn" onclick="closeModal('gallery')">Cancelar</button><button class="ctrl-btn play" onclick="saveMedia()">Adicionar</button></div></div></div>
     <div id="modal-bible-navigator" class="modal-overlay hidden"><div class="bible-full-window"><div class="bible-header"><h3><span class="material-icons">auto_stories</span> Bíblia <span id="bible-crumbs" class="bible-crumbs"></span></h3><div style="display:flex; gap:10px;"><button class="ctrl-btn" id="bible-back-btn" onclick="bibleGoBack()" style="display:none;"><span class="material-icons">arrow_back</span> Voltar</button><button class="ctrl-btn stop" onclick="closeModal('bible-navigator')"><span class="material-icons">close</span></button></div></div><div class="bible-content-area" id="bible-content-area"></div></div></div>
 
     <script>
@@ -454,7 +430,7 @@
             alertText: "ACABOU SEU TEMPO", alertSize: 70, alertColor1: "#ff0000", alertColor2: "#880000", alertDuration: 10
         };
         let verses = JSON.parse(localStorage.getItem('myVerses')) || [{ title: "Boas Vindas", content: "Sejam bem-vindos!\nO culto começará em instantes." }];
-        let galleryItems = JSON.parse(localStorage.getItem('myGallery')) || [{ type: 'image', url: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?auto=format&fit=crop&w=1000&q=80' }];
+        
         let smSlides = JSON.parse(localStorage.getItem('mySmSlides')) || []; 
 
         let timerInterval, totalSeconds = 300, isRunning = false;
@@ -476,6 +452,15 @@
             if(e.key === 'F10') { e.preventDefault(); toggleBlackout(); }
             if(e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); navigateSlide(1); }
             if(e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); navigateSlide(-1); }
+            
+            // Check context for navigation
+            if(document.getElementById('sm-viewer').style.display !== 'none') {
+                 if(e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); navigateSlide(1); }
+                 if(e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); navigateSlide(-1); }
+            } else if (document.getElementById('tab-bible').classList.contains('active')) {
+                 if(e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); navigateBible(1); }
+                 if(e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); navigateBible(-1); }
+            }
         });
         function toggleBlackout() { isBlackout = !isBlackout; updateBlackoutState(); }
         function updateBlackoutState() {
@@ -483,14 +468,34 @@
             if(!isProjector) { channel.postMessage({ type: 'blackout', payload: isBlackout }); localStorage.setItem('blackoutState', isBlackout); }
         }
         function navigateSlide(step) {
-            if(document.getElementById('sm-viewer').style.display !== 'none') {
-                const container = document.getElementById('sm-slides-container');
-                const slides = Array.from(container.getElementsByClassName('slide-card'));
-                if(slides.length === 0) return;
-                let activeIndex = slides.findIndex(s => s.classList.contains('active-slide'));
-                let newIndex = activeIndex + step;
-                if(newIndex < 0) newIndex = 0; if(newIndex >= slides.length) newIndex = slides.length - 1;
-                if(newIndex !== activeIndex) { slides[newIndex].click(); slides[newIndex].scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+            const container = document.getElementById('sm-slides-container');
+            const slides = Array.from(container.getElementsByClassName('slide-card'));
+            if(slides.length === 0) return;
+            let activeIndex = slides.findIndex(s => s.classList.contains('active-slide'));
+            let newIndex = activeIndex + step;
+            if(newIndex < 0) newIndex = 0; if(newIndex >= slides.length) newIndex = slides.length - 1;
+            if(newIndex !== activeIndex) { slides[newIndex].click(); slides[newIndex].scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        }
+
+        function navigateBible(step) {
+            const list = document.getElementById('bible-verse-list');
+            if (!list) return;
+            const items = list.children;
+            if(items.length === 0) return;
+            
+            let newIndex = currentBibleVerseIndex + step;
+            
+            // If starting from nothing (-1)
+            if (currentBibleVerseIndex === -1) {
+                newIndex = (step > 0) ? 0 : 0;
+            }
+            
+            if(newIndex < 0) newIndex = 0;
+            if(newIndex >= items.length) newIndex = items.length - 1;
+            
+            if(newIndex !== currentBibleVerseIndex) {
+                items[newIndex].click();
+                items[newIndex].scrollIntoView({block: 'center', behavior: 'smooth'});
             }
         }
         
@@ -512,23 +517,9 @@
         // --- SM LOGIC (ENHANCED WITH PREVIEW AND ALIGNMENT) ---
         function toggleStyleOptions() {
             document.getElementById('sm-style-options').classList.toggle('open');
-            if(document.getElementById('sm-style-options').classList.contains('open')) {
-                const currentUrl = currentSmIndex > -1 ? (smSlides[currentSmIndex].style ? smSlides[currentSmIndex].style.img : '') : '';
-                updateSmMediaOptions(currentUrl);
-            }
         }
         
-        function updateSmMediaOptions(selectedUrl) {
-            const sel = document.getElementById('sm-style-media');
-            sel.innerHTML = '<option value="">Nenhum (Usar Cor de Fundo)</option>';
-            galleryItems.forEach((item, idx) => {
-                const opt = document.createElement('option');
-                opt.value = JSON.stringify({ type: item.type, url: item.url });
-                opt.innerText = `Mídia ${idx + 1} (${item.type === 'image' ? 'Imagem' : 'Vídeo'})`;
-                if (item.url === selectedUrl) opt.selected = true;
-                sel.appendChild(opt);
-            });
-        }
+        // Removed updateSmMediaOptions as gallery is gone.
 
         // Helper for Alignment Buttons
         function setSmAlign(val, type) {
@@ -555,7 +546,10 @@
             const bg = document.getElementById('sm-style-bg').value;
             const color = document.getElementById('sm-style-color').value;
             const size = document.getElementById('sm-style-size').value || '20'; 
-            const mediaVal = document.getElementById('sm-style-media').value;
+            
+            // Replaced Select with Input value
+            const mediaUrl = document.getElementById('sm-style-img').value;
+            
             const alignH = document.getElementById('sm-style-align').value || 'center';
             const alignV = document.getElementById('sm-style-valign').value || 'center';
             
@@ -577,15 +571,9 @@
             // For preview box, text-align on child is enough, but alignItems handles vertical.
             // Just ensure width is 100%
             
-            if(mediaVal) {
-                const mediaObj = JSON.parse(mediaVal);
-                if(mediaObj.type === 'image') {
-                    previewBg.style.backgroundImage = `url('${mediaObj.url}')`;
-                    previewBg.innerHTML = '';
-                } else {
-                    previewBg.style.backgroundImage = 'none';
-                    previewBg.innerHTML = '<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); color:white;"><span class="material-icons">play_circle</span></div>';
-                }
+            if(mediaUrl) {
+                 previewBg.style.backgroundImage = `url('${mediaUrl}')`;
+                 previewBg.innerHTML = '';
             } else {
                 previewBg.style.backgroundImage = 'none';
                 previewBg.innerHTML = '';
@@ -623,16 +611,15 @@
             const title = document.getElementById('new-sm-title').value;
             const content = document.getElementById('new-sm-content').value;
             
-            const mediaVal = document.getElementById('sm-style-media').value;
-            let mediaObj = { type: 'image', url: '' };
-            if (mediaVal) mediaObj = JSON.parse(mediaVal);
+            // Capture Styles from URL Input now
+            const imgUrl = document.getElementById('sm-style-img').value;
 
             const style = {
                 bg: document.getElementById('sm-style-bg').value,
                 color: document.getElementById('sm-style-color').value,
                 size: document.getElementById('sm-style-size').value,
-                img: mediaObj.url,
-                mediaType: mediaObj.type,
+                img: imgUrl,
+                mediaType: 'image', // Default to image since we removed gallery handling logic for video here
                 align: document.getElementById('sm-style-align').value,
                 valign: document.getElementById('sm-style-valign').value
             };
@@ -672,7 +659,8 @@
                 document.getElementById('sm-style-bg').value = item.style.bg || '#000000';
                 document.getElementById('sm-style-color').value = item.style.color || '#ffffff';
                 document.getElementById('sm-style-size').value = item.style.size || '';
-                updateSmMediaOptions(item.style.img || ''); 
+                // Load URL
+                document.getElementById('sm-style-img').value = item.style.img || '';
                 
                 // Load Alignment
                 setSmAlign(item.style.align || 'center', 'h');
@@ -683,7 +671,7 @@
                 document.getElementById('sm-style-bg').value = '#000000';
                 document.getElementById('sm-style-color').value = '#ffffff';
                 document.getElementById('sm-style-size').value = '';
-                updateSmMediaOptions('');
+                document.getElementById('sm-style-img').value = ''; // Clear URL
                 setSmAlign('center', 'h');
                 setSmAlign('center', 'v');
                 document.getElementById('sm-style-options').classList.remove('open');
@@ -718,7 +706,7 @@
                  if(item.style.valign) tempSettings.valign = item.style.valign;
 
                  if(item.style.img) { 
-                     tempSettings.bgType = item.style.mediaType || 'image'; 
+                     tempSettings.bgType = 'image'; 
                      // Add sanitization to prevent breaking CSS string
                      tempSettings.bgUrl = item.style.img.replace(/(\r\n|\n|\r)/gm, "");
                  } else { 
@@ -761,29 +749,17 @@
             }
         }
 
-        // --- GALLERY LOGIC --- (Simplified as Gallery tab removed, but keeping functions for background management)
-        function setBackground(url, type) { 
-            // Sanitize
-            const cleanUrl = url.replace(/(\r\n|\n|\r)/gm, "");
-            currentSettings.bgType = type; 
-            currentSettings.bgUrl = cleanUrl; 
-            currentSettings.timestamp = Date.now(); // FORCE UPDATE
-            saveAndApplySettings(); 
-        }
-
-
         // --- GENERIC APP LOGIC ---
 
         function switchTab(tabName) {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
-            const tabs = ['tab-verses', 'tab-sm', 'tab-bible', 'tab-gallery', 'tab-appearance'];
+            const tabs = ['tab-verses', 'tab-sm', 'tab-bible', 'tab-appearance'];
             let index = 0;
             if(tabName === 'sm') index = 1;
             if(tabName === 'bible') index = 2;
-            if(tabName === 'gallery') index = 3;
-            if(tabName === 'appearance') index = 4;
+            if(tabName === 'appearance') index = 3;
 
             document.querySelectorAll('.tab-btn')[index].classList.add('active');
             document.getElementById(tabs[index]).classList.add('active');
@@ -889,6 +865,10 @@
              const vKey = document.getElementById('bible-version-select').value;
              const list = document.getElementById('bible-verse-list');
              list.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Buscando...</div>';
+             
+             // Blur inputs to allow arrow navigation immediately
+             document.querySelectorAll('input').forEach(i => i.blur());
+             document.querySelectorAll('select').forEach(s => s.blur());
 
              let data = null;
 
@@ -924,21 +904,32 @@
         function renderBibleVerses(verses, ref, highlightVerse) {
             const list = document.getElementById('bible-verse-list'); list.innerHTML = '';
             let targetElement = null;
+            
+            // Clear current selection on new search
+            currentBibleVerseIndex = -1;
 
-            verses.forEach(v => {
+            verses.forEach((v, index) => {
                 const d = document.createElement('div'); d.className = 'bible-verse-item';
                 const vNum = v.verse || v.pk;
                 d.innerHTML = `<span class="bible-verse-ref">${vNum}</span>${v.text}`;
                 
-                // Check highlight
+                // Check highlight from search input
                 if (highlightVerse && parseInt(vNum) === parseInt(highlightVerse)) {
-                    d.classList.add('highlight-verse');
+                    d.classList.add('selected'); // Use selected class for consistency
+                    currentBibleVerseIndex = index; // Set index for navigation
                     targetElement = d;
                     // Auto Project if verse is selected
                     updateDisplay(`${v.text}\n\n(${ref}:${vNum})`); 
                 }
 
-                d.onclick = () => { updateDisplay(`${v.text}\n\n(${ref}:${vNum})`); d.style.background='#3b82f6'; setTimeout(()=>d.style.background='',200); };
+                d.onclick = () => { 
+                    // Update index and visual state
+                    currentBibleVerseIndex = index;
+                    Array.from(list.children).forEach(c => c.classList.remove('selected'));
+                    d.classList.add('selected');
+                    
+                    updateDisplay(`${v.text}\n\n(${ref}:${vNum})`); 
+                };
                 list.appendChild(d);
             });
             
@@ -1133,7 +1124,6 @@
             currentSettings.bgType='color'; currentSettings.bgUrl=''; 
             currentSettings.timestamp = Date.now(); // FORCE UPDATE
             saveAndApplySettings(); 
-            renderGallery(); 
         }
         
         function saveAndApplySettings() { 
@@ -1486,7 +1476,7 @@
                 blinking = true;
             } else if (isOvertime) {
                 const m = Math.floor(overtimeSeconds / 60); const s = overtimeSeconds % 60;
-                txt = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                txt = `+${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
                 size = currentSettings.timerSize + "px";
                 danger = true; 
             } else {
