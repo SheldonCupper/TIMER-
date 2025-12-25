@@ -997,6 +997,8 @@
                     }
                     if(state.danger && state.text === currentSettings.alertText) {
                          if(!el.classList.contains('blink-mode')) el.classList.add('blink-mode');
+                         // Force remove danger color when blinking to allow custom colors
+                         if(el.classList.contains('danger-mode')) el.classList.remove('danger-mode');
                      } else {
                          if(el.classList.contains('blink-mode')) el.classList.remove('blink-mode');
                      }
@@ -1195,9 +1197,7 @@
                 if(type === 'timer') {
                     const el = document.getElementById('timer-display');
                     el.innerText = payload.text;
-                    if(payload.text !== currentSettings.alertText) el.style.fontSize = payload.fontSize; 
-                    else el.style.fontSize = (currentSettings.alertSize || 70) + "px";
-
+                    el.style.fontSize = payload.fontSize;
                     if(payload.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
                     if(payload.blinking) el.classList.add('blink-mode'); else el.classList.remove('blink-mode');
                 }
