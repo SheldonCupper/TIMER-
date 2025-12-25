@@ -35,7 +35,7 @@
         body.projector-mode #sidebar, body.projector-mode #controls-bar, body.projector-mode .modal-overlay, body.projector-mode .control-only, body.projector-mode #startup-overlay { display: none !important; }
         body.projector-mode #display-area { cursor: none; }
 
-        /* BLACKOUT MODE (F10) - Updated to include bg-image */
+        /* BLACKOUT MODE (F10) */
         body.blackout-active #content-wrapper,
         body.blackout-active #bg-video,
         body.blackout-active #bg-image,
@@ -138,14 +138,18 @@
         button.play { background-color: var(--accent-color); }
         button.stop { background-color: var(--danger-color); }
         button.project { background-color: #8b5cf6; }
+        button.stage { background-color: #eab308; color: #111; }
         textarea#live-text { flex-grow: 1; height: 42px; background: #222; border: 1px solid #444; color: white; padding: 10px; border-radius: 6px; resize: none; font-family: inherit; font-size: 14px; }
 
         /* DISPLAY */
         #display-area { flex-grow: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 40px; background-color: #000; background-size: cover; background-position: center; position: relative; overflow: hidden; }
-        #bg-video { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; display: none; }
-        #bg-image { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; display: none; } /* NEW IMAGE ELEMENT */
+        /* BACKGROUND LAYERS - FIXED POSITION TO COVER EVERYTHING */
+        #bg-video, #bg-image { 
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; 
+            object-fit: cover; z-index: 0; pointer-events: none; display: none; 
+        }
         #display-overlay { position: absolute; top:0; left:0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); pointer-events: none; z-index: 1; }
-        #content-wrapper { z-index: 2; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+        #content-wrapper { z-index: 2; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; position: relative; }
         #timer-display { font-family: 'Courier New', monospace; font-weight: bold; line-height: 1; transition: color 0.3s, font-size 0.3s; }
         #text-display { line-height: 1.3; max-width: 90%; white-space: pre-wrap; font-weight: 500; transition: all 0.3s; }
         .danger-mode { color: var(--danger-color) !important; text-shadow: 0 0 30px rgba(239, 68, 68, 0.5) !important; }
@@ -297,6 +301,7 @@
         <div id="controls-bar">
             <button class="ctrl-btn" onclick="toggleSidebar()"><span class="material-icons">menu</span></button>
             <button class="ctrl-btn project" onclick="openProjectorWindow(true)" title="Projetar"><span class="material-icons">open_in_new</span> Projetor</button>
+            <!-- REMOVED STAGE BUTTON -->
             <div class="input-group"><input type="number" id="min" value="5"><span>:</span><input type="number" id="sec" value="00"></div>
             <button class="ctrl-btn play" onclick="startTimer()"><span class="material-icons">play_arrow</span></button>
             <button class="ctrl-btn stop" onclick="pauseTimer()"><span class="material-icons">pause</span></button>
@@ -306,8 +311,8 @@
         </div>
         <div id="display-area">
             <video id="bg-video" loop muted playsinline></video>
-            <!-- IMAGEM DE FUNDO ADICIONADA -->
-            <img id="bg-image" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; z-index: 0; display: none;">
+            <!-- IMAGEM DE FUNDO FIXA -->
+            <img id="bg-image" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 0; display: none;" onerror="this.style.display='none'">
             <div id="display-overlay"></div>
             <div id="content-wrapper"><div id="timer-display">05:00</div><div id="text-display">...</div></div>
             <button class="control-only" onclick="toggleUI()" style="position: absolute; bottom: 20px; z-index:10; opacity: 0.3; background: none; border: 1px solid white; color: white; cursor: pointer;">Ocultar Interface</button>
@@ -408,12 +413,12 @@
         let isManualAlert = false;
 
         // --- DATA ---
-        const bibleBooks = [{name: "Gênesis", id: "Genesis"},{name: "Êxodo", id: "Exodus"},{name: "Levítico", id: "Leviticus"},{name: "Números", id: "Numbers"},{name: "Deuteronômio", id: "Deuteronomy"},{name: "Josué", id: "Joshua"},{name: "Juízes", id: "Judges"},{name: "Rute", id: "Ruth"},{name: "1 Samuel", id: "1 Samuel"},{name: "2 Samuel", id: "2 Samuel"},{name: "1 Reis", id: "1 Kings"},{name: "2 Reis", id: "2 Kings"},{name: "1 Crônicas", id: "1 Chronicles"},{name: "2 Crônicas", id: "2 Chronicles"},{name: "Esdras", id: "Ezra"},{name: "Neemias", id: "Nehemiah"},{name: "Ester", id: "Esther"},{name: "Jó", id: "Job"},{name: "Salmos", id: "Psalms"},{name: "Provérbios", id: "Proverbs"},{name: "Eclesiastes", id: "Ecclesiastes"},{name: "Cânticos", id: "Song of Solomon"},{name: "Isaías", id: "Isaiah"},{name: "Jeremias", id: "Jeremiah"},{name: "Lamentações", id: "Lamentations"},{name: "Ezequiel", id: "Ezekiel"},{name: "Daniel", id: "Daniel"},{name: "Oseias", id: "Hosea"},{name: "Joel", id: "Joel"},{name: "Amós", id: "Amos"},{name: "Obadias", id: "Obadiah"},{name: "Jonas", id: "Jonah"},{name: "Miqueias", id: "Micah"},{name: "Naum", id: "Nahum"},{name: "Habacuque", id: "Habakkuk"},{name: "Sofonias", id: "Zephaniah"},{name: "Ageu", id: "Haggai"},{name: "Zacarias", id: "Zechariah"},{name: "Malaquias", id: "Malachi"},{name: "Mateus", id: "Matthew"},{name: "Marcos", id: "Mark"},{name: "Lucas", id: "Luke"},{name: "João", id: "John"},{name: "Atos", id: "Acts"},{name: "Romanos", id: "Romans"},{name: "1 Coríntios", id: "1 Corinthians"},{name: "2 Coríntios", id: "2 Corinthians"},{name: "Gálatas", id: "Galatians"},{name: "Efésios", id: "Ephesians"},{name: "Filipenses", id: "Philippians"},{name: "Colossenses", id: "Colossians"},{name: "1 Tessalonicenses", id: "1 Thessalonians"},{name: "2 Tessalonicenses", id: "2 Thessalonians"},{name: "1 Timóteo", id: "1 Timothy"},{name: "2 Timóteo", id: "2 Timothy"},{name: "Tito", id: "Titus"},{name: "Filemom", id: "Philemon"},{name: "Hebreus", id: "Hebrews"},{name: "Tiago", id: "James"},{name: "1 Pedro", id: "1 Peter"},{name: "2 Pedro", id: "2 Peter"},{name: "1 João", id: "1 John"},{name: "2 João", id: "2 John"},{name: "3 João", id: "3 John"},{name: "Judas", id: "Jude"},{name: "Apocalipse", id: "Revelation"}];
+        const bibleBooks = [{name: "Gênesis", id: "Genesis"},{name: "Êxodo", id: "Exodus"},{name: "Levítico", id: "Leviticus"},{name: "Números", id: "Numbers"},{name: "Deuteronômio", id: "Deuteronomy"},{name: "Josué", id: "Joshua"},{name: "Juízes", id: "Judges"},{name: "Rute", id: "Ruth"},{name: "1 Samuel", id: "1 Samuel"},{name: "2 Samuel", id: "2 Samuel"},{name: "1 Reis", id: "1 Kings"},{name: "2 Reis", id: "2 Kings"},{name: "1 Crônicas", id: "1 Chronicles"},{name: "2 Crônicas", id: "2 Chronicles"},{name: "Esdras", id: "Ezra"},{name: "Neemias", id: "Nehemiah"},{name: "Ester", id: "Esther"},{name: "Jó", id: "Job"},{name: "Salmos", id: "Psalms"},{name: "Provérbios", id: "Proverbs"},{name: "Eclesiastes", id: "Ecclesiastes"},{name: "Cânticos", id: "Song of Solomon"},{name: "Isaías", id: "Isaiah"},{name: "Jeremias", id: "Jeremiah"},{name: "Lamentações", id: "Lamentations"},{name: "Ezequiel", id: "Ezekiel"},{name: "Daniel", id: "Daniel"},{name: "Oseias", id: "Hosea"},{name: "Joel", id: "Joel"},{name: "Amós", id: "Amos"},{name: "Obadias", id: "Obadiah"},{name: "Jonas", id: "Jonah"},{name: "Miqueias", id: "Micah"},{name: "Naum", id: "Nahum"},{name: "Habacuque", id: "Habakkuk"},{name: "Sofonias", id: "Zephaniah"},{name: "Ageu", id: "Haggai"},{name: "Zacarias", id: "Zechariah"},{name: "Malaquias", id: "Malachi"},{name: "Mateus", id: "Matthew"},{name: "Marcos", id: "Mark"},{name: "Lucas", id: "Luke"},{name: "João", id: "John"},{name: "Atos", id: "Acts"},{name: "Romanos", id: "Romans"},{name: "1 Coríntios", id: "1 Corinthians"},{name: "2 Coríntios", id: "2 Corinthians"},{name: "Gálatas", id: "Galatians"},{name: "Efésios", id: "Ephesians"},{name: "Filipenses", id: "Philippians"},{name: "Colossenses", id: "Colossians"},{name: "1 Tessalonicenses", id: "1 Thessalonians"},{name: "2 Tessalonicenses", id: "2 Thessalonians"},{name: "1 Timóteo", id: "1 Timothy"},{name: "2 Timóteo", id: "2 Timothy"},{name: "Tito", id: "Titus"},{name: "Filemom", id: "Philemon"},{name: "Hebreus", id: "Hebrews"},{name: "Tiago", id: "James"},{name: "1 Pedro", id: "1 Peter"},{name: "2 Pedro", id: "2 Peter"},{name: "1 João", id: "1 João"},{name: "2 João", id: "2 John"},{name: "3 João", id: "3 John"},{name: "Judas", id: "Judas"},{name: "Apocalipse", id: "Revelation"}];
         const bibleChapterCounts = [50,40,27,36,34,24,21,4,31,24,22,25,29,36,10,13,10,42,150,31,12,8,66,52,5,48,12,14,3,9,1,4,7,3,3,3,2,14,4,28,16,24,21,28,16,16,13,6,6,4,4,5,3,6,1,13,5,5,3,5,1,1,1,22];
         const bibleVersions = {
-            'aa': { name: 'Almeida Atualizada (PT)', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_aa.json' },
-            'acf': { name: 'Almeida Corr. Fiel (PT)', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_acf.json' },
-            'nvi': { name: 'Nova Versão Int. (PT)', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_nvi.json' }
+            'aa': { name: 'Almeida Atualizada', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_aa.json' },
+            'acf': { name: 'Almeida Corr. Fiel', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_acf.json' },
+            'nvi': { name: 'Nova Versão Int.', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_nvi.json' }
         };
 
         // Added 'timestamp' for version control
@@ -1023,6 +1028,8 @@
                     }
                     if(state.danger && state.text === currentSettings.alertText) {
                          if(!el.classList.contains('blink-mode')) el.classList.add('blink-mode');
+                         // Force remove danger color when blinking to allow custom colors
+                         if(el.classList.contains('danger-mode')) el.classList.remove('danger-mode');
                      } else {
                          if(el.classList.contains('blink-mode')) el.classList.remove('blink-mode');
                      }
