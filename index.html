@@ -137,6 +137,7 @@
         button.play { background-color: var(--accent-color); }
         button.stop { background-color: var(--danger-color); }
         button.project { background-color: #8b5cf6; }
+        button.stage { background-color: #eab308; color: #111; }
         textarea#live-text { flex-grow: 1; height: 42px; background: #222; border: 1px solid #444; color: white; padding: 10px; border-radius: 6px; resize: none; font-family: inherit; font-size: 14px; }
 
         /* DISPLAY */
@@ -231,6 +232,9 @@
                 <span class="sidebar-title">Slides Músicos</span>
                 <button class="add-btn" onclick="openModal('sm')" title="Adicionar">+</button>
             </div>
+            <button class="ctrl-btn stage" onclick="openStageWindow()" style="width:100%; margin-bottom:10px;">
+                <span class="material-icons">mic</span> Abrir Retorno
+            </button>
             <div id="sm-list"></div>
         </div>
 
@@ -279,6 +283,8 @@
                     <div class="config-item"><label>Tam. Alerta (px)</label><input type="number" id="cfg-alert-size" value="70" oninput="updateSettings()"></div>
                     <div class="config-item"><label>Cor A (Piscar)</label><input type="color" id="cfg-alert-color1" value="#ff0000" oninput="updateSettings()"></div>
                     <div class="config-item"><label>Cor B (Piscar)</label><input type="color" id="cfg-alert-color2" value="#880000" oninput="updateSettings()"></div>
+                    <div class="config-item"><label>Duração (s)</label><input type="number" id="cfg-alert-duration" value="10" oninput="updateSettings()"></div>
+                    <button class="ctrl-btn" id="btn-manual-alert" onclick="toggleManualAlert()" style="width:100%; margin-top:5px; justify-content:center; background:#444;">Mostrar Alerta Agora</button>
                 </div>
             </div>
             
@@ -293,6 +299,7 @@
         <div id="controls-bar">
             <button class="ctrl-btn" onclick="toggleSidebar()"><span class="material-icons">menu</span></button>
             <button class="ctrl-btn project" onclick="openProjectorWindow(true)" title="Projetar"><span class="material-icons">open_in_new</span> Projetor</button>
+            <button class="ctrl-btn stage" onclick="openStageWindow()" title="Abrir Retorno (Músicos)"><span class="material-icons">mic</span> Retorno</button>
             <div class="input-group"><input type="number" id="min" value="5"><span>:</span><input type="number" id="sec" value="00"></div>
             <button class="ctrl-btn play" onclick="startTimer()"><span class="material-icons">play_arrow</span></button>
             <button class="ctrl-btn stop" onclick="pauseTimer()"><span class="material-icons">pause</span></button>
@@ -399,9 +406,10 @@
         const urlParams = new URLSearchParams(window.location.search);
         const isProjector = urlParams.get('view') === 'projector';
         let isBlackout = false;
+        let isManualAlert = false;
 
         // --- DATA ---
-        const bibleBooks = [{name: "Gênesis", id: "Genesis"},{name: "Êxodo", id: "Exodus"},{name: "Levítico", id: "Leviticus"},{name: "Números", id: "Numbers"},{name: "Deuteronômio", id: "Deuteronomy"},{name: "Josué", id: "Joshua"},{name: "Juízes", id: "Judges"},{name: "Rute", id: "Ruth"},{name: "1 Samuel", id: "1 Samuel"},{name: "2 Samuel", id: "2 Samuel"},{name: "1 Reis", id: "1 Kings"},{name: "2 Reis", id: "2 Kings"},{name: "1 Crônicas", id: "1 Chronicles"},{name: "2 Crônicas", id: "2 Chronicles"},{name: "Esdras", id: "Ezra"},{name: "Neemias", id: "Nehemiah"},{name: "Ester", id: "Esther"},{name: "Jó", id: "Job"},{name: "Salmos", id: "Psalms"},{name: "Provérbios", id: "Proverbs"},{name: "Eclesiastes", id: "Ecclesiastes"},{name: "Cânticos", id: "Song of Solomon"},{name: "Isaías", id: "Isaiah"},{name: "Jeremias", id: "Jeremiah"},{name: "Lamentações", id: "Lamentations"},{name: "Ezequiel", id: "Ezekiel"},{name: "Daniel", id: "Daniel"},{name: "Oseias", id: "Hosea"},{name: "Joel", id: "Joel"},{name: "Amós", id: "Amos"},{name: "Obadias", id: "Obadiah"},{name: "Jonas", id: "Jonah"},{name: "Miqueias", id: "Micah"},{name: "Naum", id: "Nahum"},{name: "Habacuque", id: "Habakkuk"},{name: "Sofonias", id: "Zephaniah"},{name: "Ageu", id: "Haggai"},{name: "Zacarias", id: "Zechariah"},{name: "Malaquias", id: "Malachi"},{name: "Mateus", id: "Matthew"},{name: "Marcos", id: "Mark"},{name: "Lucas", id: "Luke"},{name: "João", id: "John"},{name: "Atos", id: "Acts"},{name: "Romanos", id: "Romans"},{name: "1 Coríntios", id: "1 Corinthians"},{name: "2 Coríntios", id: "2 Corinthians"},{name: "Gálatas", id: "Galatians"},{name: "Efésios", id: "Ephesians"},{name: "Filipenses", id: "Philippians"},{name: "Colossenses", id: "Colossians"},{name: "1 Tessalonicenses", id: "1 Thessalonians"},{name: "2 Tessalonicenses", id: "2 Thessalonians"},{name: "1 Timóteo", id: "1 Timothy"},{name: "2 Timóteo", id: "2 Timothy"},{name: "Tito", id: "Titus"},{name: "Filemom", id: "Philemon"},{name: "Hebreus", id: "Hebrews"},{name: "Tiago", id: "James"},{name: "1 Pedro", id: "1 Peter"},{name: "2 Pedro", id: "2 Peter"},{name: "1 João", id: "1 John"},{name: "2 João", id: "2 John"},{name: "3 João", id: "3 John"},{name: "Judas", id: "Jude"},{name: "Apocalipse", id: "Revelation"}];
+        const bibleBooks = [{name: "Gênesis", id: "Genesis"},{name: "Êxodo", id: "Exodus"},{name: "Levítico", id: "Leviticus"},{name: "Números", id: "Numbers"},{name: "Deuteronômio", id: "Deuteronomy"},{name: "Josué", id: "Joshua"},{name: "Juízes", id: "Judges"},{name: "Rute", id: "Ruth"},{name: "1 Samuel", id: "1 Samuel"},{name: "2 Samuel", id: "2 Samuel"},{name: "1 Reis", id: "1 Kings"},{name: "2 Reis", id: "2 Kings"},{name: "1 Crônicas", id: "1 Chronicles"},{name: "2 Crônicas", id: "2 Chronicles"},{name: "Esdras", id: "Ezra"},{name: "Neemias", id: "Nehemiah"},{name: "Ester", id: "Esther"},{name: "Jó", id: "Job"},{name: "Salmos", id: "Psalms"},{name: "Provérbios", id: "Proverbs"},{name: "Eclesiastes", id: "Ecclesiastes"},{name: "Cânticos", id: "Song of Solomon"},{name: "Isaías", id: "Isaiah"},{name: "Jeremias", id: "Jeremiah"},{name: "Lamentações", id: "Lamentations"},{name: "Ezequiel", id: "Ezekiel"},{name: "Daniel", id: "Daniel"},{name: "Oseias", id: "Hosea"},{name: "Joel", id: "Joel"},{name: "Amós", id: "Amos"},{name: "Obadias", id: "Obadiah"},{name: "Jonas", id: "Jonah"},{name: "Miqueias", id: "Micah"},{name: "Naum", id: "Nahum"},{name: "Habacuque", id: "Habakkuk"},{name: "Sofonias", id: "Zephaniah"},{name: "Ageu", id: "Haggai"},{name: "Zacarias", id: "Zechariah"},{name: "Malaquias", id: "Malachi"},{name: "Mateus", id: "Matthew"},{name: "Marcos", id: "Mark"},{name: "Lucas", id: "Luke"},{name: "João", id: "John"},{name: "Atos", id: "Acts"},{name: "Romanos", id: "Romans"},{name: "1 Coríntios", id: "1 Corinthians"},{name: "2 Coríntios", id: "2 Corinthians"},{name: "Gálatas", id: "Galatians"},{name: "Efésios", id: "Ephesians"},{name: "Filipenses", id: "Philippians"},{name: "Colossenses", id: "Colossians"},{name: "1 Tessalonicenses", id: "1 Thessalonians"},{name: "2 Tessalonicenses", id: "2 Thessalonians"},{name: "1 Timóteo", id: "1 Timothy"},{name: "2 Timóteo", id: "2 Timothy"},{name: "Tito", id: "Titus"},{name: "Filemom", id: "Philemon"},{name: "Hebreus", id: "Hebrews"},{name: "Tiago", id: "James"},{name: "1 Pedro", id: "1 Peter"},{name: "2 Pedro", id: "2 Peter"},{name: "1 João", id: "1 João"},{name: "2 João", id: "2 John"},{name: "3 João", id: "3 John"},{name: "Judas", id: "Jude"},{name: "Apocalipse", id: "Revelation"}];
         const bibleChapterCounts = [50,40,27,36,34,24,21,4,31,24,22,25,29,36,10,13,10,42,150,31,12,8,66,52,5,48,12,14,3,9,1,4,7,3,3,3,2,14,4,28,16,24,21,28,16,16,13,6,6,4,4,5,3,6,1,13,5,5,3,5,1,1,1,22];
         const bibleVersions = {
             'aa': { name: 'Almeida Atualizada', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_aa.json' },
@@ -418,7 +426,7 @@
             timerColor: '#4ade80', timerSize: 180, alertTime: 60,
             valign: 'center', // Add default valign
             // New Alert Settings
-            alertText: "ACABOU SEU TEMPO", alertSize: 70, alertColor1: "#ff0000", alertColor2: "#880000"
+            alertText: "ACABOU SEU TEMPO", alertSize: 70, alertColor1: "#ff0000", alertColor2: "#880000", alertDuration: 10
         };
         let verses = JSON.parse(localStorage.getItem('myVerses')) || [{ title: "Boas Vindas", content: "Sejam bem-vindos!\nO culto começará em instantes." }];
         let galleryItems = JSON.parse(localStorage.getItem('myGallery')) || [{ type: 'image', url: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?auto=format&fit=crop&w=1000&q=80' }];
@@ -458,6 +466,20 @@
                 let newIndex = activeIndex + step;
                 if(newIndex < 0) newIndex = 0; if(newIndex >= slides.length) newIndex = slides.length - 1;
                 if(newIndex !== activeIndex) { slides[newIndex].click(); slides[newIndex].scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+            }
+        }
+        
+        function toggleManualAlert() {
+            isManualAlert = !isManualAlert;
+            const btn = document.getElementById('btn-manual-alert');
+            if (isManualAlert) {
+                btn.innerText = "Ocultar Alerta";
+                btn.style.backgroundColor = getComputedStyle(document.documentElement).getPropertyValue('--danger-color').trim();
+                if (!isRunning) updateTimerUI(false); 
+            } else {
+                btn.innerText = "Mostrar Alerta Agora";
+                btn.style.backgroundColor = "#444";
+                if (!isRunning) updateTimerUI(false);
             }
         }
 
@@ -986,7 +1008,7 @@
                     const state = JSON.parse(storedTimer);
                     const el = document.getElementById('timer-display');
                     if (el.innerText !== state.text) el.innerText = state.text;
-                    // Only set size if not in danger mode with text or if it's normal countdown
+                    // Only set size if not blinking (to avoid overwriting alert size)
                     if(state.text !== currentSettings.alertText) el.style.fontSize = state.fontSize;
                     else el.style.fontSize = (currentSettings.alertSize || 70) + "px";
 
@@ -1002,6 +1024,12 @@
                      } else {
                          if(el.classList.contains('blink-mode')) el.classList.remove('blink-mode');
                      }
+                    
+                    // Added manual alert check
+                    if (isManualAlert) {
+                        if (!el.classList.contains('blink-mode')) el.classList.add('blink-mode');
+                        if (el.classList.contains('danger-mode')) el.classList.remove('danger-mode');
+                    }
                 }
                 const storedBlackout = localStorage.getItem('blackoutState');
                 if(storedBlackout !== null) {
@@ -1125,6 +1153,7 @@
              currentSettings.alertSize = document.getElementById('cfg-alert-size').value;
              currentSettings.alertColor1 = document.getElementById('cfg-alert-color1').value;
              currentSettings.alertColor2 = document.getElementById('cfg-alert-color2').value;
+             currentSettings.alertDuration = parseInt(document.getElementById('cfg-alert-duration').value) || 10;
              
              currentSettings.timestamp = Date.now(); // FORCE UPDATE
              saveAndApplySettings();
@@ -1154,6 +1183,7 @@
             document.getElementById('cfg-alert-size').value = currentSettings.alertSize || 70;
             document.getElementById('cfg-alert-color1').value = currentSettings.alertColor1 || "#ff0000";
             document.getElementById('cfg-alert-color2').value = currentSettings.alertColor2 || "#880000";
+            document.getElementById('cfg-alert-duration').value = currentSettings.alertDuration || 10;
 
             updateAlignButtons(currentSettings.textAlign);
         }
@@ -1197,9 +1227,14 @@
                 if(type === 'timer') {
                     const el = document.getElementById('timer-display');
                     el.innerText = payload.text;
-                    el.style.fontSize = payload.fontSize;
+                    if(payload.text !== currentSettings.alertText) el.style.fontSize = payload.fontSize; 
+                    else el.style.fontSize = (currentSettings.alertSize || 70) + "px";
+
                     if(payload.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
-                    if(payload.blinking) el.classList.add('blink-mode'); else el.classList.remove('blink-mode');
+                    if(payload.blinking) {
+                        el.classList.add('blink-mode');
+                        el.classList.remove('danger-mode'); // Override danger color on projector
+                    } else el.classList.remove('blink-mode');
                 }
                 if(type === 'text') {
                     document.getElementById('text-display').innerText = payload;
@@ -1238,6 +1273,9 @@
 
         } else {
             loadSettingsToInputs(); initBible(); renderSmList(); renderGallery(); renderList(); updateTimerUI(false); initOfflineBible(); 
+            // APPLY STYLES ON CONTROLLER INIT
+            applyStyles(currentSettings);
+
             if(currentSettings.autoOpenProjector) document.getElementById('startup-overlay').classList.remove('hidden');
             
             // Controller Listener
@@ -1292,7 +1330,14 @@
                 if(state.text !== currentSettings.alertText) el.style.fontSize = state.fontSize;
                 
                 if(state.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
-                if(state.text === currentSettings.alertText && state.danger) el.classList.add('blink-mode'); else el.classList.remove('blink-mode');
+                
+                // FORCE OVERRIDE DANGER IF BLINKING
+                if(state.text === currentSettings.alertText && state.danger) {
+                    el.classList.add('blink-mode'); 
+                    el.classList.remove('danger-mode');
+                } else {
+                    el.classList.remove('blink-mode');
+                }
             }
             if(e.key === 'blackoutState') {
                 isBlackout = (e.newValue === 'true');
@@ -1325,7 +1370,11 @@
 
         // TIMER Logic
         function startTimer() { if (isRunning) return; if (!isProjector && !timerInterval) { const m = parseInt(document.getElementById('min').value)||0; const s = parseInt(document.getElementById('sec').value)||0; totalSeconds = m * 60 + s; } isRunning = true; timerInterval = setInterval(() => { if (totalSeconds <= 0) { clearInterval(timerInterval); isRunning = false; startBlinkSequence(); return; } totalSeconds--; updateTimerUI(false); }, 1000); }
-        function startBlinkSequence() { isRunning = true; isBlinking = true; updateTimerUI(true); blinkTimeout = setTimeout(() => { isBlinking = false; startOvertime(); }, 10000); }
+        function startBlinkSequence() { isRunning = true; isBlinking = true; updateTimerUI(true); 
+            // Use configurable duration
+            const duration = (currentSettings.alertDuration || 10) * 1000;
+            blinkTimeout = setTimeout(() => { isBlinking = false; startOvertime(); }, duration); 
+        }
         function startOvertime() { isBlinking = false; isOvertime = true; overtimeSeconds = 0; isRunning = true; if(timerInterval) clearInterval(timerInterval); overtimeInterval = setInterval(() => { overtimeSeconds++; updateTimerUI(false); }, 1000); }
         function pauseTimer() { clearInterval(timerInterval); timerInterval = null; clearInterval(overtimeInterval); overtimeInterval = null; clearTimeout(blinkTimeout); blinkTimeout = null; isRunning = false; }
         function resetTimer() { pauseTimer(); isBlinking = false; isOvertime = false; overtimeSeconds = 0; if (!isProjector) { const m = parseInt(document.getElementById('min').value)||0; const s = parseInt(document.getElementById('sec').value)||0; totalSeconds = m * 60 + s; updateTimerUI(false); } }
