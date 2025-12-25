@@ -16,7 +16,18 @@
     
     <style>
         /* --- CSS: GERAL --- */
-        :root { --bg-color: #121212; --sidebar-bg: #1e1e1e; --accent-color: #3b82f6; --timer-color: #4ade80; --danger-color: #ef4444; --text-color: #f3f4f6; --success-color: #10b981; }
+        :root { 
+            --bg-color: #121212; 
+            --sidebar-bg: #1e1e1e; 
+            --accent-color: #3b82f6; 
+            --timer-color: #4ade80; 
+            --danger-color: #ef4444; 
+            --text-color: #f3f4f6; 
+            --success-color: #10b981;
+            /* Variáveis para o Piscar Personalizado */
+            --alert-color-1: #ff0000;
+            --alert-color-2: #880000;
+        }
         body { margin: 0; font-family: 'Segoe UI', sans-serif; background-color: var(--bg-color); color: var(--text-color); height: 100vh; display: flex; overflow: hidden; -webkit-user-select: none; user-select: none; }
         input, textarea { -webkit-user-select: text; user-select: text; }
 
@@ -28,27 +39,6 @@
         body.blackout-active #content-wrapper,
         body.blackout-active #bg-video,
         body.blackout-active #display-overlay { visibility: hidden !important; }
-
-        /* Modo Retorno (Stage Monitor) */
-        body.stage-mode #sidebar, body.stage-mode #controls-bar, body.stage-mode .modal-overlay, body.stage-mode .control-only, body.stage-mode #startup-overlay, body.stage-mode #bg-video, body.stage-mode #display-overlay { display: none !important; }
-        body.stage-mode #display-area { 
-            background-color: #000 !important; 
-            background-image: none !important;
-            padding: 20px;
-            align-items: flex-start;
-            justify-content: flex-start;
-            text-align: left;
-        }
-        body.stage-mode #content-wrapper { align-items: flex-start !important; width: 100%; height: 100%; }
-        body.stage-mode #text-display {
-            font-family: Arial, sans-serif !important; font-weight: bold; color: #fff !important;
-            font-size: 6vw !important; text-transform: uppercase; line-height: 1.2;
-            text-shadow: none !important; white-space: pre-wrap; width: 100%;
-        }
-        body.stage-mode #timer-display {
-            position: fixed; top: 10px; right: 10px; font-size: 4vw !important;
-            color: yellow !important; background: rgba(0,0,0,0.8); padding: 5px 10px; border-radius: 5px; z-index: 100;
-        }
 
         /* --- SIDEBAR --- */
         #sidebar { width: 350px; background-color: var(--sidebar-bg); border-right: 1px solid #333; display: flex; flex-direction: column; transition: transform 0.3s ease; flex-shrink: 0; z-index: 20; position: relative; }
@@ -127,6 +117,7 @@
         .config-item label { color: #ddd; flex-grow: 1; }
         input[type="color"] { border: none; width: 35px; height: 35px; cursor: pointer; background: none; padding: 0; }
         input[type="number"] { background: #111; border: 1px solid #444; color: white; padding: 6px; border-radius: 4px; width: 65px; text-align: center; }
+        input[type="text"] { background: #111; border: 1px solid #444; color: white; padding: 8px; border-radius: 4px; width: 100%; box-sizing: border-box; }
         input[type="range"] { flex-grow: 1; margin-left: 10px; cursor: pointer; }
         input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--accent-color); }
         select.font-select, select.config-select { width: 100%; padding: 8px; background: #111; border: 1px solid #444; color: white; border-radius: 4px; }
@@ -155,13 +146,15 @@
         #content-wrapper { z-index: 2; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         #timer-display { font-family: 'Courier New', monospace; font-weight: bold; line-height: 1; transition: color 0.3s, font-size 0.3s; }
         #text-display { line-height: 1.3; max-width: 90%; white-space: pre-wrap; font-weight: 500; transition: all 0.3s; }
+        
         .danger-mode { color: var(--danger-color) !important; text-shadow: 0 0 30px rgba(239, 68, 68, 0.5) !important; }
-        /* NEW BLINK ANIMATION */
+        
+        /* NEW BLINK ANIMATION WITH VARIABLES */
         @keyframes blink-panic {
-            0%, 100% { opacity: 1; color: #ff0000; text-shadow: 0 0 40px #ff0000; transform: scale(1.05); }
-            50% { opacity: 0.3; color: #880000; text-shadow: none; transform: scale(1); }
+            0%, 100% { opacity: 1; color: var(--alert-color-1); text-shadow: 0 0 40px var(--alert-color-1); transform: scale(1.05); }
+            50% { opacity: 0.3; color: var(--alert-color-2); text-shadow: none; transform: scale(1); }
         }
-        .blink-mode { animation: blink-panic 0.5s infinite ease-in-out !important; color: #ff0000 !important; }
+        .blink-mode { animation: blink-panic 0.5s infinite ease-in-out !important; }
 
         /* MODAIS */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(5px); }
@@ -273,7 +266,23 @@
             <div class="config-group"><h4>Projeção</h4><div class="config-item"><label>Abrir Projetor ao Iniciar</label><input type="checkbox" id="cfg-auto-open" onchange="updateSettings()"></div></div>
             <div class="config-group"><h4>Layout</h4><div class="config-item"><label>Mostrar Timer</label><input type="checkbox" id="cfg-show-timer" onchange="updateSettings()" checked></div><div class="config-item"><label>Mostrar Texto</label><input type="checkbox" id="cfg-show-text" onchange="updateSettings()" checked></div><div class="config-item"><label>Posição</label><select id="cfg-timer-pos" class="config-select" onchange="updateSettings()"><option value="top">Timer Acima</option><option value="bottom">Timer Abaixo</option></select></div></div>
             <div class="config-group"><h4>Estilo Global</h4><div class="config-item"><label>Cor Fundo</label><input type="color" id="cfg-bg-color" value="#000000" oninput="updateSettings()"></div><div class="config-item"><label>Escurecer</label><input type="range" id="cfg-overlay-opacity" min="0" max="1" step="0.1" value="0.5" oninput="updateSettings()"></div><div class="config-item"><label>Cor Texto</label><input type="color" id="cfg-text-color" value="#ffffff" oninput="updateSettings()"></div><div class="config-item"><label>Tam. Texto</label><input type="number" id="cfg-text-size" min="10" max="800" value="80" oninput="updateSettings()"></div><div class="config-item" style="display:block"><label style="display:block; margin-bottom:5px;">Fonte</label><select id="cfg-font-family" class="font-select" onchange="updateSettings()"><option value="'Segoe UI', sans-serif">Padrão</option><option value="'Courier New', monospace">Máquina</option><option value="'Times New Roman', serif">Clássico</option><option value="Arial, sans-serif">Simples</option><option value="cursive">Manuscrito</option></select></div><div class="config-item" style="display:block; margin-top:10px;"><label style="display:block; margin-bottom:5px;">Alinhamento</label><div class="align-btn-group"><button class="align-btn" onclick="setAlignment('left')" id="btn-align-left"><span class="material-icons">format_align_left</span></button><button class="align-btn" onclick="setAlignment('center')" id="btn-align-center"><span class="material-icons">format_align_center</span></button><button class="align-btn" onclick="setAlignment('right')" id="btn-align-right"><span class="material-icons">format_align_right</span></button></div></div></div>
-            <div class="config-group"><h4>Timer</h4><div class="config-item"><label>Cor Normal</label><input type="color" id="cfg-timer-color" value="#4ade80" oninput="updateSettings()"></div><div class="config-item"><label>Tamanho (px)</label><input type="number" id="cfg-timer-size" min="10" max="800" value="180" oninput="updateSettings()"></div><div class="config-item"><label>Alertar quando faltar:</label><div class="input-group" style="justify-content: flex-end;"><input type="number" id="cfg-alert-min" value="1" oninput="updateSettings()" placeholder="m" style="width: 40px;"><span>:</span><input type="number" id="cfg-alert-sec" value="00" oninput="updateSettings()" placeholder="s" style="width: 40px;"></div></div></div>
+            
+            <div class="config-group">
+                <h4>Timer</h4>
+                <div class="config-item"><label>Cor Normal</label><input type="color" id="cfg-timer-color" value="#4ade80" oninput="updateSettings()"></div>
+                <div class="config-item"><label>Tamanho (px)</label><input type="number" id="cfg-timer-size" min="10" max="800" value="180" oninput="updateSettings()"></div>
+                <div class="config-item"><label>Alertar quando faltar:</label><div class="input-group" style="justify-content: flex-end;"><input type="number" id="cfg-alert-min" value="1" oninput="updateSettings()" placeholder="m" style="width: 40px;"><span>:</span><input type="number" id="cfg-alert-sec" value="00" oninput="updateSettings()" placeholder="s" style="width: 40px;"></div></div>
+                
+                <!-- NOVO BLOCO: ALERTA DE TEMPO -->
+                <div style="border-top: 1px solid #333; margin: 10px 0; padding-top: 10px;">
+                    <h5 style="margin: 0 0 10px 0; color: #888; font-size: 0.8rem;">Alerta de Tempo</h5>
+                    <div class="config-item"><label>Texto</label><input type="text" id="cfg-alert-text" value="ACABOU SEU TEMPO" oninput="updateSettings()" style="width: 150px;"></div>
+                    <div class="config-item"><label>Tam. Alerta (px)</label><input type="number" id="cfg-alert-size" value="70" oninput="updateSettings()"></div>
+                    <div class="config-item"><label>Cor A (Piscar)</label><input type="color" id="cfg-alert-color1" value="#ff0000" oninput="updateSettings()"></div>
+                    <div class="config-item"><label>Cor B (Piscar)</label><input type="color" id="cfg-alert-color2" value="#880000" oninput="updateSettings()"></div>
+                </div>
+            </div>
+            
             <button class="ctrl-btn" onclick="resetSettings()" style="width:100%; justify-content:center; background:#444; margin-bottom: 10px;">Restaurar Padrões</button>
             <div style="border-top: 1px solid #333; margin: 15px 0;"></div>
             <button class="ctrl-btn" onclick="downloadSource()" style="width:100%; justify-content:center; background: #2563eb;"><span class="material-icons">download</span> Download App</button>
@@ -408,7 +417,9 @@
             bgColor: '#000000', bgType: 'color', bgUrl: '', overlayOpacity: 0.5, 
             textColor: '#ffffff', textSize: 80, fontFamily: "'Segoe UI', sans-serif", textAlign: 'center', 
             timerColor: '#4ade80', timerSize: 180, alertTime: 60,
-            valign: 'center' // Add default valign
+            valign: 'center', // Add default valign
+            // New Alert Settings
+            alertText: "ACABOU SEU TEMPO", alertSize: 70, alertColor1: "#ff0000", alertColor2: "#880000"
         };
         let verses = JSON.parse(localStorage.getItem('myVerses')) || [{ title: "Boas Vindas", content: "Sejam bem-vindos!\nO culto começará em instantes." }];
         let galleryItems = JSON.parse(localStorage.getItem('myGallery')) || [{ type: 'image', url: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?auto=format&fit=crop&w=1000&q=80' }];
@@ -977,14 +988,15 @@
                     const el = document.getElementById('timer-display');
                     if (el.innerText !== state.text) el.innerText = state.text;
                     // Only set size if not in danger mode with text or if it's normal countdown
-                    if(state.text !== "ACABOU SEU TEMPO") el.style.fontSize = state.fontSize;
-                    
+                    if(state.text !== currentSettings.alertText) el.style.fontSize = state.fontSize;
+                    else el.style.fontSize = (currentSettings.alertSize || 70) + "px";
+
                     if(state.danger) {
                          if(!el.classList.contains('danger-mode')) el.classList.add('danger-mode');
                     } else {
                          if(el.classList.contains('danger-mode')) el.classList.remove('danger-mode');
                     }
-                    if(state.danger && state.text === "ACABOU SEU TEMPO") {
+                    if(state.danger && state.text === currentSettings.alertText) {
                          if(!el.classList.contains('blink-mode')) el.classList.add('blink-mode');
                      } else {
                          if(el.classList.contains('blink-mode')) el.classList.remove('blink-mode');
@@ -1031,6 +1043,10 @@
             const timer = document.getElementById('timer-display');
             const wrapper = document.getElementById('content-wrapper');
             const videoEl = document.getElementById('bg-video');
+
+            // Apply Alert Styles
+            document.documentElement.style.setProperty('--alert-color-1', s.alertColor1 || '#ff0000');
+            document.documentElement.style.setProperty('--alert-color-2', s.alertColor2 || '#880000');
 
             timer.style.display = (s.showTimer !== false) ? 'block' : 'none';
             text.style.display = (s.showText !== false) ? 'block' : 'none';
@@ -1084,7 +1100,7 @@
 
             timer.style.color = s.timerColor; 
             // Only set if not blinking
-             if(timer.innerText !== "ACABOU SEU TEMPO") timer.style.fontSize = `${s.timerSize}px`;
+             if(timer.innerText !== s.alertText) timer.style.fontSize = `${s.timerSize}px`;
         }
         
         function updateSettings() {
@@ -1102,6 +1118,12 @@
              const alertMin = parseInt(document.getElementById('cfg-alert-min').value) || 0;
              const alertSec = parseInt(document.getElementById('cfg-alert-sec').value) || 0;
              currentSettings.alertTime = (alertMin * 60) + alertSec;
+             
+             // NEW ALERT SETTINGS
+             currentSettings.alertText = document.getElementById('cfg-alert-text').value;
+             currentSettings.alertSize = document.getElementById('cfg-alert-size').value;
+             currentSettings.alertColor1 = document.getElementById('cfg-alert-color1').value;
+             currentSettings.alertColor2 = document.getElementById('cfg-alert-color2').value;
              
              currentSettings.timestamp = Date.now(); // FORCE UPDATE
              saveAndApplySettings();
@@ -1125,6 +1147,12 @@
             const s = totalAlert % 60;
             document.getElementById('cfg-alert-min').value = m;
             document.getElementById('cfg-alert-sec').value = s;
+            
+            // NEW ALERT INPUTS
+            document.getElementById('cfg-alert-text').value = currentSettings.alertText || "ACABOU SEU TEMPO";
+            document.getElementById('cfg-alert-size').value = currentSettings.alertSize || 70;
+            document.getElementById('cfg-alert-color1').value = currentSettings.alertColor1 || "#ff0000";
+            document.getElementById('cfg-alert-color2').value = currentSettings.alertColor2 || "#880000";
 
             updateAlignButtons(currentSettings.textAlign);
         }
@@ -1168,8 +1196,8 @@
                 if(type === 'timer') {
                     const el = document.getElementById('timer-display');
                     el.innerText = payload.text;
-                    if(payload.text !== "ACABOU SEU TEMPO") el.style.fontSize = payload.fontSize; // Fix size flicker
-                    else el.style.fontSize = (parseInt(payload.fontSize)*0.4) + "px"; // Ensure smaller for alert
+                    if(payload.text !== currentSettings.alertText) el.style.fontSize = payload.fontSize; 
+                    else el.style.fontSize = (currentSettings.alertSize || 70) + "px";
 
                     if(payload.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
                     if(payload.blinking) el.classList.add('blink-mode'); else el.classList.remove('blink-mode');
@@ -1195,7 +1223,7 @@
                     }
                     const el = document.getElementById('timer-display');
                     el.innerText = payload.timerText;
-                    if(payload.timerText !== "ACABOU SEU TEMPO") el.style.fontSize = payload.timerSize;
+                    if(payload.timerText !== currentSettings.alertText) el.style.fontSize = payload.timerSize;
                     
                     if(payload.timerDanger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
                 }
@@ -1262,10 +1290,10 @@
                 const el = document.getElementById('timer-display');
                 el.innerText = state.text;
                 // Only set size if not blinking (to avoid overwriting alert size)
-                if(state.text !== "ACABOU SEU TEMPO") el.style.fontSize = state.fontSize;
+                if(state.text !== currentSettings.alertText) el.style.fontSize = state.fontSize;
                 
                 if(state.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
-                if(state.text === "ACABOU SEU TEMPO" && state.danger) el.classList.add('blink-mode'); else el.classList.remove('blink-mode');
+                if(state.text === currentSettings.alertText && state.danger) el.classList.add('blink-mode'); else el.classList.remove('blink-mode');
             }
             if(e.key === 'blackoutState') {
                 isBlackout = (e.newValue === 'true');
@@ -1307,8 +1335,8 @@
             let blinking = false;
 
             if (isBlinking) {
-                txt = "ACABOU SEU TEMPO"; 
-                size = (currentSettings.timerSize * 0.4) + "px";
+                txt = currentSettings.alertText || "ACABOU SEU TEMPO"; 
+                size = (currentSettings.alertSize || 70) + "px";
                 danger = true;
                 blinking = true;
             } else if (isOvertime) {
@@ -1332,8 +1360,15 @@
             el.innerText = txt; 
             el.style.fontSize = size;
             
-            if(danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
-            if(blinking) el.classList.add('blink-mode'); else el.classList.remove('blink-mode');
+            // Fix: Logic to prevent conflict between danger-mode colors and blink-mode custom colors
+            if (blinking) {
+                el.classList.add('blink-mode');
+                el.classList.remove('danger-mode'); 
+            } else {
+                el.classList.remove('blink-mode');
+                if (danger) el.classList.add('danger-mode'); 
+                else el.classList.remove('danger-mode');
+            }
             
             if(!isProjector) {
                 const payload = { text: txt, danger, fontSize: size, blinking };
