@@ -29,6 +29,27 @@
         body.blackout-active #bg-video,
         body.blackout-active #display-overlay { visibility: hidden !important; }
 
+        /* Modo Retorno (Stage Monitor) */
+        body.stage-mode #sidebar, body.stage-mode #controls-bar, body.stage-mode .modal-overlay, body.stage-mode .control-only, body.stage-mode #startup-overlay, body.stage-mode #bg-video, body.stage-mode #display-overlay { display: none !important; }
+        body.stage-mode #display-area { 
+            background-color: #000 !important; 
+            background-image: none !important;
+            padding: 20px;
+            align-items: flex-start;
+            justify-content: flex-start;
+            text-align: left;
+        }
+        body.stage-mode #content-wrapper { align-items: flex-start !important; width: 100%; height: 100%; }
+        body.stage-mode #text-display {
+            font-family: Arial, sans-serif !important; font-weight: bold; color: #fff !important;
+            font-size: 6vw !important; text-transform: uppercase; line-height: 1.2;
+            text-shadow: none !important; white-space: pre-wrap; width: 100%;
+        }
+        body.stage-mode #timer-display {
+            position: fixed; top: 10px; right: 10px; font-size: 4vw !important;
+            color: yellow !important; background: rgba(0,0,0,0.8); padding: 5px 10px; border-radius: 5px; z-index: 100;
+        }
+
         /* --- SIDEBAR --- */
         #sidebar { width: 350px; background-color: var(--sidebar-bg); border-right: 1px solid #333; display: flex; flex-direction: column; transition: transform 0.3s ease; flex-shrink: 0; z-index: 20; position: relative; }
         .sidebar-tabs { display: flex; background: #111; overflow-x: auto; scrollbar-width: none; } 
@@ -125,7 +146,6 @@
         button.play { background-color: var(--accent-color); }
         button.stop { background-color: var(--danger-color); }
         button.project { background-color: #8b5cf6; }
-        
         textarea#live-text { flex-grow: 1; height: 42px; background: #222; border: 1px solid #444; color: white; padding: 10px; border-radius: 6px; resize: none; font-family: inherit; font-size: 14px; }
 
         /* DISPLAY */
@@ -315,7 +335,7 @@
                         </select>
                     </div>
                     
-                    <!-- NEW ALIGNMENT CONTROLS -->
+                    <!-- ALIGNMENT CONTROLS -->
                     <div class="config-item" style="display:block">
                         <label>Alinhamento Horizontal</label>
                         <div class="align-btn-group" style="margin-top:5px;">
@@ -956,7 +976,9 @@
                     const state = JSON.parse(storedTimer);
                     const el = document.getElementById('timer-display');
                     if (el.innerText !== state.text) el.innerText = state.text;
-                    el.style.fontSize = state.fontSize;
+                    // Only set size if not in danger mode with text or if it's normal countdown
+                    if(state.text !== "ACABOU SEU TEMPO") el.style.fontSize = state.fontSize;
+                    
                     if(state.danger) {
                          if(!el.classList.contains('danger-mode')) el.classList.add('danger-mode');
                     } else {
@@ -1146,7 +1168,9 @@
                 if(type === 'timer') {
                     const el = document.getElementById('timer-display');
                     el.innerText = payload.text;
-                    el.style.fontSize = payload.fontSize;
+                    if(payload.text !== "ACABOU SEU TEMPO") el.style.fontSize = payload.fontSize; // Fix size flicker
+                    else el.style.fontSize = (parseInt(payload.fontSize)*0.4) + "px"; // Ensure smaller for alert
+
                     if(payload.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
                     if(payload.blinking) el.classList.add('blink-mode'); else el.classList.remove('blink-mode');
                 }
@@ -1171,7 +1195,8 @@
                     }
                     const el = document.getElementById('timer-display');
                     el.innerText = payload.timerText;
-                    el.style.fontSize = payload.timerSize;
+                    if(payload.timerText !== "ACABOU SEU TEMPO") el.style.fontSize = payload.timerSize;
+                    
                     if(payload.timerDanger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
                 }
             };
@@ -1236,7 +1261,9 @@
                 const state = JSON.parse(e.newValue);
                 const el = document.getElementById('timer-display');
                 el.innerText = state.text;
-                el.style.fontSize = state.fontSize;
+                // Only set size if not blinking (to avoid overwriting alert size)
+                if(state.text !== "ACABOU SEU TEMPO") el.style.fontSize = state.fontSize;
+                
                 if(state.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
                 if(state.text === "ACABOU SEU TEMPO" && state.danger) el.classList.add('blink-mode'); else el.classList.remove('blink-mode');
             }
@@ -1298,6 +1325,8 @@
                 }
                 if (totalSeconds < (currentSettings.alertTime||60) && totalSeconds > 0) { danger = true; }
             }
+            // Normal size fallback
+            if(size === "") size = currentSettings.timerSize + "px";
 
             const el = document.getElementById('timer-display');
             el.innerText = txt; 
