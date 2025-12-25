@@ -785,7 +785,7 @@
                     const ctx = canvas.getContext('2d');
                     let width = img.width;
                     let height = img.height;
-                    const MAX_DIM = 1920; // Full HD Max
+                    const MAX_DIM = 1280; // Reduced to 1280 for better compatibility
                     
                     if (width > height) {
                         if (width > MAX_DIM) { height *= MAX_DIM / width; width = MAX_DIM; }
@@ -796,7 +796,7 @@
                     canvas.width = width;
                     canvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
-                    callback(canvas.toDataURL('image/jpeg', 0.8)); // 80% Quality
+                    callback(canvas.toDataURL('image/jpeg', 0.5)); // 50% Quality to ensure small size
                 };
             };
             reader.readAsDataURL(file);
@@ -810,7 +810,6 @@
             if (fileInput.files && fileInput.files[0]) {
                 const file = fileInput.files[0];
                 if (type === 'image') {
-                    // Compress image before saving
                     const btn = document.querySelector('#modal-gallery .play');
                     const oldText = btn.innerText;
                     btn.innerText = "Processando...";
@@ -827,7 +826,17 @@
                 }
             } else if (urlInput) addToGalleryAndSave(type, urlInput);
         }
-        function addToGalleryAndSave(type, url) { try { galleryItems.push({ type, url }); localStorage.setItem('myGallery', JSON.stringify(galleryItems)); renderGallery(); closeModal('gallery'); } catch(e){ galleryItems.pop(); alert("Espaço cheio!"); } }
+        function addToGalleryAndSave(type, url) { 
+            try { 
+                galleryItems.push({ type, url }); 
+                localStorage.setItem('myGallery', JSON.stringify(galleryItems)); 
+                renderGallery(); 
+                closeModal('gallery'); 
+            } catch(e){ 
+                galleryItems.pop(); 
+                alert("Erro ao salvar! A imagem pode ser muito grande ou o armazenamento do navegador está cheio."); 
+            } 
+        }
         function deleteMedia(index) { if(confirm('Remover?')) { galleryItems.splice(index, 1); localStorage.setItem('myGallery', JSON.stringify(galleryItems)); renderGallery(); } }
         function toggleMediaType() { document.getElementById('new-media-file').accept = document.getElementById('new-media-type').value === 'video' ? 'video/*' : 'image/*'; }
         function updateFileLabel(input) { document.getElementById('file-label-text').innerText = input.files[0] ? input.files[0].name : "Clique para escolher"; }
@@ -942,109 +951,57 @@
         }
 
         async function fetchBibleChapter() {
-             // FIND BOOK INDEX FROM INPUT
-             const bookInput = document.getElementById('bible-book').value;
-             // Fuzzy match or exact match
-             let bIdx = bibleBooks.findIndex(b => b.name.toLowerCase() === bookInput.toLowerCase());
-             if (bIdx === -1) {
-                 // Try finding startsWith
-                 bIdx = bibleBooks.findIndex(b => b.name.toLowerCase().startsWith(bookInput.toLowerCase()));
-             }
-             
-             if (bIdx === -1) return alert("Livro não encontrado.");
-             
+             const bIdx = parseInt(document.getElementById('bible-book').value);
              const bName = bibleBooks[bIdx].name;
              const ch = parseInt(document.getElementById('bible-chapter').value);
-             const verse = document.getElementById('bible-verse-input').value; // Optional
              const vKey = document.getElementById('bible-version-select').value;
              const list = document.getElementById('bible-verse-list');
              list.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Buscando...</div>';
 
-             let data = null;
-
              if(downloadedVersions[vKey]) {
                  try {
-                     data = await getChapterFromLocalDB(vKey, bIdx, ch);
+                     const data = await getChapterFromLocalDB(vKey, bIdx, ch);
+                     renderBibleVerses(data.verses, `${bName} ${ch} (${vKey.toUpperCase()})`);
+                     return;
                  } catch(e){}
              }
              
-             if (!data) {
-                 const apiKey = "AIzaSyCD1tXgDGMa8H4UJR7s1eEOPFjbjI7dd4Y";
+             const apiKey = "AIzaSyCD1tXgDGMa8H4UJR7s1eEOPFjbjI7dd4Y";
+             try {
+                const prompt = `Texto de ${bName} ${ch} na versão ${bibleVersions[vKey].name}. JSON: {"verses":[{"verse":1,"text":"..."}]}`;
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, { method: "POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+                const d = await res.json();
+                const json = JSON.parse(d.candidates[0].content.parts[0].text.match(/\{[\s\S]*\}/)[0]);
+                renderBibleVerses(json.verses, `${bName} ${ch}`);
+             } catch(e) {
                  try {
-                    const prompt = `Texto de ${bName} ${ch} na versão ${bibleVersions[vKey].name}. JSON: {"verses":[{"verse":1,"text":"..."}]}`;
-                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, { method: "POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
-                    const d = await res.json();
-                    const json = JSON.parse(d.candidates[0].content.parts[0].text.match(/\{[\s\S]*\}/)[0]);
-                    data = { verses: json.verses };
-                 } catch(e) {
-                     try {
-                         const res2 = await fetch(`https://bible-api.com/${bibleBooks[bIdx].id.replace(/\s/g,'+')}+${ch}?translation=almeida`);
-                         const d2 = await res2.json();
-                         data = { verses: d2.verses };
-                     } catch(e2) {
-                         list.innerHTML = '<div style="color:red; text-align:center;">Erro. Baixe a versão para garantir.</div>';
-                         return;
-                     }
+                     const res2 = await fetch(`https://bible-api.com/${bibleBooks[bIdx].id.replace(/\s/g,'+')}+${ch}?translation=almeida`);
+                     const d2 = await res2.json();
+                     renderBibleVerses(d2.verses, `${bName} ${ch}`);
+                 } catch(e2) {
+                     list.innerHTML = '<div style="color:red; text-align:center;">Erro. Baixe a versão para garantir.</div>';
                  }
              }
-             
-             renderBibleVerses(data.verses, `${bName} ${ch}`, verse);
         }
 
-        function renderBibleVerses(verses, ref, highlightVerse) {
+        function renderBibleVerses(verses, ref) {
             const list = document.getElementById('bible-verse-list'); list.innerHTML = '';
-            let targetElement = null;
-
             verses.forEach(v => {
                 const d = document.createElement('div'); d.className = 'bible-verse-item';
                 const vNum = v.verse || v.pk;
                 d.innerHTML = `<span class="bible-verse-ref">${vNum}</span>${v.text}`;
-                
-                // Check highlight
-                if (highlightVerse && parseInt(vNum) === parseInt(highlightVerse)) {
-                    d.classList.add('highlight-verse');
-                    targetElement = d;
-                    // Auto Project if verse is selected
-                    updateDisplay(`${v.text}\n\n(${ref}:${vNum})`); 
-                }
-
                 d.onclick = () => { updateDisplay(`${v.text}\n\n(${ref}:${vNum})`); d.style.background='#3b82f6'; setTimeout(()=>d.style.background='',200); };
                 list.appendChild(d);
             });
-            
-            if (targetElement) {
-                targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }
-
-        function updateChapterDatalist() {
-            const bookInput = document.getElementById('bible-book').value;
-            const dl = document.getElementById('bible-chapters-datalist');
-            if (dl) {
-                dl.innerHTML = '';
-                const bIdx = bibleBooks.findIndex(b => b.name.toLowerCase() === bookInput.toLowerCase()) 
-                             || bibleBooks.findIndex(b => b.name.toLowerCase().startsWith(bookInput.toLowerCase()));
-                
-                if (bIdx > -1) {
-                    const count = bibleChapterCounts[bIdx];
-                    for(let i=1; i<=count; i++) {
-                        const opt = document.createElement('option');
-                        opt.value = i;
-                        dl.appendChild(opt);
-                    }
-                }
-            }
         }
         
         function initBible() {
-            // Already handled in initOfflineBible for datalist
+            const selB = document.getElementById('bible-book');
+            bibleBooks.forEach((b,i)=>{const o=document.createElement('option'); o.value=i; o.innerText=b.name; selB.appendChild(o)});
             const selV = document.getElementById('bible-version-select');
             Object.keys(bibleVersions).forEach(k=>{const o=document.createElement('option'); o.value=k; o.innerText=bibleVersions[k].name; selV.appendChild(o)});
         }
-        function updateChapterMax() { 
-            // Optional: update max based on input book if needed
-            // Currently fixed to 150 for simplicity or need logic to find book index from string
-        }
+        function updateChapterMax() { document.getElementById('bible-chapter').max = bibleChapterCounts[document.getElementById('bible-book').value]; }
 
         // --- FULL BIBLE NAVIGATOR ---
         function openBibleNavigator() { bibleNavState={step:'book'}; renderBibleNavigator(); document.getElementById('modal-bible-navigator').style.display='flex'; document.getElementById('modal-bible-navigator').classList.remove('hidden'); }
@@ -1114,7 +1071,6 @@
                     currentSmIndex = -1; // New mode
                     document.getElementById('new-sm-title').value=''; 
                     document.getElementById('new-sm-content').value='';
-                    // Reset Styles UI in Modal
                     document.getElementById('sm-style-bg').value = '#000000';
                     document.getElementById('sm-style-color').value = '#ffffff';
                     document.getElementById('sm-style-size').value = '';
@@ -1155,27 +1111,17 @@
                     const state = JSON.parse(storedTimer);
                     const el = document.getElementById('timer-display');
                     if (el.innerText !== state.text) el.innerText = state.text;
-                    // Only set size if not in danger mode with text or if it's normal countdown
+                    // Only set size if not blinking (to avoid overwriting alert size)
                     if(state.text !== currentSettings.alertText) el.style.fontSize = state.fontSize;
-                    else el.style.fontSize = (currentSettings.alertSize || 70) + "px";
-
-                    if(state.danger) {
-                         if(!el.classList.contains('danger-mode')) el.classList.add('danger-mode');
-                    } else {
-                         if(el.classList.contains('danger-mode')) el.classList.remove('danger-mode');
-                    }
-                    if(state.danger && state.text === currentSettings.alertText) {
-                         if(!el.classList.contains('blink-mode')) el.classList.add('blink-mode');
-                         // Force remove danger color when blinking to allow custom colors
-                         if(el.classList.contains('danger-mode')) el.classList.remove('danger-mode');
-                     } else {
-                         if(el.classList.contains('blink-mode')) el.classList.remove('blink-mode');
-                     }
                     
-                    // Added manual alert check
-                    if (isManualAlert) {
-                        if (!el.classList.contains('blink-mode')) el.classList.add('blink-mode');
-                        if (el.classList.contains('danger-mode')) el.classList.remove('danger-mode');
+                    if(state.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
+                    
+                    // FORCE OVERRIDE DANGER IF BLINKING
+                    if(state.text === currentSettings.alertText && state.danger) {
+                        el.classList.add('blink-mode'); 
+                        el.classList.remove('danger-mode');
+                    } else {
+                        el.classList.remove('blink-mode');
                     }
                 }
                 const storedBlackout = localStorage.getItem('blackoutState');
