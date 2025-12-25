@@ -108,7 +108,9 @@
         #bible-verse-list { display: flex; flex-direction: column; gap: 5px; max-height: calc(100vh - 350px); overflow-y: auto; }
         .bible-verse-item { background: #252525; padding: 10px; border-radius: 4px; border-left: 3px solid #444; cursor: pointer; transition: 0.2s; font-size: 0.9rem; color: #ddd; line-height: 1.4; }
         .bible-verse-item:hover { background: #333; border-left-color: var(--accent-color); color: white; }
-        .bible-verse-item.highlight-verse { background: #1e3a8a; border-left-color: #fbbf24; }
+        /* NEW SELECTED STATE FOR BIBLE VERSES */
+        .bible-verse-item.selected { background: var(--accent-color); border-left-color: #fff; color: white; }
+        
         .bible-verse-ref { font-size: 0.75rem; color: #888; font-weight: bold; margin-bottom: 3px; display: block; }
 
         /* CONFIGS */
@@ -169,9 +171,6 @@
         .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #444; }
         .divider:not(:empty)::before { margin-right: .5em; }
         .divider:not(:empty)::after { margin-left: .5em; }
-        .file-upload-label { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 25px; border: 2px dashed #444; border-radius: 8px; cursor: pointer; transition: 0.2s; color: #888; margin-bottom: 10px; background: rgba(255,255,255,0.02); }
-        .file-upload-label:hover { border-color: var(--accent-color); color: var(--accent-color); background: rgba(59, 130, 246, 0.1); }
-        input[type="file"] { display: none; }
         
         /* BIBLE NAVIGATOR */
         #modal-bible-navigator { align-items: flex-start; padding-top: 50px; }
@@ -219,7 +218,6 @@
             <button class="tab-btn active" onclick="switchTab('verses')">Versos</button>
             <button class="tab-btn" onclick="switchTab('sm')">SM</button>
             <button class="tab-btn" onclick="switchTab('bible')">Bíblia</button>
-            <button class="tab-btn" onclick="switchTab('gallery')">Galeria</button>
             <button class="tab-btn" onclick="switchTab('appearance')">Ajustes</button>
         </div>
 
@@ -278,13 +276,6 @@
                 <button id="bible-go" onclick="fetchBibleChapter()" style="width: 100%; padding: 10px; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; text-transform: uppercase;">Buscar</button>
             </div>
             <div id="bible-verse-list" style="margin-top: 15px;"><div style="color:#666; text-align:center; padding:10px; font-size:13px;">Selecione e clique em BUSCAR</div></div>
-        </div>
-
-        <!-- ABA 4: GALERIA -->
-        <div id="tab-gallery" class="tab-content">
-            <div class="sidebar-header"><span class="sidebar-title">Mídia de Fundo</span><button class="add-btn" onclick="openModal('gallery')" title="Adicionar">+</button></div>
-            <div style="margin-bottom:10px;"><button class="list-card" onclick="removeBackground()" style="width:100%; justify-content:center; color:#aaa; font-size:12px;"><span class="material-icons" style="font-size:16px; margin-right:5px;">block</span> Remover Fundo</button></div>
-            <div id="gallery-grid" class="gallery-grid"></div>
         </div>
 
         <!-- ABA 5: AJUSTES -->
@@ -367,12 +358,6 @@
                     <div class="config-item"><label>Cor Fundo</label><input type="color" id="sm-style-bg" value="#000000" oninput="updateSmPreview()"></div>
                     <div class="config-item"><label>Cor Texto</label><input type="color" id="sm-style-color" value="#ffffff" oninput="updateSmPreview()"></div>
                     <div class="config-item"><label>Tam. Texto (px)</label><input type="number" id="sm-style-size" placeholder="80" oninput="updateSmPreview()"></div>
-                    <div class="config-item" style="display:block">
-                        <label>Fundo da Galeria</label>
-                        <select id="sm-style-media" onchange="updateSmPreview()" style="width:100%; margin-top:5px; padding:8px; background:#111; color:white; border:1px solid #444; border-radius:4px;">
-                            <option value="">Nenhum (Usar Cor de Fundo)</option>
-                        </select>
-                    </div>
                     
                     <!-- ALIGNMENT CONTROLS -->
                     <div class="config-item" style="display:block">
@@ -415,7 +400,6 @@
         </div>
     </div>
     
-    <div id="modal-gallery" class="modal-overlay hidden"><div class="modal"><h3 style="margin-top:0">Nova Mídia</h3><label style="color:#ddd; font-size:12px">Tipo:</label><select id="new-media-type" onchange="toggleMediaType()"><option value="image">Imagem</option><option value="video">Vídeo</option></select><label for="new-media-file" class="file-upload-label"><span class="material-icons" style="font-size:30px">cloud_upload</span><span id="file-label-text">Clique para escolher</span></label><input type="file" id="new-media-file" accept="image/*,video/*" onchange="updateFileLabel(this)"><div class="divider">OU</div><input type="text" id="new-media-url" placeholder="URL..."><div class="modal-actions"><button class="ctrl-btn" onclick="closeModal('gallery')">Cancelar</button><button class="ctrl-btn play" onclick="saveMedia()">Adicionar</button></div></div></div>
     <div id="modal-bible-navigator" class="modal-overlay hidden"><div class="bible-full-window"><div class="bible-header"><h3><span class="material-icons">auto_stories</span> Bíblia <span id="bible-crumbs" class="bible-crumbs"></span></h3><div style="display:flex; gap:10px;"><button class="ctrl-btn" id="bible-back-btn" onclick="bibleGoBack()" style="display:none;"><span class="material-icons">arrow_back</span> Voltar</button><button class="ctrl-btn stop" onclick="closeModal('bible-navigator')"><span class="material-icons">close</span></button></div></div><div class="bible-content-area" id="bible-content-area"></div></div></div>
 
     <script>
@@ -431,6 +415,7 @@
         const isProjector = urlParams.get('view') === 'projector';
         let isBlackout = false;
         let isManualAlert = false;
+        let currentBibleVerseIndex = -1; // Added missing global
 
         // --- DATA ---
         const bibleBooks = [{name: "Gênesis", id: "Genesis"},{name: "Êxodo", id: "Exodus"},{name: "Levítico", id: "Leviticus"},{name: "Números", id: "Numbers"},{name: "Deuteronômio", id: "Deuteronomy"},{name: "Josué", id: "Joshua"},{name: "Juízes", id: "Judges"},{name: "Rute", id: "Ruth"},{name: "1 Samuel", id: "1 Samuel"},{name: "2 Samuel", id: "2 Samuel"},{name: "1 Reis", id: "1 Kings"},{name: "2 Reis", id: "2 Kings"},{name: "1 Crônicas", id: "1 Chronicles"},{name: "2 Crônicas", id: "2 Chronicles"},{name: "Esdras", id: "Ezra"},{name: "Neemias", id: "Nehemiah"},{name: "Ester", id: "Esther"},{name: "Jó", id: "Job"},{name: "Salmos", id: "Psalms"},{name: "Provérbios", id: "Proverbs"},{name: "Eclesiastes", id: "Ecclesiastes"},{name: "Cânticos", id: "Song of Solomon"},{name: "Isaías", id: "Isaiah"},{name: "Jeremias", id: "Jeremiah"},{name: "Lamentações", id: "Lamentations"},{name: "Ezequiel", id: "Ezekiel"},{name: "Daniel", id: "Daniel"},{name: "Oseias", id: "Hosea"},{name: "Joel", id: "Joel"},{name: "Amós", id: "Amos"},{name: "Obadias", id: "Obadiah"},{name: "Jonas", id: "Jonah"},{name: "Miqueias", id: "Micah"},{name: "Naum", id: "Nahum"},{name: "Habacuque", id: "Habakkuk"},{name: "Sofonias", id: "Zephaniah"},{name: "Ageu", id: "Haggai"},{name: "Zacarias", id: "Zechariah"},{name: "Malaquias", id: "Malachi"},{name: "Mateus", id: "Matthew"},{name: "Marcos", id: "Mark"},{name: "Lucas", id: "Luke"},{name: "João", id: "John"},{name: "Atos", id: "Acts"},{name: "Romanos", id: "Romans"},{name: "1 Coríntios", id: "1 Corinthians"},{name: "2 Coríntios", id: "2 Corinthians"},{name: "Gálatas", id: "Galatians"},{name: "Efésios", id: "Ephesians"},{name: "Filipenses", id: "Philippians"},{name: "Colossenses", id: "Colossians"},{name: "1 Tessalonicenses", id: "1 Thessalonians"},{name: "2 Tessalonicenses", id: "2 Thessalonians"},{name: "1 Timóteo", id: "1 Timothy"},{name: "2 Timóteo", id: "2 Timothy"},{name: "Tito", id: "Titus"},{name: "Filemom", id: "Philemon"},{name: "Hebreus", id: "Hebrews"},{name: "Tiago", id: "James"},{name: "1 Pedro", id: "1 Peter"},{name: "2 Pedro", id: "2 Peter"},{name: "1 João", id: "1 João"},{name: "2 João", id: "2 John"},{name: "3 João", id: "3 John"},{name: "Judas", id: "Judas"},{name: "Apocalipse", id: "Revelation"}];
@@ -453,7 +438,7 @@
             alertText: "ACABOU SEU TEMPO", alertSize: 70, alertColor1: "#ff0000", alertColor2: "#880000", alertDuration: 10
         };
         let verses = JSON.parse(localStorage.getItem('myVerses')) || [{ title: "Boas Vindas", content: "Sejam bem-vindos!\nO culto começará em instantes." }];
-        let galleryItems = JSON.parse(localStorage.getItem('myGallery')) || [{ type: 'image', url: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?auto=format&fit=crop&w=1000&q=80' }];
+        
         let smSlides = JSON.parse(localStorage.getItem('mySmSlides')) || []; 
 
         let timerInterval, totalSeconds = 300, isRunning = false;
@@ -473,8 +458,15 @@
         document.addEventListener('keydown', (e) => {
             if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
             if(e.key === 'F10') { e.preventDefault(); toggleBlackout(); }
-            if(e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); navigateSlide(1); }
-            if(e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); navigateSlide(-1); }
+            
+            // Check context for navigation
+            if(document.getElementById('sm-viewer').style.display !== 'none') {
+                 if(e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); navigateSlide(1); }
+                 if(e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); navigateSlide(-1); }
+            } else if (document.getElementById('tab-bible').classList.contains('active')) {
+                 if(e.key === 'ArrowDown' || e.key === 'ArrowRight') { e.preventDefault(); navigateBible(1); }
+                 if(e.key === 'ArrowUp' || e.key === 'ArrowLeft') { e.preventDefault(); navigateBible(-1); }
+            }
         });
         function toggleBlackout() { isBlackout = !isBlackout; updateBlackoutState(); }
         function updateBlackoutState() {
@@ -482,14 +474,28 @@
             if(!isProjector) { channel.postMessage({ type: 'blackout', payload: isBlackout }); localStorage.setItem('blackoutState', isBlackout); }
         }
         function navigateSlide(step) {
-            if(document.getElementById('sm-viewer').style.display !== 'none') {
-                const container = document.getElementById('sm-slides-container');
-                const slides = Array.from(container.getElementsByClassName('slide-card'));
-                if(slides.length === 0) return;
-                let activeIndex = slides.findIndex(s => s.classList.contains('active-slide'));
-                let newIndex = activeIndex + step;
-                if(newIndex < 0) newIndex = 0; if(newIndex >= slides.length) newIndex = slides.length - 1;
-                if(newIndex !== activeIndex) { slides[newIndex].click(); slides[newIndex].scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+            const container = document.getElementById('sm-slides-container');
+            const slides = Array.from(container.getElementsByClassName('slide-card'));
+            if(slides.length === 0) return;
+            let activeIndex = slides.findIndex(s => s.classList.contains('active-slide'));
+            let newIndex = activeIndex + step;
+            if(newIndex < 0) newIndex = 0; if(newIndex >= slides.length) newIndex = slides.length - 1;
+            if(newIndex !== activeIndex) { slides[newIndex].click(); slides[newIndex].scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        }
+
+        function navigateBible(step) {
+            const list = document.getElementById('bible-verse-list');
+            const items = list.children;
+            if(items.length === 0) return;
+            
+            let newIndex = currentBibleVerseIndex + step;
+            if(newIndex < 0) newIndex = 0;
+            if(newIndex >= items.length) newIndex = items.length - 1;
+            
+            if(newIndex !== currentBibleVerseIndex) {
+                // Simulate click on the item
+                items[newIndex].click();
+                items[newIndex].scrollIntoView({block: 'center', behavior: 'smooth'});
             }
         }
         
@@ -511,24 +517,8 @@
         // --- SM LOGIC (ENHANCED WITH PREVIEW AND ALIGNMENT) ---
         function toggleStyleOptions() {
             document.getElementById('sm-style-options').classList.toggle('open');
-            if(document.getElementById('sm-style-options').classList.contains('open')) {
-                const currentUrl = currentSmIndex > -1 ? (smSlides[currentSmIndex].style ? smSlides[currentSmIndex].style.img : '') : '';
-                updateSmMediaOptions(currentUrl);
-            }
         }
         
-        function updateSmMediaOptions(selectedUrl) {
-            const sel = document.getElementById('sm-style-media');
-            sel.innerHTML = '<option value="">Nenhum (Usar Cor de Fundo)</option>';
-            galleryItems.forEach((item, idx) => {
-                const opt = document.createElement('option');
-                opt.value = JSON.stringify({ type: item.type, url: item.url });
-                opt.innerText = `Mídia ${idx + 1} (${item.type === 'image' ? 'Imagem' : 'Vídeo'})`;
-                if (item.url === selectedUrl) opt.selected = true;
-                sel.appendChild(opt);
-            });
-        }
-
         // Helper for Alignment Buttons
         function setSmAlign(val, type) {
             if (type === 'h') {
@@ -554,7 +544,6 @@
             const bg = document.getElementById('sm-style-bg').value;
             const color = document.getElementById('sm-style-color').value;
             const size = document.getElementById('sm-style-size').value || '20'; 
-            const mediaVal = document.getElementById('sm-style-media').value;
             const alignH = document.getElementById('sm-style-align').value || 'center';
             const alignV = document.getElementById('sm-style-valign').value || 'center';
             
@@ -576,19 +565,8 @@
             // For preview box, text-align on child is enough, but alignItems handles vertical.
             // Just ensure width is 100%
             
-            if(mediaVal) {
-                const mediaObj = JSON.parse(mediaVal);
-                if(mediaObj.type === 'image') {
-                    previewBg.style.backgroundImage = `url('${mediaObj.url}')`;
-                    previewBg.innerHTML = '';
-                } else {
-                    previewBg.style.backgroundImage = 'none';
-                    previewBg.innerHTML = '<div style="width:100%; height:100%; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,0.5); color:white;"><span class="material-icons">play_circle</span></div>';
-                }
-            } else {
-                previewBg.style.backgroundImage = 'none';
-                previewBg.innerHTML = '';
-            }
+            previewBg.style.backgroundImage = 'none';
+            previewBg.innerHTML = '';
         }
 
         function renderSmList() {
@@ -622,22 +600,16 @@
             const title = document.getElementById('new-sm-title').value;
             const content = document.getElementById('new-sm-content').value;
             
-            const mediaVal = document.getElementById('sm-style-media').value;
-            let mediaObj = { type: 'image', url: '' };
-            if (mediaVal) mediaObj = JSON.parse(mediaVal);
-
             const style = {
                 bg: document.getElementById('sm-style-bg').value,
                 color: document.getElementById('sm-style-color').value,
                 size: document.getElementById('sm-style-size').value,
-                img: mediaObj.url,
-                mediaType: mediaObj.type,
                 align: document.getElementById('sm-style-align').value,
                 valign: document.getElementById('sm-style-valign').value
             };
             
             let cleanStyle = null;
-            if (style.bg !== '#000000' || style.color !== '#ffffff' || style.size || style.img || style.align || style.valign) {
+            if (style.bg !== '#000000' || style.color !== '#ffffff' || style.size || style.align || style.valign) {
                 cleanStyle = style;
             }
 
@@ -671,7 +643,6 @@
                 document.getElementById('sm-style-bg').value = item.style.bg || '#000000';
                 document.getElementById('sm-style-color').value = item.style.color || '#ffffff';
                 document.getElementById('sm-style-size').value = item.style.size || '';
-                updateSmMediaOptions(item.style.img || ''); 
                 
                 // Load Alignment
                 setSmAlign(item.style.align || 'center', 'h');
@@ -682,7 +653,6 @@
                 document.getElementById('sm-style-bg').value = '#000000';
                 document.getElementById('sm-style-color').value = '#ffffff';
                 document.getElementById('sm-style-size').value = '';
-                updateSmMediaOptions('');
                 setSmAlign('center', 'h');
                 setSmAlign('center', 'v');
                 document.getElementById('sm-style-options').classList.remove('open');
@@ -716,14 +686,9 @@
                  if(item.style.align) tempSettings.textAlign = item.style.align;
                  if(item.style.valign) tempSettings.valign = item.style.valign;
 
-                 if(item.style.img) { 
-                     tempSettings.bgType = item.style.mediaType || 'image'; 
-                     // Add sanitization to prevent breaking CSS string
-                     tempSettings.bgUrl = item.style.img.replace(/(\r\n|\n|\r)/gm, "");
-                 } else { 
-                     tempSettings.bgType = 'color'; 
-                     tempSettings.bgUrl = '';
-                 }
+                 tempSettings.bgType = 'color'; 
+                 tempSettings.bgUrl = '';
+                 
                  tempSettings.timestamp = Date.now(); // FORCE UPDATE
                  
                  if(!isProjector) {
@@ -760,86 +725,7 @@
             }
         }
 
-        // --- GALLERY LOGIC (AUTO RESIZE) ---
-        function renderGallery() {
-            if(isProjector) return;
-            const grid = document.getElementById('gallery-grid'); grid.innerHTML = '';
-            galleryItems.forEach((item, index) => {
-                const div = document.createElement('div');
-                div.className = `gallery-item ${currentSettings.bgUrl === item.url ? 'selected' : ''}`;
-                div.onclick = (e) => { if(e.target.closest('.gallery-delete')) return; setBackground(item.url, item.type); };
-                let imgTag = item.type === 'image' ? `<img src="${item.url}" class="gallery-thumb" onerror="this.src='https://via.placeholder.com/150'">` : `<div class="gallery-thumb" style="background:#333; display:flex; align-items:center; justify-content:center;"><span class="material-icons">movie</span></div>`;
-                div.innerHTML = `${imgTag}<div class="gallery-type-icon"><span class="material-icons" style="font-size:14px">${item.type==='video'?'videocam':'image'}</span></div><button class="gallery-delete" onclick="deleteMedia(${index})"><span class="material-icons" style="font-size:14px">close</span></button>`;
-                grid.appendChild(div);
-            });
-        }
-        
-        // Helper to compress images
-        function processImageFile(file, callback) {
-            const img = new Image();
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                img.src = e.target.result;
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    const ctx = canvas.getContext('2d');
-                    let width = img.width;
-                    let height = img.height;
-                    const MAX_DIM = 1280; // Reduced to 1280 for better compatibility
-                    
-                    if (width > height) {
-                        if (width > MAX_DIM) { height *= MAX_DIM / width; width = MAX_DIM; }
-                    } else {
-                        if (height > MAX_DIM) { width *= MAX_DIM / height; height = MAX_DIM; }
-                    }
-                    
-                    canvas.width = width;
-                    canvas.height = height;
-                    ctx.drawImage(img, 0, 0, width, height);
-                    callback(canvas.toDataURL('image/jpeg', 0.5)); // 50% Quality to ensure small size
-                };
-            };
-            reader.readAsDataURL(file);
-        }
-
-        function saveMedia() {
-            const type = document.getElementById('new-media-type').value;
-            const urlInput = document.getElementById('new-media-url').value;
-            const fileInput = document.getElementById('new-media-file');
-            
-            if (fileInput.files && fileInput.files[0]) {
-                const file = fileInput.files[0];
-                if (type === 'image') {
-                    const btn = document.querySelector('#modal-gallery .play');
-                    const oldText = btn.innerText;
-                    btn.innerText = "Processando...";
-                    processImageFile(file, (base64) => {
-                        addToGalleryAndSave(type, base64);
-                        btn.innerText = oldText;
-                    });
-                } else {
-                    // Video: strict limit because no compression
-                    if (file.size/1024/1024 > 50) return alert("Vídeo muito grande. Limite sugerido: 50MB (mas depende do navegador).");
-                    const reader = new FileReader(); 
-                    reader.onload = (e) => addToGalleryAndSave(type, e.target.result); 
-                    reader.readAsDataURL(file);
-                }
-            } else if (urlInput) addToGalleryAndSave(type, urlInput);
-        }
-        function addToGalleryAndSave(type, url) { 
-            try { 
-                galleryItems.push({ type, url }); 
-                localStorage.setItem('myGallery', JSON.stringify(galleryItems)); 
-                renderGallery(); 
-                closeModal('gallery'); 
-            } catch(e){ 
-                galleryItems.pop(); 
-                alert("Erro ao salvar! A imagem pode ser muito grande ou o armazenamento do navegador está cheio."); 
-            } 
-        }
-        function deleteMedia(index) { if(confirm('Remover?')) { galleryItems.splice(index, 1); localStorage.setItem('myGallery', JSON.stringify(galleryItems)); renderGallery(); } }
-        function toggleMediaType() { document.getElementById('new-media-file').accept = document.getElementById('new-media-type').value === 'video' ? 'video/*' : 'image/*'; }
-        function updateFileLabel(input) { document.getElementById('file-label-text').innerText = input.files[0] ? input.files[0].name : "Clique para escolher"; }
+        // --- GALLERY LOGIC --- (Simplified as Gallery tab removed, but keeping functions for background management)
         function setBackground(url, type) { 
             // Sanitize
             const cleanUrl = url.replace(/(\r\n|\n|\r)/gm, "");
@@ -847,7 +733,6 @@
             currentSettings.bgUrl = cleanUrl; 
             currentSettings.timestamp = Date.now(); // FORCE UPDATE
             saveAndApplySettings(); 
-            renderGallery(); 
         }
 
 
@@ -857,12 +742,11 @@
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             
-            const tabs = ['tab-verses', 'tab-sm', 'tab-bible', 'tab-gallery', 'tab-appearance'];
+            const tabs = ['tab-verses', 'tab-sm', 'tab-bible', 'tab-appearance'];
             let index = 0;
             if(tabName === 'sm') index = 1;
             if(tabName === 'bible') index = 2;
-            if(tabName === 'gallery') index = 3;
-            if(tabName === 'appearance') index = 4;
+            if(tabName === 'appearance') index = 3;
 
             document.querySelectorAll('.tab-btn')[index].classList.add('active');
             document.getElementById(tabs[index]).classList.add('active');
@@ -951,57 +835,114 @@
         }
 
         async function fetchBibleChapter() {
-             const bIdx = parseInt(document.getElementById('bible-book').value);
+             // FIND BOOK INDEX FROM INPUT
+             const bookInput = document.getElementById('bible-book').value;
+             // Fuzzy match or exact match
+             let bIdx = bibleBooks.findIndex(b => b.name.toLowerCase() === bookInput.toLowerCase());
+             if (bIdx === -1) {
+                 // Try finding startsWith
+                 bIdx = bibleBooks.findIndex(b => b.name.toLowerCase().startsWith(bookInput.toLowerCase()));
+             }
+             
+             if (bIdx === -1) return alert("Livro não encontrado.");
+             
              const bName = bibleBooks[bIdx].name;
              const ch = parseInt(document.getElementById('bible-chapter').value);
+             const verse = document.getElementById('bible-verse-input').value; // Optional
              const vKey = document.getElementById('bible-version-select').value;
              const list = document.getElementById('bible-verse-list');
              list.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Buscando...</div>';
 
+             let data = null;
+
              if(downloadedVersions[vKey]) {
                  try {
-                     const data = await getChapterFromLocalDB(vKey, bIdx, ch);
-                     renderBibleVerses(data.verses, `${bName} ${ch} (${vKey.toUpperCase()})`);
-                     return;
+                     data = await getChapterFromLocalDB(vKey, bIdx, ch);
                  } catch(e){}
              }
              
-             const apiKey = "AIzaSyCD1tXgDGMa8H4UJR7s1eEOPFjbjI7dd4Y";
-             try {
-                const prompt = `Texto de ${bName} ${ch} na versão ${bibleVersions[vKey].name}. JSON: {"verses":[{"verse":1,"text":"..."}]}`;
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, { method: "POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
-                const d = await res.json();
-                const json = JSON.parse(d.candidates[0].content.parts[0].text.match(/\{[\s\S]*\}/)[0]);
-                renderBibleVerses(json.verses, `${bName} ${ch}`);
-             } catch(e) {
+             if (!data) {
+                 const apiKey = "AIzaSyCD1tXgDGMa8H4UJR7s1eEOPFjbjI7dd4Y";
                  try {
-                     const res2 = await fetch(`https://bible-api.com/${bibleBooks[bIdx].id.replace(/\s/g,'+')}+${ch}?translation=almeida`);
-                     const d2 = await res2.json();
-                     renderBibleVerses(d2.verses, `${bName} ${ch}`);
-                 } catch(e2) {
-                     list.innerHTML = '<div style="color:red; text-align:center;">Erro. Baixe a versão para garantir.</div>';
+                    const prompt = `Texto de ${bName} ${ch} na versão ${bibleVersions[vKey].name}. JSON: {"verses":[{"verse":1,"text":"..."}]}`;
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, { method: "POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+                    const d = await res.json();
+                    const json = JSON.parse(d.candidates[0].content.parts[0].text.match(/\{[\s\S]*\}/)[0]);
+                    data = { verses: json.verses };
+                 } catch(e) {
+                     try {
+                         const res2 = await fetch(`https://bible-api.com/${bibleBooks[bIdx].id.replace(/\s/g,'+')}+${ch}?translation=almeida`);
+                         const d2 = await res2.json();
+                         data = { verses: d2.verses };
+                     } catch(e2) {
+                         list.innerHTML = '<div style="color:red; text-align:center;">Erro. Baixe a versão para garantir.</div>';
+                         return;
+                     }
                  }
              }
+             
+             renderBibleVerses(data.verses, `${bName} ${ch}`, verse);
         }
 
-        function renderBibleVerses(verses, ref) {
+        function renderBibleVerses(verses, ref, highlightVerse) {
             const list = document.getElementById('bible-verse-list'); list.innerHTML = '';
-            verses.forEach(v => {
+            
+            // Clear current selection on new search
+            currentBibleVerseIndex = -1;
+
+            verses.forEach((v, index) => {
                 const d = document.createElement('div'); d.className = 'bible-verse-item';
                 const vNum = v.verse || v.pk;
                 d.innerHTML = `<span class="bible-verse-ref">${vNum}</span>${v.text}`;
-                d.onclick = () => { updateDisplay(`${v.text}\n\n(${ref}:${vNum})`); d.style.background='#3b82f6'; setTimeout(()=>d.style.background='',200); };
+                
+                // Check highlight from search input
+                if (highlightVerse && parseInt(vNum) === parseInt(highlightVerse)) {
+                    d.classList.add('selected'); // Use selected class for consistency
+                    currentBibleVerseIndex = index; // Set index for navigation
+                    updateDisplay(`${v.text}\n\n(${ref}:${vNum})`); 
+                    setTimeout(() => d.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+                }
+
+                d.onclick = () => { 
+                    // Update index and visual state
+                    currentBibleVerseIndex = index;
+                    Array.from(list.children).forEach(c => c.classList.remove('selected'));
+                    d.classList.add('selected');
+                    
+                    updateDisplay(`${v.text}\n\n(${ref}:${vNum})`); 
+                };
                 list.appendChild(d);
             });
         }
+
+        function updateChapterDatalist() {
+            const bookInput = document.getElementById('bible-book').value;
+            const dl = document.getElementById('bible-chapters-datalist');
+            if (dl) {
+                dl.innerHTML = '';
+                const bIdx = bibleBooks.findIndex(b => b.name.toLowerCase() === bookInput.toLowerCase()) 
+                             || bibleBooks.findIndex(b => b.name.toLowerCase().startsWith(bookInput.toLowerCase()));
+                
+                if (bIdx > -1) {
+                    const count = bibleChapterCounts[bIdx];
+                    for(let i=1; i<=count; i++) {
+                        const opt = document.createElement('option');
+                        opt.value = i;
+                        dl.appendChild(opt);
+                    }
+                }
+            }
+        }
         
         function initBible() {
-            const selB = document.getElementById('bible-book');
-            bibleBooks.forEach((b,i)=>{const o=document.createElement('option'); o.value=i; o.innerText=b.name; selB.appendChild(o)});
+            // Already handled in initOfflineBible for datalist
             const selV = document.getElementById('bible-version-select');
             Object.keys(bibleVersions).forEach(k=>{const o=document.createElement('option'); o.value=k; o.innerText=bibleVersions[k].name; selV.appendChild(o)});
         }
-        function updateChapterMax() { document.getElementById('bible-chapter').max = bibleChapterCounts[document.getElementById('bible-book').value]; }
+        function updateChapterMax() { 
+            // Optional: update max based on input book if needed
+            // Currently fixed to 150 for simplicity or need logic to find book index from string
+        }
 
         // --- FULL BIBLE NAVIGATOR ---
         function openBibleNavigator() { bibleNavState={step:'book'}; renderBibleNavigator(); document.getElementById('modal-bible-navigator').style.display='flex'; document.getElementById('modal-bible-navigator').classList.remove('hidden'); }
@@ -1071,10 +1012,10 @@
                     currentSmIndex = -1; // New mode
                     document.getElementById('new-sm-title').value=''; 
                     document.getElementById('new-sm-content').value='';
+                    // Reset Styles UI in Modal
                     document.getElementById('sm-style-bg').value = '#000000';
                     document.getElementById('sm-style-color').value = '#ffffff';
                     document.getElementById('sm-style-size').value = '';
-                    updateSmMediaOptions('');
                     setSmAlign('center', 'h');
                     setSmAlign('center', 'v');
                     document.getElementById('sm-style-options').classList.remove('open');
@@ -1111,17 +1052,27 @@
                     const state = JSON.parse(storedTimer);
                     const el = document.getElementById('timer-display');
                     if (el.innerText !== state.text) el.innerText = state.text;
-                    // Only set size if not blinking (to avoid overwriting alert size)
+                    // Only set size if not in danger mode with text or if it's normal countdown
                     if(state.text !== currentSettings.alertText) el.style.fontSize = state.fontSize;
-                    
-                    if(state.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
-                    
-                    // FORCE OVERRIDE DANGER IF BLINKING
-                    if(state.text === currentSettings.alertText && state.danger) {
-                        el.classList.add('blink-mode'); 
-                        el.classList.remove('danger-mode');
+                    else el.style.fontSize = (currentSettings.alertSize || 70) + "px";
+
+                    if(state.danger) {
+                         if(!el.classList.contains('danger-mode')) el.classList.add('danger-mode');
                     } else {
-                        el.classList.remove('blink-mode');
+                         if(el.classList.contains('danger-mode')) el.classList.remove('danger-mode');
+                    }
+                    if(state.danger && state.text === currentSettings.alertText) {
+                         if(!el.classList.contains('blink-mode')) el.classList.add('blink-mode');
+                         // Force remove danger color when blinking to allow custom colors
+                         if(el.classList.contains('danger-mode')) el.classList.remove('danger-mode');
+                     } else {
+                         if(el.classList.contains('blink-mode')) el.classList.remove('blink-mode');
+                     }
+                    
+                    // Added manual alert check
+                    if (isManualAlert) {
+                        if (!el.classList.contains('blink-mode')) el.classList.add('blink-mode');
+                        if (el.classList.contains('danger-mode')) el.classList.remove('danger-mode');
                     }
                 }
                 const storedBlackout = localStorage.getItem('blackoutState');
@@ -1149,7 +1100,6 @@
             currentSettings.bgType='color'; currentSettings.bgUrl=''; 
             currentSettings.timestamp = Date.now(); // FORCE UPDATE
             saveAndApplySettings(); 
-            renderGallery(); 
         }
         
         function saveAndApplySettings() { 
@@ -1378,7 +1328,7 @@
 
 
         } else {
-            loadSettingsToInputs(); initBible(); renderSmList(); renderGallery(); renderList(); updateTimerUI(false); initOfflineBible(); 
+            loadSettingsToInputs(); initBible(); renderSmList(); renderList(); updateTimerUI(false); initOfflineBible(); 
             // APPLY STYLES ON CONTROLLER INIT
             applyStyles(currentSettings);
 
