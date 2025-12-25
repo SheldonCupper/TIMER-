@@ -102,13 +102,13 @@
         #bible-controls { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
         .bible-row { display: flex; gap: 5px; }
         #bible-version-select { width: 100%; padding: 8px; background: #222; color: var(--accent-color); border: 1px solid #444; border-radius: 4px; font-weight: bold; }
-        #bible-book { flex-grow: 2; padding: 8px; background: #222; color: white; border: 1px solid #444; border-radius: 4px; }
-        #bible-chapter { width: 50px; padding: 8px; background: #222; color: white; border: 1px solid #444; border-radius: 4px; text-align: center; }
+        
         #bible-go { background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer; padding: 0 10px; font-weight: bold; }
         #bible-search-local { width: 100%; padding: 8px; background: #111; border: 1px solid #333; color: white; border-radius: 4px; box-sizing: border-box; margin-bottom: 10px; font-size: 13px; }
         #bible-verse-list { display: flex; flex-direction: column; gap: 5px; max-height: calc(100vh - 350px); overflow-y: auto; }
         .bible-verse-item { background: #252525; padding: 10px; border-radius: 4px; border-left: 3px solid #444; cursor: pointer; transition: 0.2s; font-size: 0.9rem; color: #ddd; line-height: 1.4; }
         .bible-verse-item:hover { background: #333; border-left-color: var(--accent-color); color: white; }
+        .bible-verse-item.highlight-verse { background: #1e3a8a; border-left-color: #fbbf24; }
         .bible-verse-ref { font-size: 0.75rem; color: #888; font-weight: bold; margin-bottom: 3px; display: block; }
 
         /* CONFIGS */
@@ -138,7 +138,6 @@
         button.play { background-color: var(--accent-color); }
         button.stop { background-color: var(--danger-color); }
         button.project { background-color: #8b5cf6; }
-        button.stage { background-color: #eab308; color: #111; }
         textarea#live-text { flex-grow: 1; height: 42px; background: #222; border: 1px solid #444; color: white; padding: 10px; border-radius: 6px; resize: none; font-family: inherit; font-size: 14px; }
 
         /* DISPLAY */
@@ -246,17 +245,39 @@
                 <div style="font-size: 11px; color: #888; text-transform: uppercase; margin-bottom: 8px;">Versões Disponíveis (Offline)</div>
                 <div id="bible-versions-list"></div>
             </div>
-            <button class="ctrl-btn" onclick="openBibleNavigator()" style="width:100%; height:50px; font-size:1.1rem; background: var(--accent-color); margin-bottom: 15px;"><span class="material-icons">menu_book</span> Abrir Bíblia</button>
+            
             <div class="sidebar-header"><span class="sidebar-title">Pesquisa Rápida</span></div>
             <div id="bible-controls">
-                <select id="bible-version-select" title="Versão"></select>
-                <div class="bible-row">
-                    <select id="bible-book" onchange="updateChapterMax()"></select>
-                    <input type="number" id="bible-chapter" value="1" min="1" max="50">
-                    <button id="bible-go" onclick="fetchBibleChapter()">Ir</button>
+                <!-- Version Select Row -->
+                <div style="margin-bottom: 8px;">
+                    <label style="font-size: 10px; color: #888; text-transform: uppercase;">Versão</label>
+                    <select id="bible-version-select" style="width: 100%; padding: 8px; background: #222; color: var(--accent-color); border: 1px solid #444; border-radius: 4px; font-weight: bold;"></select>
                 </div>
+
+                <!-- Book Row -->
+                <div style="margin-bottom: 8px;">
+                    <label style="font-size: 10px; color: #888; text-transform: uppercase;">Livro</label>
+                    <input type="text" id="bible-book" list="bible-books-datalist" placeholder="Ex: Mateus" style="width: 100%; padding: 8px; background: #111; border: 1px solid #444; color: white; border-radius: 4px; box-sizing: border-box;" oninput="updateChapterDatalist()">
+                    <datalist id="bible-books-datalist"></datalist>
+                </div>
+
+                <!-- Chapter & Verse Row -->
+                <div style="display: flex; gap: 10px; margin-bottom: 8px;">
+                    <div style="flex: 1;">
+                        <label style="font-size: 10px; color: #888; text-transform: uppercase;">Capítulo</label>
+                        <input type="number" id="bible-chapter" list="bible-chapters-datalist" placeholder="Cap" style="width: 100%; padding: 8px; background: #111; border: 1px solid #444; color: white; border-radius: 4px; box-sizing: border-box; text-align: center;">
+                        <datalist id="bible-chapters-datalist"></datalist>
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 10px; color: #888; text-transform: uppercase;">Versículo</label>
+                        <input type="number" id="bible-verse-input" list="bible-verses-datalist" placeholder="Ver" style="width: 100%; padding: 8px; background: #111; border: 1px solid #444; color: white; border-radius: 4px; box-sizing: border-box; text-align: center;">
+                        <datalist id="bible-verses-datalist"></datalist>
+                    </div>
+                </div>
+
+                <button id="bible-go" onclick="fetchBibleChapter()" style="width: 100%; padding: 10px; background: var(--accent-color); color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; text-transform: uppercase;">Buscar</button>
             </div>
-            <div id="bible-verse-list"><div style="color:#666; text-align:center; padding:10px; font-size:13px;">Selecione e clique em IR</div></div>
+            <div id="bible-verse-list" style="margin-top: 15px;"><div style="color:#666; text-align:center; padding:10px; font-size:13px;">Selecione e clique em BUSCAR</div></div>
         </div>
 
         <!-- ABA 4: GALERIA -->
@@ -301,7 +322,6 @@
         <div id="controls-bar">
             <button class="ctrl-btn" onclick="toggleSidebar()"><span class="material-icons">menu</span></button>
             <button class="ctrl-btn project" onclick="openProjectorWindow(true)" title="Projetar"><span class="material-icons">open_in_new</span> Projetor</button>
-            <!-- REMOVED STAGE BUTTON -->
             <div class="input-group"><input type="number" id="min" value="5"><span>:</span><input type="number" id="sec" value="00"></div>
             <button class="ctrl-btn play" onclick="startTimer()"><span class="material-icons">play_arrow</span></button>
             <button class="ctrl-btn stop" onclick="pauseTimer()"><span class="material-icons">pause</span></button>
@@ -413,7 +433,7 @@
         let isManualAlert = false;
 
         // --- DATA ---
-        const bibleBooks = [{name: "Gênesis", id: "Genesis"},{name: "Êxodo", id: "Exodus"},{name: "Levítico", id: "Leviticus"},{name: "Números", id: "Numbers"},{name: "Deuteronômio", id: "Deuteronomy"},{name: "Josué", id: "Joshua"},{name: "Juízes", id: "Judges"},{name: "Rute", id: "Ruth"},{name: "1 Samuel", id: "1 Samuel"},{name: "2 Samuel", id: "2 Samuel"},{name: "1 Reis", id: "1 Kings"},{name: "2 Reis", id: "2 Kings"},{name: "1 Crônicas", id: "1 Chronicles"},{name: "2 Crônicas", id: "2 Chronicles"},{name: "Esdras", id: "Ezra"},{name: "Neemias", id: "Nehemiah"},{name: "Ester", id: "Esther"},{name: "Jó", id: "Job"},{name: "Salmos", id: "Psalms"},{name: "Provérbios", id: "Proverbs"},{name: "Eclesiastes", id: "Ecclesiastes"},{name: "Cânticos", id: "Song of Solomon"},{name: "Isaías", id: "Isaiah"},{name: "Jeremias", id: "Jeremiah"},{name: "Lamentações", id: "Lamentations"},{name: "Ezequiel", id: "Ezekiel"},{name: "Daniel", id: "Daniel"},{name: "Oseias", id: "Hosea"},{name: "Joel", id: "Joel"},{name: "Amós", id: "Amos"},{name: "Obadias", id: "Obadiah"},{name: "Jonas", id: "Jonah"},{name: "Miqueias", id: "Micah"},{name: "Naum", id: "Nahum"},{name: "Habacuque", id: "Habakkuk"},{name: "Sofonias", id: "Zephaniah"},{name: "Ageu", id: "Haggai"},{name: "Zacarias", id: "Zechariah"},{name: "Malaquias", id: "Malachi"},{name: "Mateus", id: "Matthew"},{name: "Marcos", id: "Mark"},{name: "Lucas", id: "Luke"},{name: "João", id: "John"},{name: "Atos", id: "Acts"},{name: "Romanos", id: "Romans"},{name: "1 Coríntios", id: "1 Corinthians"},{name: "2 Coríntios", id: "2 Corinthians"},{name: "Gálatas", id: "Galatians"},{name: "Efésios", id: "Ephesians"},{name: "Filipenses", id: "Philippians"},{name: "Colossenses", id: "Colossians"},{name: "1 Tessalonicenses", id: "1 Thessalonians"},{name: "2 Tessalonicenses", id: "2 Thessalonians"},{name: "1 Timóteo", id: "1 Timothy"},{name: "2 Timóteo", id: "2 Timothy"},{name: "Tito", id: "Titus"},{name: "Filemom", id: "Philemon"},{name: "Hebreus", id: "Hebrews"},{name: "Tiago", id: "James"},{name: "1 Pedro", id: "1 Peter"},{name: "2 Pedro", id: "2 Peter"},{name: "1 João", id: "1 João"},{name: "2 João", id: "2 John"},{name: "3 João", id: "3 John"},{name: "Judas", id: "Judas"},{name: "Apocalipse", id: "Revelation"}];
+        const bibleBooks = [{name: "Gênesis", id: "Genesis"},{name: "Êxodo", id: "Exodus"},{name: "Levítico", id: "Leviticus"},{name: "Números", id: "Numbers"},{name: "Deuteronômio", id: "Deuteronomy"},{name: "Josué", id: "Joshua"},{name: "Juízes", id: "Judges"},{name: "Rute", id: "Ruth"},{name: "1 Samuel", id: "1 Samuel"},{name: "2 Samuel", id: "2 Samuel"},{name: "1 Reis", id: "1 Kings"},{name: "2 Reis", id: "2 Kings"},{name: "1 Crônicas", id: "1 Chronicles"},{name: "2 Crônicas", id: "2 Chronicles"},{name: "Esdras", id: "Ezra"},{name: "Neemias", id: "Nehemiah"},{name: "Ester", id: "Esther"},{name: "Jó", id: "Job"},{name: "Salmos", id: "Psalms"},{name: "Provérbios", id: "Proverbs"},{name: "Eclesiastes", id: "Ecclesiastes"},{name: "Cânticos", id: "Song of Solomon"},{name: "Isaías", id: "Isaiah"},{name: "Jeremias", id: "Jeremiah"},{name: "Lamentações", id: "Lamentations"},{name: "Ezequiel", id: "Ezekiel"},{name: "Daniel", id: "Daniel"},{name: "Oseias", id: "Hosea"},{name: "Joel", id: "Joel"},{name: "Amós", id: "Amos"},{name: "Obadias", id: "Obadiah"},{name: "Jonas", id: "Jonah"},{name: "Miqueias", id: "Micah"},{name: "Naum", id: "Nahum"},{name: "Habacuque", id: "Habakkuk"},{name: "Sofonias", id: "Zephaniah"},{name: "Ageu", id: "Haggai"},{name: "Zacarias", id: "Zechariah"},{name: "Malaquias", id: "Malachi"},{name: "Mateus", id: "Matthew"},{name: "Marcos", id: "Mark"},{name: "Lucas", id: "Luke"},{name: "João", id: "John"},{name: "Atos", id: "Acts"},{name: "Romanos", id: "Romans"},{name: "1 Coríntios", id: "1 Corinthians"},{name: "2 Coríntios", id: "2 Corinthians"},{name: "Gálatas", id: "Galatians"},{name: "Efésios", id: "Ephesians"},{name: "Filipenses", id: "Philippians"},{name: "Colossenses", id: "Colossians"},{name: "1 Tessalonicenses", id: "1 Thessalonians"},{name: "2 Tessalonicenses", id: "2 Thessalonians"},{name: "1 Timóteo", id: "1 Timothy"},{name: "2 Timóteo", id: "2 Timothy"},{name: "Tito", id: "Titus"},{name: "Filemom", id: "Philemon"},{name: "Hebreus", id: "Hebrews"},{name: "Tiago", id: "James"},{name: "1 Pedro", id: "1 Peter"},{name: "2 Pedro", id: "2 Peter"},{name: "1 João", id: "1 João"},{name: "2 João", id: "2 John"},{name: "3 João", id: "3 John"},{name: "Judas", id: "Jude"},{name: "Apocalipse", id: "Revelation"}];
         const bibleChapterCounts = [50,40,27,36,34,24,21,4,31,24,22,25,29,36,10,13,10,42,150,31,12,8,66,52,5,48,12,14,3,9,1,4,7,3,3,3,2,14,4,28,16,24,21,28,16,16,13,6,6,4,4,5,3,6,1,13,5,5,3,5,1,1,1,22];
         const bibleVersions = {
             'aa': { name: 'Almeida Atualizada', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_aa.json' },
@@ -804,6 +824,27 @@
                 };
                 request.onsuccess = (e) => {
                     bibleDB = e.target.result;
+                    
+                    // POPULATE DATALIST FOR BOOKS
+                    const datalist = document.getElementById('bible-books-datalist');
+                    if(datalist) {
+                        bibleBooks.forEach(book => {
+                            const option = document.createElement('option');
+                            option.value = book.name;
+                            datalist.appendChild(option);
+                        });
+                    }
+                    
+                    // INIT VERSE DATALIST (STATIC)
+                    const verseDatalist = document.getElementById('bible-verses-datalist');
+                    if(verseDatalist) {
+                        for(let i=1; i<=176; i++) {
+                            const option = document.createElement('option');
+                            option.value = i;
+                            verseDatalist.appendChild(option);
+                        }
+                    }
+
                     checkBibleStatus();
                     resolve();
                 };
@@ -856,57 +897,108 @@
         }
 
         async function fetchBibleChapter() {
-             const bIdx = parseInt(document.getElementById('bible-book').value);
+             // FIND BOOK INDEX FROM INPUT
+             const bookInput = document.getElementById('bible-book').value;
+             // Fuzzy match or exact match
+             let bIdx = bibleBooks.findIndex(b => b.name.toLowerCase() === bookInput.toLowerCase());
+             if (bIdx === -1) {
+                 // Try finding startsWith
+                 bIdx = bibleBooks.findIndex(b => b.name.toLowerCase().startsWith(bookInput.toLowerCase()));
+             }
+             
+             if (bIdx === -1) return alert("Livro não encontrado.");
+             
              const bName = bibleBooks[bIdx].name;
              const ch = parseInt(document.getElementById('bible-chapter').value);
+             const verse = document.getElementById('bible-verse-input').value; // Optional
              const vKey = document.getElementById('bible-version-select').value;
              const list = document.getElementById('bible-verse-list');
              list.innerHTML = '<div style="text-align:center; padding:20px; color:#aaa;">Buscando...</div>';
 
+             let data = null;
+
              if(downloadedVersions[vKey]) {
                  try {
-                     const data = await getChapterFromLocalDB(vKey, bIdx, ch);
-                     renderBibleVerses(data.verses, `${bName} ${ch} (${vKey.toUpperCase()})`);
-                     return;
+                     data = await getChapterFromLocalDB(vKey, bIdx, ch);
                  } catch(e){}
              }
              
-             const apiKey = "AIzaSyCD1tXgDGMa8H4UJR7s1eEOPFjbjI7dd4Y";
-             try {
-                const prompt = `Texto de ${bName} ${ch} na versão ${bibleVersions[vKey].name}. JSON: {"verses":[{"verse":1,"text":"..."}]}`;
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, { method: "POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
-                const d = await res.json();
-                const json = JSON.parse(d.candidates[0].content.parts[0].text.match(/\{[\s\S]*\}/)[0]);
-                renderBibleVerses(json.verses, `${bName} ${ch}`);
-             } catch(e) {
+             if (!data) {
+                 const apiKey = "AIzaSyCD1tXgDGMa8H4UJR7s1eEOPFjbjI7dd4Y";
                  try {
-                     const res2 = await fetch(`https://bible-api.com/${bibleBooks[bIdx].id.replace(/\s/g,'+')}+${ch}?translation=almeida`);
-                     const d2 = await res2.json();
-                     renderBibleVerses(d2.verses, `${bName} ${ch}`);
-                 } catch(e2) {
-                     list.innerHTML = '<div style="color:red; text-align:center;">Erro. Baixe a versão para garantir.</div>';
+                    const prompt = `Texto de ${bName} ${ch} na versão ${bibleVersions[vKey].name}. JSON: {"verses":[{"verse":1,"text":"..."}]}`;
+                    const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, { method: "POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
+                    const d = await res.json();
+                    const json = JSON.parse(d.candidates[0].content.parts[0].text.match(/\{[\s\S]*\}/)[0]);
+                    data = { verses: json.verses };
+                 } catch(e) {
+                     try {
+                         const res2 = await fetch(`https://bible-api.com/${bibleBooks[bIdx].id.replace(/\s/g,'+')}+${ch}?translation=almeida`);
+                         const d2 = await res2.json();
+                         data = { verses: d2.verses };
+                     } catch(e2) {
+                         list.innerHTML = '<div style="color:red; text-align:center;">Erro. Baixe a versão para garantir.</div>';
+                         return;
+                     }
                  }
              }
+             
+             renderBibleVerses(data.verses, `${bName} ${ch}`, verse);
         }
 
-        function renderBibleVerses(verses, ref) {
+        function renderBibleVerses(verses, ref, highlightVerse) {
             const list = document.getElementById('bible-verse-list'); list.innerHTML = '';
+            let targetElement = null;
+
             verses.forEach(v => {
                 const d = document.createElement('div'); d.className = 'bible-verse-item';
                 const vNum = v.verse || v.pk;
                 d.innerHTML = `<span class="bible-verse-ref">${vNum}</span>${v.text}`;
+                
+                // Check highlight
+                if (highlightVerse && parseInt(vNum) === parseInt(highlightVerse)) {
+                    d.classList.add('highlight-verse');
+                    targetElement = d;
+                    // Auto Project if verse is selected
+                    updateDisplay(`${v.text}\n\n(${ref}:${vNum})`); 
+                }
+
                 d.onclick = () => { updateDisplay(`${v.text}\n\n(${ref}:${vNum})`); d.style.background='#3b82f6'; setTimeout(()=>d.style.background='',200); };
                 list.appendChild(d);
             });
+            
+            if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }
+
+        function updateChapterDatalist() {
+            const bookInput = document.getElementById('bible-book').value;
+            const dl = document.getElementById('bible-chapters-datalist');
+            dl.innerHTML = '';
+            
+            const bIdx = bibleBooks.findIndex(b => b.name.toLowerCase() === bookInput.toLowerCase()) 
+                         || bibleBooks.findIndex(b => b.name.toLowerCase().startsWith(bookInput.toLowerCase()));
+            
+            if (bIdx > -1) {
+                const count = bibleChapterCounts[bIdx];
+                for(let i=1; i<=count; i++) {
+                    const opt = document.createElement('option');
+                    opt.value = i;
+                    dl.appendChild(opt);
+                }
+            }
         }
         
         function initBible() {
-            const selB = document.getElementById('bible-book');
-            bibleBooks.forEach((b,i)=>{const o=document.createElement('option'); o.value=i; o.innerText=b.name; selB.appendChild(o)});
+            // Already handled in initOfflineBible for datalist
             const selV = document.getElementById('bible-version-select');
             Object.keys(bibleVersions).forEach(k=>{const o=document.createElement('option'); o.value=k; o.innerText=bibleVersions[k].name; selV.appendChild(o)});
         }
-        function updateChapterMax() { document.getElementById('bible-chapter').max = bibleChapterCounts[document.getElementById('bible-book').value]; }
+        function updateChapterMax() { 
+            // Optional: update max based on input book if needed
+            // Currently fixed to 150 for simplicity or need logic to find book index from string
+        }
 
         // --- FULL BIBLE NAVIGATOR ---
         function openBibleNavigator() { bibleNavState={step:'book'}; renderBibleNavigator(); document.getElementById('modal-bible-navigator').style.display='flex'; document.getElementById('modal-bible-navigator').classList.remove('hidden'); }
@@ -1033,6 +1125,12 @@
                      } else {
                          if(el.classList.contains('blink-mode')) el.classList.remove('blink-mode');
                      }
+                    
+                    // Added manual alert check
+                    if (isManualAlert) {
+                        if (!el.classList.contains('blink-mode')) el.classList.add('blink-mode');
+                        if (el.classList.contains('danger-mode')) el.classList.remove('danger-mode');
+                    }
                 }
                 const storedBlackout = localStorage.getItem('blackoutState');
                 if(storedBlackout !== null) {
@@ -1243,6 +1341,7 @@
                     if(payload.text !== currentSettings.alertText) el.style.fontSize = payload.fontSize; 
                     else el.style.fontSize = (currentSettings.alertSize || 70) + "px";
 
+                    if(payload.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
                     if(payload.blinking) {
                         el.classList.add('blink-mode');
                         el.classList.remove('danger-mode');
