@@ -433,7 +433,7 @@
         let isManualAlert = false;
 
         // --- DATA ---
-        const bibleBooks = [{name: "Gênesis", id: "Genesis"},{name: "Êxodo", id: "Exodus"},{name: "Levítico", id: "Leviticus"},{name: "Números", id: "Numbers"},{name: "Deuteronômio", id: "Deuteronomy"},{name: "Josué", id: "Joshua"},{name: "Juízes", id: "Judges"},{name: "Rute", id: "Ruth"},{name: "1 Samuel", id: "1 Samuel"},{name: "2 Samuel", id: "2 Samuel"},{name: "1 Reis", id: "1 Kings"},{name: "2 Reis", id: "2 Kings"},{name: "1 Crônicas", id: "1 Chronicles"},{name: "2 Crônicas", id: "2 Chronicles"},{name: "Esdras", id: "Ezra"},{name: "Neemias", id: "Nehemiah"},{name: "Ester", id: "Esther"},{name: "Jó", id: "Job"},{name: "Salmos", id: "Psalms"},{name: "Provérbios", id: "Proverbs"},{name: "Eclesiastes", id: "Ecclesiastes"},{name: "Cânticos", id: "Song of Solomon"},{name: "Isaías", id: "Isaiah"},{name: "Jeremias", id: "Jeremiah"},{name: "Lamentações", id: "Lamentations"},{name: "Ezequiel", id: "Ezekiel"},{name: "Daniel", id: "Daniel"},{name: "Oseias", id: "Hosea"},{name: "Joel", id: "Joel"},{name: "Amós", id: "Amos"},{name: "Obadias", id: "Obadiah"},{name: "Jonas", id: "Jonah"},{name: "Miqueias", id: "Micah"},{name: "Naum", id: "Nahum"},{name: "Habacuque", id: "Habakkuk"},{name: "Sofonias", id: "Zephaniah"},{name: "Ageu", id: "Haggai"},{name: "Zacarias", id: "Zechariah"},{name: "Malaquias", id: "Malachi"},{name: "Mateus", id: "Matthew"},{name: "Marcos", id: "Mark"},{name: "Lucas", id: "Luke"},{name: "João", id: "John"},{name: "Atos", id: "Acts"},{name: "Romanos", id: "Romans"},{name: "1 Coríntios", id: "1 Corinthians"},{name: "2 Coríntios", id: "2 Corinthians"},{name: "Gálatas", id: "Galatians"},{name: "Efésios", id: "Ephesians"},{name: "Filipenses", id: "Philippians"},{name: "Colossenses", id: "Colossians"},{name: "1 Tessalonicenses", id: "1 Thessalonians"},{name: "2 Tessalonicenses", id: "2 Thessalonians"},{name: "1 Timóteo", id: "1 Timothy"},{name: "2 Timóteo", id: "2 Timothy"},{name: "Tito", id: "Titus"},{name: "Filemom", id: "Philemon"},{name: "Hebreus", id: "Hebrews"},{name: "Tiago", id: "James"},{name: "1 Pedro", id: "1 Peter"},{name: "2 Pedro", id: "2 Peter"},{name: "1 João", id: "1 João"},{name: "2 João", id: "2 John"},{name: "3 João", id: "3 John"},{name: "Judas", id: "Jude"},{name: "Apocalipse", id: "Revelation"}];
+        const bibleBooks = [{name: "Gênesis", id: "Genesis"},{name: "Êxodo", id: "Exodus"},{name: "Levítico", id: "Leviticus"},{name: "Números", id: "Numbers"},{name: "Deuteronômio", id: "Deuteronomy"},{name: "Josué", id: "Joshua"},{name: "Juízes", id: "Judges"},{name: "Rute", id: "Ruth"},{name: "1 Samuel", id: "1 Samuel"},{name: "2 Samuel", id: "2 Samuel"},{name: "1 Reis", id: "1 Kings"},{name: "2 Reis", id: "2 Kings"},{name: "1 Crônicas", id: "1 Chronicles"},{name: "2 Crônicas", id: "2 Chronicles"},{name: "Esdras", id: "Ezra"},{name: "Neemias", id: "Nehemiah"},{name: "Ester", id: "Esther"},{name: "Jó", id: "Job"},{name: "Salmos", id: "Psalms"},{name: "Provérbios", id: "Proverbs"},{name: "Eclesiastes", id: "Ecclesiastes"},{name: "Cânticos", id: "Song of Solomon"},{name: "Isaías", id: "Isaiah"},{name: "Jeremias", id: "Jeremiah"},{name: "Lamentações", id: "Lamentations"},{name: "Ezequiel", id: "Ezekiel"},{name: "Daniel", id: "Daniel"},{name: "Oseias", id: "Hosea"},{name: "Joel", id: "Joel"},{name: "Amós", id: "Amos"},{name: "Obadias", id: "Obadiah"},{name: "Jonas", id: "Jonah"},{name: "Miqueias", id: "Micah"},{name: "Naum", id: "Nahum"},{name: "Habacuque", id: "Habakkuk"},{name: "Sofonias", id: "Zephaniah"},{name: "Ageu", id: "Haggai"},{name: "Zacarias", id: "Zechariah"},{name: "Malaquias", id: "Malachi"},{name: "Mateus", id: "Matthew"},{name: "Marcos", id: "Mark"},{name: "Lucas", id: "Luke"},{name: "João", id: "John"},{name: "Atos", id: "Acts"},{name: "Romanos", id: "Romans"},{name: "1 Coríntios", id: "1 Corinthians"},{name: "2 Coríntios", id: "2 Corinthians"},{name: "Gálatas", id: "Galatians"},{name: "Efésios", id: "Ephesians"},{name: "Filipenses", id: "Philippians"},{name: "Colossenses", id: "Colossians"},{name: "1 Tessalonicenses", id: "1 Thessalonians"},{name: "2 Tessalonicenses", id: "2 Thessalonians"},{name: "1 Timóteo", id: "1 Timothy"},{name: "2 Timóteo", id: "2 Timothy"},{name: "Tito", id: "Titus"},{name: "Filemom", id: "Philemon"},{name: "Hebreus", id: "Hebrews"},{name: "Tiago", id: "James"},{name: "1 Pedro", id: "1 Peter"},{name: "2 Pedro", id: "2 Peter"},{name: "1 João", id: "1 João"},{name: "2 João", id: "2 John"},{name: "3 João", id: "3 John"},{name: "Judas", id: "Judas"},{name: "Apocalipse", id: "Revelation"}];
         const bibleChapterCounts = [50,40,27,36,34,24,21,4,31,24,22,25,29,36,10,13,10,42,150,31,12,8,66,52,5,48,12,14,3,9,1,4,7,3,3,3,2,14,4,28,16,24,21,28,16,16,13,6,6,4,4,5,3,6,1,13,5,5,3,5,1,1,1,22];
         const bibleVersions = {
             'aa': { name: 'Almeida Atualizada', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_aa.json' },
@@ -760,7 +760,7 @@
             }
         }
 
-        // --- GALLERY LOGIC ---
+        // --- GALLERY LOGIC (AUTO RESIZE) ---
         function renderGallery() {
             if(isProjector) return;
             const grid = document.getElementById('gallery-grid'); grid.innerHTML = '';
@@ -773,13 +773,58 @@
                 grid.appendChild(div);
             });
         }
+        
+        // Helper to compress images
+        function processImageFile(file, callback) {
+            const img = new Image();
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                img.src = e.target.result;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    let width = img.width;
+                    let height = img.height;
+                    const MAX_DIM = 1920; // Full HD Max
+                    
+                    if (width > height) {
+                        if (width > MAX_DIM) { height *= MAX_DIM / width; width = MAX_DIM; }
+                    } else {
+                        if (height > MAX_DIM) { width *= MAX_DIM / height; height = MAX_DIM; }
+                    }
+                    
+                    canvas.width = width;
+                    canvas.height = height;
+                    ctx.drawImage(img, 0, 0, width, height);
+                    callback(canvas.toDataURL('image/jpeg', 0.8)); // 80% Quality
+                };
+            };
+            reader.readAsDataURL(file);
+        }
+
         function saveMedia() {
             const type = document.getElementById('new-media-type').value;
             const urlInput = document.getElementById('new-media-url').value;
             const fileInput = document.getElementById('new-media-file');
+            
             if (fileInput.files && fileInput.files[0]) {
-                if (fileInput.files[0].size/1024/1024 > 4.5) return alert("Arquivo muito grande (>4.5MB).");
-                const reader = new FileReader(); reader.onload = (e) => addToGalleryAndSave(type, e.target.result); reader.readAsDataURL(fileInput.files[0]);
+                const file = fileInput.files[0];
+                if (type === 'image') {
+                    // Compress image before saving
+                    const btn = document.querySelector('#modal-gallery .play');
+                    const oldText = btn.innerText;
+                    btn.innerText = "Processando...";
+                    processImageFile(file, (base64) => {
+                        addToGalleryAndSave(type, base64);
+                        btn.innerText = oldText;
+                    });
+                } else {
+                    // Video: strict limit because no compression
+                    if (file.size/1024/1024 > 50) return alert("Vídeo muito grande. Limite sugerido: 50MB (mas depende do navegador).");
+                    const reader = new FileReader(); 
+                    reader.onload = (e) => addToGalleryAndSave(type, e.target.result); 
+                    reader.readAsDataURL(file);
+                }
             } else if (urlInput) addToGalleryAndSave(type, urlInput);
         }
         function addToGalleryAndSave(type, url) { try { galleryItems.push({ type, url }); localStorage.setItem('myGallery', JSON.stringify(galleryItems)); renderGallery(); closeModal('gallery'); } catch(e){ galleryItems.pop(); alert("Espaço cheio!"); } }
@@ -975,17 +1020,18 @@
         function updateChapterDatalist() {
             const bookInput = document.getElementById('bible-book').value;
             const dl = document.getElementById('bible-chapters-datalist');
-            dl.innerHTML = '';
-            
-            const bIdx = bibleBooks.findIndex(b => b.name.toLowerCase() === bookInput.toLowerCase()) 
-                         || bibleBooks.findIndex(b => b.name.toLowerCase().startsWith(bookInput.toLowerCase()));
-            
-            if (bIdx > -1) {
-                const count = bibleChapterCounts[bIdx];
-                for(let i=1; i<=count; i++) {
-                    const opt = document.createElement('option');
-                    opt.value = i;
-                    dl.appendChild(opt);
+            if (dl) {
+                dl.innerHTML = '';
+                const bIdx = bibleBooks.findIndex(b => b.name.toLowerCase() === bookInput.toLowerCase()) 
+                             || bibleBooks.findIndex(b => b.name.toLowerCase().startsWith(bookInput.toLowerCase()));
+                
+                if (bIdx > -1) {
+                    const count = bibleChapterCounts[bIdx];
+                    for(let i=1; i<=count; i++) {
+                        const opt = document.createElement('option');
+                        opt.value = i;
+                        dl.appendChild(opt);
+                    }
                 }
             }
         }
