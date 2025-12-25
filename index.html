@@ -24,26 +24,10 @@
         body.projector-mode #sidebar, body.projector-mode #controls-bar, body.projector-mode .modal-overlay, body.projector-mode .control-only, body.projector-mode #startup-overlay { display: none !important; }
         body.projector-mode #display-area { cursor: none; }
 
-        /* Modo Retorno (Stage Monitor) */
-        body.stage-mode #sidebar, body.stage-mode #controls-bar, body.stage-mode .modal-overlay, body.stage-mode .control-only, body.stage-mode #startup-overlay, body.stage-mode #bg-video, body.stage-mode #display-overlay { display: none !important; }
-        body.stage-mode #display-area { 
-            background-color: #000 !important; 
-            background-image: none !important;
-            padding: 20px;
-            align-items: flex-start;
-            justify-content: flex-start;
-            text-align: left;
-        }
-        body.stage-mode #content-wrapper { align-items: flex-start !important; width: 100%; height: 100%; }
-        body.stage-mode #text-display {
-            font-family: Arial, sans-serif !important; font-weight: bold; color: #fff !important;
-            font-size: 6vw !important; text-transform: uppercase; line-height: 1.2;
-            text-shadow: none !important; white-space: pre-wrap; width: 100%;
-        }
-        body.stage-mode #timer-display {
-            position: fixed; top: 10px; right: 10px; font-size: 4vw !important;
-            color: yellow !important; background: rgba(0,0,0,0.8); padding: 5px 10px; border-radius: 5px; z-index: 100;
-        }
+        /* BLACKOUT MODE (F10) */
+        body.blackout-active #content-wrapper,
+        body.blackout-active #bg-video,
+        body.blackout-active #display-overlay { visibility: hidden !important; }
 
         /* --- SIDEBAR --- */
         #sidebar { width: 350px; background-color: var(--sidebar-bg); border-right: 1px solid #333; display: flex; flex-direction: column; transition: transform 0.3s ease; flex-shrink: 0; z-index: 20; position: relative; }
@@ -141,7 +125,7 @@
         button.play { background-color: var(--accent-color); }
         button.stop { background-color: var(--danger-color); }
         button.project { background-color: #8b5cf6; }
-        button.stage { background-color: #eab308; color: #111; }
+        
         textarea#live-text { flex-grow: 1; height: 42px; background: #222; border: 1px solid #444; color: white; padding: 10px; border-radius: 6px; resize: none; font-family: inherit; font-size: 14px; }
 
         /* DISPLAY */
@@ -151,8 +135,13 @@
         #content-wrapper { z-index: 2; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; }
         #timer-display { font-family: 'Courier New', monospace; font-weight: bold; line-height: 1; transition: color 0.3s, font-size 0.3s; }
         #text-display { line-height: 1.3; max-width: 90%; white-space: pre-wrap; font-weight: 500; transition: all 0.3s; }
-        .danger-mode { color: var(--danger-color) !important; text-shadow: 0 0 30px rgba(239, 68, 68, 0.5) !important; animation: pulse 1s infinite; }
-        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+        .danger-mode { color: var(--danger-color) !important; text-shadow: 0 0 30px rgba(239, 68, 68, 0.5) !important; }
+        /* NEW BLINK ANIMATION */
+        @keyframes blink-panic {
+            0%, 100% { opacity: 1; color: #ff0000; text-shadow: 0 0 40px #ff0000; transform: scale(1.05); }
+            50% { opacity: 0.3; color: #880000; text-shadow: none; transform: scale(1); }
+        }
+        .blink-mode { animation: blink-panic 0.5s infinite ease-in-out !important; color: #ff0000 !important; }
 
         /* MODAIS */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 100; backdrop-filter: blur(5px); }
@@ -230,9 +219,6 @@
                 <span class="sidebar-title">Slides Músicos</span>
                 <button class="add-btn" onclick="openModal('sm')" title="Adicionar">+</button>
             </div>
-            <button class="ctrl-btn stage" onclick="openStageWindow()" style="width:100%; margin-bottom:10px;">
-                <span class="material-icons">mic</span> Abrir Retorno
-            </button>
             <div id="sm-list"></div>
         </div>
 
@@ -279,7 +265,6 @@
         <div id="controls-bar">
             <button class="ctrl-btn" onclick="toggleSidebar()"><span class="material-icons">menu</span></button>
             <button class="ctrl-btn project" onclick="openProjectorWindow(true)" title="Projetar"><span class="material-icons">open_in_new</span> Projetor</button>
-            <button class="ctrl-btn stage" onclick="openStageWindow()" title="Abrir Retorno (Músicos)"><span class="material-icons">mic</span> Retorno</button>
             <div class="input-group"><input type="number" id="min" value="5"><span>:</span><input type="number" id="sec" value="00"></div>
             <button class="ctrl-btn play" onclick="startTimer()"><span class="material-icons">play_arrow</span></button>
             <button class="ctrl-btn stop" onclick="pauseTimer()"><span class="material-icons">pause</span></button>
@@ -308,10 +293,9 @@
     <!-- MODAIS -->
     <div id="modal-verse" class="modal-overlay hidden"><div class="modal"><h3 style="margin-top:0">Novo Texto</h3><input type="text" id="new-verse-title" placeholder="Título"><textarea id="new-verse-content" rows="5" placeholder="Conteúdo..."></textarea><div class="modal-actions"><button class="ctrl-btn" onclick="closeModal('verse')">Cancelar</button><button class="ctrl-btn play" onclick="saveVerse()">Salvar</button></div></div></div>
     
-    <!-- MODAL SM COM PREVIEW -->
+    <!-- MODAL SM COM PREVIEW E POSIÇÃO -->
     <div id="modal-sm" class="modal-overlay hidden">
         <div class="modal" style="width: 90%; max-width: 800px; flex-direction: row; gap: 20px;">
-            <!-- Left Side: Inputs -->
             <div style="flex: 1; display: flex; flex-direction: column; overflow-y: auto;">
                 <h3 style="margin-top:0">Editor de Slide</h3>
                 <input type="text" id="new-sm-title" placeholder="Título" oninput="updateSmPreview()">
@@ -330,6 +314,26 @@
                             <option value="">Nenhum (Usar Cor de Fundo)</option>
                         </select>
                     </div>
+                    
+                    <!-- NEW ALIGNMENT CONTROLS -->
+                    <div class="config-item" style="display:block">
+                        <label>Alinhamento Horizontal</label>
+                        <div class="align-btn-group" style="margin-top:5px;">
+                            <button class="align-btn" onclick="setSmAlign('left', 'h')" id="sm-align-left"><span class="material-icons">format_align_left</span></button>
+                            <button class="align-btn" onclick="setSmAlign('center', 'h')" id="sm-align-center"><span class="material-icons">format_align_center</span></button>
+                            <button class="align-btn" onclick="setSmAlign('right', 'h')" id="sm-align-right"><span class="material-icons">format_align_right</span></button>
+                        </div>
+                        <input type="hidden" id="sm-style-align" value="">
+                    </div>
+                    <div class="config-item" style="display:block">
+                        <label>Alinhamento Vertical</label>
+                        <div class="align-btn-group" style="margin-top:5px;">
+                            <button class="align-btn" onclick="setSmAlign('flex-start', 'v')" id="sm-valign-top"><span class="material-icons">vertical_align_top</span></button>
+                            <button class="align-btn" onclick="setSmAlign('center', 'v')" id="sm-valign-center"><span class="material-icons">vertical_align_center</span></button>
+                            <button class="align-btn" onclick="setSmAlign('flex-end', 'v')" id="sm-valign-bottom"><span class="material-icons">vertical_align_bottom</span></button>
+                        </div>
+                        <input type="hidden" id="sm-style-valign" value="">
+                    </div>
                 </div>
 
                 <small style="color:#aaa; display:block; margin-bottom:5px;">Conteúdo:</small>
@@ -341,14 +345,11 @@
                 </div>
             </div>
 
-            <!-- Right Side: Preview -->
             <div style="flex: 1; display: flex; flex-direction: column;">
                 <h4 style="margin: 0 0 10px 0; color: #888;">Pré-visualização</h4>
                 <div id="sm-live-preview" style="width: 100%; aspect-ratio: 16/9; background: #000; border: 1px solid #444; display: flex; align-items: center; justify-content: center; text-align: center; padding: 20px; box-sizing: border-box; overflow: hidden; position: relative;">
-                    <!-- Background Media Layer -->
                      <div id="sm-preview-bg" style="position: absolute; top:0; left:0; width:100%; height:100%; z-index:0; background-size: cover; background-position: center;"></div>
-                     <!-- Text Layer -->
-                    <div id="sm-preview-text" style="position: relative; z-index: 1; font-weight: bold; white-space: pre-wrap;"></div>
+                    <div id="sm-preview-text" style="position: relative; z-index: 1; font-weight: bold; white-space: pre-wrap; width: 100%;"></div>
                 </div>
                 <small style="color:#666; margin-top: 5px;">* A visualização pode variar ligeiramente no projetor.</small>
             </div>
@@ -369,16 +370,15 @@
         const channel = new BroadcastChannel('louvor_app_v2');
         const urlParams = new URLSearchParams(window.location.search);
         const isProjector = urlParams.get('view') === 'projector';
-        const isStage = urlParams.get('view') === 'stage';
         let isBlackout = false;
 
         // --- DATA ---
         const bibleBooks = [{name: "Gênesis", id: "Genesis"},{name: "Êxodo", id: "Exodus"},{name: "Levítico", id: "Leviticus"},{name: "Números", id: "Numbers"},{name: "Deuteronômio", id: "Deuteronomy"},{name: "Josué", id: "Joshua"},{name: "Juízes", id: "Judges"},{name: "Rute", id: "Ruth"},{name: "1 Samuel", id: "1 Samuel"},{name: "2 Samuel", id: "2 Samuel"},{name: "1 Reis", id: "1 Kings"},{name: "2 Reis", id: "2 Kings"},{name: "1 Crônicas", id: "1 Chronicles"},{name: "2 Crônicas", id: "2 Chronicles"},{name: "Esdras", id: "Ezra"},{name: "Neemias", id: "Nehemiah"},{name: "Ester", id: "Esther"},{name: "Jó", id: "Job"},{name: "Salmos", id: "Psalms"},{name: "Provérbios", id: "Proverbs"},{name: "Eclesiastes", id: "Ecclesiastes"},{name: "Cânticos", id: "Song of Solomon"},{name: "Isaías", id: "Isaiah"},{name: "Jeremias", id: "Jeremiah"},{name: "Lamentações", id: "Lamentations"},{name: "Ezequiel", id: "Ezekiel"},{name: "Daniel", id: "Daniel"},{name: "Oseias", id: "Hosea"},{name: "Joel", id: "Joel"},{name: "Amós", id: "Amos"},{name: "Obadias", id: "Obadiah"},{name: "Jonas", id: "Jonah"},{name: "Miqueias", id: "Micah"},{name: "Naum", id: "Nahum"},{name: "Habacuque", id: "Habakkuk"},{name: "Sofonias", id: "Zephaniah"},{name: "Ageu", id: "Haggai"},{name: "Zacarias", id: "Zechariah"},{name: "Malaquias", id: "Malachi"},{name: "Mateus", id: "Matthew"},{name: "Marcos", id: "Mark"},{name: "Lucas", id: "Luke"},{name: "João", id: "John"},{name: "Atos", id: "Acts"},{name: "Romanos", id: "Romans"},{name: "1 Coríntios", id: "1 Corinthians"},{name: "2 Coríntios", id: "2 Corinthians"},{name: "Gálatas", id: "Galatians"},{name: "Efésios", id: "Ephesians"},{name: "Filipenses", id: "Philippians"},{name: "Colossenses", id: "Colossians"},{name: "1 Tessalonicenses", id: "1 Thessalonians"},{name: "2 Tessalonicenses", id: "2 Thessalonians"},{name: "1 Timóteo", id: "1 Timothy"},{name: "2 Timóteo", id: "2 Timothy"},{name: "Tito", id: "Titus"},{name: "Filemom", id: "Philemon"},{name: "Hebreus", id: "Hebrews"},{name: "Tiago", id: "James"},{name: "1 Pedro", id: "1 Peter"},{name: "2 Pedro", id: "2 Peter"},{name: "1 João", id: "1 John"},{name: "2 João", id: "2 John"},{name: "3 João", id: "3 John"},{name: "Judas", id: "Jude"},{name: "Apocalipse", id: "Revelation"}];
         const bibleChapterCounts = [50,40,27,36,34,24,21,4,31,24,22,25,29,36,10,13,10,42,150,31,12,8,66,52,5,48,12,14,3,9,1,4,7,3,3,3,2,14,4,28,16,24,21,28,16,16,13,6,6,4,4,5,3,6,1,13,5,5,3,5,1,1,1,22];
         const bibleVersions = {
-            'aa': { name: 'Almeida Atualizada (PT)', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_aa.json' },
-            'acf': { name: 'Almeida Corr. Fiel (PT)', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_acf.json' },
-            'nvi': { name: 'Nova Versão Int. (PT)', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_nvi.json' }
+            'aa': { name: 'Almeida Atualizada', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_aa.json' },
+            'acf': { name: 'Almeida Corr. Fiel', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_acf.json' },
+            'nvi': { name: 'Nova Versão Int.', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_nvi.json' }
         };
 
         // Added 'timestamp' for version control
@@ -387,13 +387,21 @@
             autoOpenProjector: false, showTimer: true, showText: true, timerPos: 'top', 
             bgColor: '#000000', bgType: 'color', bgUrl: '', overlayOpacity: 0.5, 
             textColor: '#ffffff', textSize: 80, fontFamily: "'Segoe UI', sans-serif", textAlign: 'center', 
-            timerColor: '#4ade80', timerSize: 180, alertTime: 60 
+            timerColor: '#4ade80', timerSize: 180, alertTime: 60,
+            valign: 'center' // Add default valign
         };
         let verses = JSON.parse(localStorage.getItem('myVerses')) || [{ title: "Boas Vindas", content: "Sejam bem-vindos!\nO culto começará em instantes." }];
         let galleryItems = JSON.parse(localStorage.getItem('myGallery')) || [{ type: 'image', url: 'https://images.unsplash.com/photo-1478147427282-58a87a120781?auto=format&fit=crop&w=1000&q=80' }];
         let smSlides = JSON.parse(localStorage.getItem('mySmSlides')) || []; 
 
         let timerInterval, totalSeconds = 300, isRunning = false;
+        
+        let overtimeInterval;
+        let blinkTimeout;
+        let isBlinking = false;
+        let isOvertime = false;
+        let overtimeSeconds = 0;
+
         let bibleNavState = { step: 'book', selectedBookIndex: -1, selectedChapter: -1 };
         let downloadedVersions = {};
         let bibleDB;
@@ -409,7 +417,7 @@
         function toggleBlackout() { isBlackout = !isBlackout; updateBlackoutState(); }
         function updateBlackoutState() {
             if(isBlackout) document.body.classList.add('blackout-active'); else document.body.classList.remove('blackout-active');
-            if(!isProjector && !isStage) { channel.postMessage({ type: 'blackout', payload: isBlackout }); localStorage.setItem('blackoutState', isBlackout); }
+            if(!isProjector) { channel.postMessage({ type: 'blackout', payload: isBlackout }); localStorage.setItem('blackoutState', isBlackout); }
         }
         function navigateSlide(step) {
             if(document.getElementById('sm-viewer').style.display !== 'none') {
@@ -423,7 +431,7 @@
             }
         }
 
-        // --- SM LOGIC (ENHANCED WITH PREVIEW) ---
+        // --- SM LOGIC (ENHANCED WITH PREVIEW AND ALIGNMENT) ---
         function toggleStyleOptions() {
             document.getElementById('sm-style-options').classList.toggle('open');
             if(document.getElementById('sm-style-options').classList.contains('open')) {
@@ -443,6 +451,24 @@
                 sel.appendChild(opt);
             });
         }
+
+        // Helper for Alignment Buttons
+        function setSmAlign(val, type) {
+            if (type === 'h') {
+                document.getElementById('sm-style-align').value = val;
+                // Update button states
+                document.getElementById('sm-align-left').classList.toggle('active', val === 'left');
+                document.getElementById('sm-align-center').classList.toggle('active', val === 'center');
+                document.getElementById('sm-align-right').classList.toggle('active', val === 'right');
+            } else if (type === 'v') {
+                document.getElementById('sm-style-valign').value = val;
+                // Update button states
+                document.getElementById('sm-valign-top').classList.toggle('active', val === 'flex-start');
+                document.getElementById('sm-valign-center').classList.toggle('active', val === 'center');
+                document.getElementById('sm-valign-bottom').classList.toggle('active', val === 'flex-end');
+            }
+            updateSmPreview();
+        }
         
         // --- LIVE PREVIEW FUNCTION ---
         function updateSmPreview() {
@@ -452,15 +478,26 @@
             const color = document.getElementById('sm-style-color').value;
             const size = document.getElementById('sm-style-size').value || '20'; 
             const mediaVal = document.getElementById('sm-style-media').value;
+            const alignH = document.getElementById('sm-style-align').value || 'center';
+            const alignV = document.getElementById('sm-style-valign').value || 'center';
             
             const previewBox = document.getElementById('sm-live-preview');
             const previewBg = document.getElementById('sm-preview-bg');
             const previewText = document.getElementById('sm-preview-text');
             
             previewBox.style.backgroundColor = bg;
+            // Vertical Align in Preview (Flex)
+            previewBox.style.alignItems = alignV; 
+            
             previewText.style.color = color;
             previewText.style.fontSize = (parseInt(size) / 4) + 'px'; 
             previewText.innerText = content;
+            previewText.style.textAlign = alignH;
+            
+            // Horizontal Align fix for Flex container preview
+            if(alignH === 'left') previewBox.style.justifyContent = 'flex-start'; // Actually justify-content aligns items along main axis, here text-align handles text block
+            // For preview box, text-align on child is enough, but alignItems handles vertical.
+            // Just ensure width is 100%
             
             if(mediaVal) {
                 const mediaObj = JSON.parse(mediaVal);
@@ -478,7 +515,7 @@
         }
 
         function renderSmList() {
-            if(isProjector || isStage) return;
+            if(isProjector) return;
             const list = document.getElementById('sm-list');
             list.innerHTML = '';
             
@@ -517,11 +554,13 @@
                 color: document.getElementById('sm-style-color').value,
                 size: document.getElementById('sm-style-size').value,
                 img: mediaObj.url,
-                mediaType: mediaObj.type
+                mediaType: mediaObj.type,
+                align: document.getElementById('sm-style-align').value,
+                valign: document.getElementById('sm-style-valign').value
             };
             
             let cleanStyle = null;
-            if (style.bg !== '#000000' || style.color !== '#ffffff' || style.size || style.img) {
+            if (style.bg !== '#000000' || style.color !== '#ffffff' || style.size || style.img || style.align || style.valign) {
                 cleanStyle = style;
             }
 
@@ -556,12 +595,19 @@
                 document.getElementById('sm-style-color').value = item.style.color || '#ffffff';
                 document.getElementById('sm-style-size').value = item.style.size || '';
                 updateSmMediaOptions(item.style.img || ''); 
+                
+                // Load Alignment
+                setSmAlign(item.style.align || 'center', 'h');
+                setSmAlign(item.style.valign || 'center', 'v');
+
                 document.getElementById('sm-style-options').classList.add('open');
             } else {
                 document.getElementById('sm-style-bg').value = '#000000';
                 document.getElementById('sm-style-color').value = '#ffffff';
                 document.getElementById('sm-style-size').value = '';
                 updateSmMediaOptions('');
+                setSmAlign('center', 'h');
+                setSmAlign('center', 'v');
                 document.getElementById('sm-style-options').classList.remove('open');
             }
             
@@ -590,6 +636,9 @@
                  if(item.style.bg) tempSettings.bgColor = item.style.bg;
                  if(item.style.color) tempSettings.textColor = item.style.color;
                  if(item.style.size) tempSettings.textSize = item.style.size;
+                 if(item.style.align) tempSettings.textAlign = item.style.align;
+                 if(item.style.valign) tempSettings.valign = item.style.valign;
+
                  if(item.style.img) { 
                      tempSettings.bgType = item.style.mediaType || 'image'; 
                      tempSettings.bgUrl = item.style.img; 
@@ -599,7 +648,7 @@
                  }
                  tempSettings.timestamp = Date.now(); // FORCE UPDATE
                  
-                 if(!isProjector && !isStage) {
+                 if(!isProjector) {
                     channel.postMessage({ type: 'settings', payload: tempSettings });
                     try { localStorage.setItem('appSettings', JSON.stringify(tempSettings)); } catch(e){}
                  }
@@ -626,7 +675,7 @@
         function closeSmViewer() {
             document.getElementById('sm-viewer').style.display = 'none';
             currentSmIndex = -1;
-            if(!isProjector && !isStage) {
+            if(!isProjector) {
                 currentSettings.timestamp = Date.now(); // FORCE RESTORE
                 try { localStorage.setItem('appSettings', JSON.stringify(currentSettings)); } catch(e){}
                 channel.postMessage({ type: 'settings', payload: currentSettings });
@@ -635,7 +684,7 @@
 
         // --- GALLERY LOGIC ---
         function renderGallery() {
-            if(isProjector || isStage) return;
+            if(isProjector) return;
             const grid = document.getElementById('gallery-grid'); grid.innerHTML = '';
             galleryItems.forEach((item, index) => {
                 const div = document.createElement('div');
@@ -866,10 +915,13 @@
                     currentSmIndex = -1; // New mode
                     document.getElementById('new-sm-title').value=''; 
                     document.getElementById('new-sm-content').value='';
+                    // Reset Styles UI in Modal
                     document.getElementById('sm-style-bg').value = '#000000';
                     document.getElementById('sm-style-color').value = '#ffffff';
                     document.getElementById('sm-style-size').value = '';
                     updateSmMediaOptions('');
+                    setSmAlign('center', 'h');
+                    setSmAlign('center', 'v');
                     document.getElementById('sm-style-options').classList.remove('open');
                     updateSmPreview(); // Init preview
                 }
@@ -885,15 +937,15 @@
         // --- DISPLAY & UI ---
         function updateDisplay(text) { 
             document.getElementById('text-display').innerText = text; 
-            if(!isProjector && !isStage) { 
+            if(!isProjector) { 
                 document.getElementById('live-text').value = text; 
                 channel.postMessage({ type: 'text', payload: text }); 
                 localStorage.setItem('liveText', text); 
             } 
         }
 
-        // POLLING LOOP FOR PROJECTOR/STAGE
-        if(isProjector || isStage) {
+        // POLLING LOOP FOR PROJECTOR
+        if(isProjector) {
             setInterval(() => {
                 const storedText = localStorage.getItem('liveText');
                 if (storedText && document.getElementById('text-display').innerText !== storedText) {
@@ -904,12 +956,17 @@
                     const state = JSON.parse(storedTimer);
                     const el = document.getElementById('timer-display');
                     if (el.innerText !== state.text) el.innerText = state.text;
-                    if(!isStage && el.style.fontSize !== state.fontSize) el.style.fontSize = state.fontSize;
+                    el.style.fontSize = state.fontSize;
                     if(state.danger) {
                          if(!el.classList.contains('danger-mode')) el.classList.add('danger-mode');
                     } else {
                          if(el.classList.contains('danger-mode')) el.classList.remove('danger-mode');
                     }
+                    if(state.danger && state.text === "ACABOU SEU TEMPO") {
+                         if(!el.classList.contains('blink-mode')) el.classList.add('blink-mode');
+                     } else {
+                         if(el.classList.contains('blink-mode')) el.classList.remove('blink-mode');
+                     }
                 }
                 const storedBlackout = localStorage.getItem('blackoutState');
                 if(storedBlackout !== null) {
@@ -944,6 +1001,69 @@
             applyStyles(currentSettings); 
             channel.postMessage({type:'settings', payload:currentSettings}); 
         }
+
+        function applyStyles(s) {
+            const display = document.getElementById('display-area');
+            const overlay = document.getElementById('display-overlay');
+            const text = document.getElementById('text-display');
+            const timer = document.getElementById('timer-display');
+            const wrapper = document.getElementById('content-wrapper');
+            const videoEl = document.getElementById('bg-video');
+
+            timer.style.display = (s.showTimer !== false) ? 'block' : 'none';
+            text.style.display = (s.showText !== false) ? 'block' : 'none';
+
+            if (s.timerPos === 'bottom') {
+                wrapper.style.flexDirection = 'column-reverse';
+            } else {
+                wrapper.style.flexDirection = 'column';
+            }
+
+            display.style.backgroundColor = s.bgColor;
+            
+            // Vertical Alignment Logic
+            display.style.justifyContent = s.valign || 'center';
+
+            if (s.bgType === 'video' && s.bgUrl) {
+                display.style.backgroundImage = 'none';
+                videoEl.style.display = 'block';
+                if (videoEl.src !== s.bgUrl) {
+                    videoEl.src = s.bgUrl;
+                    videoEl.play().catch(e => console.log("Erro ao tocar vídeo:", e));
+                } else {
+                    if(videoEl.paused) videoEl.play();
+                }
+            } else if (s.bgType === 'image' && s.bgUrl) {
+                videoEl.style.display = 'none';
+                videoEl.pause();
+                display.style.backgroundImage = `url('${s.bgUrl}')`;
+            } else {
+                videoEl.style.display = 'none';
+                videoEl.pause();
+                display.style.backgroundImage = 'none';
+            }
+
+            if (s.bgType !== 'color') {
+                overlay.style.backgroundColor = `rgba(0,0,0,${s.overlayOpacity})`;
+            } else {
+                overlay.style.backgroundColor = 'transparent';
+            }
+
+            text.style.color = s.textColor;
+            text.style.fontSize = `${s.textSize}px`; 
+            text.style.fontFamily = s.fontFamily;
+            text.style.textAlign = s.textAlign;
+            
+            // Align items horizontally for the wrapper children (Timer/Text)
+            let alignH = 'center';
+            if(s.textAlign === 'left') alignH = 'flex-start';
+            if(s.textAlign === 'right') alignH = 'flex-end';
+            wrapper.style.alignItems = alignH;
+
+            timer.style.color = s.timerColor; 
+            // Only set if not blinking
+             if(timer.innerText !== "ACABOU SEU TEMPO") timer.style.fontSize = `${s.timerSize}px`;
+        }
         
         function updateSettings() {
              currentSettings.autoOpenProjector = document.getElementById('cfg-auto-open').checked;
@@ -965,7 +1085,7 @@
              saveAndApplySettings();
         }
         function loadSettingsToInputs() {
-            if(isProjector || isStage) return;
+            if(isProjector) return;
             document.getElementById('cfg-auto-open').checked = currentSettings.autoOpenProjector;
             document.getElementById('cfg-show-timer').checked = currentSettings.showTimer;
             document.getElementById('cfg-show-text').checked = currentSettings.showText;
@@ -986,13 +1106,13 @@
 
             updateAlignButtons(currentSettings.textAlign);
         }
-        function updateAlignButtons(align) { if(isProjector || isStage) return; document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active')); document.getElementById(`btn-align-${align}`).classList.add('active'); }
+        function updateAlignButtons(align) { if(isProjector) return; document.querySelectorAll('.align-btn').forEach(b => b.classList.remove('active')); document.getElementById(`btn-align-${align}`).classList.add('active'); }
         function setAlignment(align) { currentSettings.textAlign = align; updateAlignButtons(align); saveAndApplySettings(); }
         function resetSettings() { currentSettings = {...defaultSettings}; currentSettings.timestamp = Date.now(); loadSettingsToInputs(); saveAndApplySettings(); }
 
         // --- RESTORED FUNCTIONS ---
         function renderList() {
-            if(isProjector || isStage) return;
+            if(isProjector) return;
             const list = document.getElementById('verse-list');
             list.innerHTML = '';
             verses.forEach((v, index) => {
@@ -1016,9 +1136,8 @@
         function saveVerse() { const t = document.getElementById('new-verse-title').value; const c = document.getElementById('new-verse-content').value; if(t&&c) { verses.push({title:t, content:c}); localStorage.setItem('myVerses', JSON.stringify(verses)); renderList(); closeModal('verse'); } }
 
         // --- INIT ---
-        if (isProjector || isStage) {
-            if(isProjector) { document.body.classList.add('projector-mode'); document.title = "Projeção"; }
-            if(isStage) { document.body.classList.add('stage-mode'); document.title = "Retorno (Palco)"; }
+        if (isProjector) {
+            document.body.classList.add('projector-mode'); document.title = "Projeção";
             applyStyles(currentSettings);
             
             // Handshake Handler
@@ -1027,14 +1146,14 @@
                 if(type === 'timer') {
                     const el = document.getElementById('timer-display');
                     el.innerText = payload.text;
-                    if(!isStage) el.style.fontSize = payload.fontSize;
+                    el.style.fontSize = payload.fontSize;
                     if(payload.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
+                    if(payload.blinking) el.classList.add('blink-mode'); else el.classList.remove('blink-mode');
                 }
                 if(type === 'text') {
                     document.getElementById('text-display').innerText = payload;
                 }
                 if(type === 'settings') {
-                    // Update only if newer to avoid conflict
                     if(payload.timestamp > currentSettings.timestamp) {
                         currentSettings = payload;
                         applyStyles(payload);
@@ -1046,15 +1165,13 @@
                 }
                 if(type === 'state_sync') {
                     document.getElementById('text-display').innerText = payload.text;
-                    
                     if(payload.settings.timestamp > currentSettings.timestamp) {
                         currentSettings = payload.settings;
                         applyStyles(payload.settings);
                     }
-                    
                     const el = document.getElementById('timer-display');
                     el.innerText = payload.timerText;
-                    if(!isStage) el.style.fontSize = payload.timerSize;
+                    el.style.fontSize = payload.timerSize;
                     if(payload.timerDanger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
                 }
             };
@@ -1084,7 +1201,6 @@
                         danger: timerEl.classList.contains('danger-mode'), 
                         fontSize: timerEl.style.fontSize 
                     }));
-                    // Force timestamp update on sync
                     currentSettings.timestamp = Date.now();
                     localStorage.setItem('appSettings', JSON.stringify(currentSettings));
                     localStorage.setItem('blackoutState', isBlackout);
@@ -1114,14 +1230,15 @@
             }
              if (e.key === 'liveText') {
                 document.getElementById('text-display').innerText = e.newValue;
-                if(!isProjector && !isStage) document.getElementById('live-text').value = e.newValue;
+                if(!isProjector) document.getElementById('live-text').value = e.newValue;
             }
             if (e.key === 'timerState') {
                 const state = JSON.parse(e.newValue);
                 const el = document.getElementById('timer-display');
                 el.innerText = state.text;
-                if(!isStage) el.style.fontSize = state.fontSize;
+                el.style.fontSize = state.fontSize;
                 if(state.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
+                if(state.text === "ACABOU SEU TEMPO" && state.danger) el.classList.add('blink-mode'); else el.classList.remove('blink-mode');
             }
             if(e.key === 'blackoutState') {
                 isBlackout = (e.newValue === 'true');
@@ -1142,7 +1259,7 @@
                 } catch (e) { console.warn("Permissão de tela negada ou API não suportada.", e); }
             }
             // Força salvamento antes de abrir
-            if(!isProjector && !isStage) {
+            if(!isProjector) {
                  localStorage.setItem('liveText', document.getElementById('live-text').value);
                  currentSettings.timestamp = Date.now();
                  localStorage.setItem('appSettings', JSON.stringify(currentSettings));
@@ -1150,45 +1267,49 @@
             const newWin = window.open(window.location.href.split('?')[0] + '?view=projector', 'ProjectorWindow', params);
             if(!newWin || newWin.closed || typeof newWin.closed=='undefined') alert("O navegador bloqueou a janela do projetor. Por favor, permita POP-UPS para este site na barra de endereço.");
         }
-        async function openStageWindow() { 
-            let params = 'width=800,height=600,menubar=no,toolbar=no,location=no,status=no';
-             if (window.getScreenDetails) {
-                try {
-                    const screenDetails = await window.getScreenDetails();
-                    const secondaryScreen = screenDetails.screens.find(s => s !== screenDetails.currentScreen);
-                    if (secondaryScreen) {
-                         params = `left=${secondaryScreen.left},top=${secondaryScreen.top},width=${secondaryScreen.width},height=${secondaryScreen.height},menubar=no,toolbar=no,location=no,status=no,fullscreen=yes`;
-                    }
-                } catch(e){}
-             }
-            // Força salvamento
-            if(!isProjector && !isStage) {
-                 localStorage.setItem('liveText', document.getElementById('live-text').value);
-            }
-            window.open(window.location.href.split('?')[0]+'?view=stage', 'Retorno', params); 
-        }
         function downloadSource() { const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([document.documentElement.outerHTML],{type:'text/html'})); a.download='louvor_app_pro.html'; a.click(); }
 
         // TIMER Logic
-        function startTimer() { if (isRunning) return; if (!isProjector && !timerInterval) { const m = parseInt(document.getElementById('min').value)||0; const s = parseInt(document.getElementById('sec').value)||0; totalSeconds = m * 60 + s; } isRunning = true; timerInterval = setInterval(() => { if (totalSeconds <= 0) { clearInterval(timerInterval); isRunning = false; updateTimerUI(true); return; } totalSeconds--; updateTimerUI(false); }, 1000); }
-        function pauseTimer() { clearInterval(timerInterval); timerInterval = null; isRunning = false; }
-        function resetTimer() { pauseTimer(); if (!isProjector) { const m = parseInt(document.getElementById('min').value)||0; const s = parseInt(document.getElementById('sec').value)||0; totalSeconds = m * 60 + s; updateTimerUI(false); } }
+        function startTimer() { if (isRunning) return; if (!isProjector && !timerInterval) { const m = parseInt(document.getElementById('min').value)||0; const s = parseInt(document.getElementById('sec').value)||0; totalSeconds = m * 60 + s; } isRunning = true; timerInterval = setInterval(() => { if (totalSeconds <= 0) { clearInterval(timerInterval); isRunning = false; startBlinkSequence(); return; } totalSeconds--; updateTimerUI(false); }, 1000); }
+        function startBlinkSequence() { isRunning = true; isBlinking = true; updateTimerUI(true); blinkTimeout = setTimeout(() => { isBlinking = false; startOvertime(); }, 10000); }
+        function startOvertime() { isBlinking = false; isOvertime = true; overtimeSeconds = 0; isRunning = true; if(timerInterval) clearInterval(timerInterval); overtimeInterval = setInterval(() => { overtimeSeconds++; updateTimerUI(false); }, 1000); }
+        function pauseTimer() { clearInterval(timerInterval); timerInterval = null; clearInterval(overtimeInterval); overtimeInterval = null; clearTimeout(blinkTimeout); blinkTimeout = null; isRunning = false; }
+        function resetTimer() { pauseTimer(); isBlinking = false; isOvertime = false; overtimeSeconds = 0; if (!isProjector) { const m = parseInt(document.getElementById('min').value)||0; const s = parseInt(document.getElementById('sec').value)||0; totalSeconds = m * 60 + s; updateTimerUI(false); } }
         function updateTimerUI(finished) {
             let txt = "", size = "", danger = false;
-            if(finished) { txt = "ACABOU SEU TEMPO"; size = (currentSettings.timerSize * 0.4) + "px"; danger = true; }
-            else { 
-                const m = Math.floor(totalSeconds / 60); const s = totalSeconds % 60;
-                txt = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            let blinking = false;
+
+            if (isBlinking) {
+                txt = "ACABOU SEU TEMPO"; 
+                size = (currentSettings.timerSize * 0.4) + "px";
+                danger = true;
+                blinking = true;
+            } else if (isOvertime) {
+                const m = Math.floor(overtimeSeconds / 60); const s = overtimeSeconds % 60;
+                txt = `+${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
                 size = currentSettings.timerSize + "px";
-                danger = (totalSeconds < (currentSettings.alertTime||60) && totalSeconds > 0);
+                danger = true; 
+            } else {
+                if (finished) { 
+                    txt = "00:00"; 
+                } else {
+                    const m = Math.floor(totalSeconds / 60); const s = totalSeconds % 60;
+                    txt = `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+                }
+                if (totalSeconds < (currentSettings.alertTime||60) && totalSeconds > 0) { danger = true; }
             }
-            const el = document.getElementById('timer-display'); el.innerText = txt; 
-            if (!isStage) el.style.fontSize = size;
+
+            const el = document.getElementById('timer-display');
+            el.innerText = txt; 
+            el.style.fontSize = size;
+            
             if(danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
+            if(blinking) el.classList.add('blink-mode'); else el.classList.remove('blink-mode');
             
             if(!isProjector) {
-                channel.postMessage({ type: 'timer', payload: { text: txt, danger, fontSize: size } });
-                localStorage.setItem('timerState', JSON.stringify({ text: txt, danger, fontSize: size }));
+                const payload = { text: txt, danger, fontSize: size, blinking };
+                channel.postMessage({ type: 'timer', payload });
+                localStorage.setItem('timerState', JSON.stringify(payload));
             }
         }
         
