@@ -445,7 +445,7 @@
             <textarea id="live-text" placeholder="Digite para projetar..." oninput="updateDisplay(this.value)"></textarea>
             
             <!-- HIDE TEXT BUTTON -->
-            <button class="ctrl-btn" onclick="hideText()" title="OCULTAR TEXTO"><span class="material-icons">visibility_off</span></button>
+            <button class="ctrl-btn" id="btn-hide-text" onclick="toggleText()" title="Ocultar Texto"><span class="material-icons">visibility_off</span></button>
 
             <button class="ctrl-btn" onclick="toggleFullScreen()"><span class="material-icons">fullscreen</span></button>
         </div>
@@ -1191,19 +1191,31 @@
         }
         
         // --- HIDE TEXT / CLEAR CONTENT FUNCTIONALITY ---
-        function hideText() {
-            updateDisplay(""); 
-            // Force removal of content-active class to center timer
-            document.body.classList.remove('content-active');
-            
-            // Clear selections in UI
-            document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
-            document.querySelectorAll('.active-slide').forEach(el => el.classList.remove('active-slide'));
-            currentBibleVerseIndex = -1;
-            
-            // Ensure projector knows about this state
-            if(!isProjector) {
-                channel.postMessage({ type: 'text', payload: "" });
+        let tempSavedText = "";
+
+        function toggleText() {
+            const btn = document.getElementById('btn-hide-text');
+            const icon = btn.querySelector('.material-icons');
+            const currentText = document.getElementById('live-text').value;
+
+            if (tempSavedText === "") {
+                // Hiding
+                if (!currentText.trim()) return; // Nothing to hide
+                tempSavedText = currentText;
+                updateDisplay(""); // This clears the display AND removes content-active class, centering the timer
+                
+                // Clear selections in UI visually
+                document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+                document.querySelectorAll('.active-slide').forEach(el => el.classList.remove('active-slide'));
+                
+                icon.innerText = "visibility"; // Eye open (Show)
+                btn.title = "Mostrar Texto";
+            } else {
+                // Showing
+                updateDisplay(tempSavedText);
+                tempSavedText = "";
+                icon.innerText = "visibility_off"; // Eye crossed (Hide)
+                btn.title = "Ocultar Texto";
             }
         }
         
@@ -1215,6 +1227,16 @@
                 document.body.classList.add('content-active');
             } else {
                 document.body.classList.remove('content-active');
+            }
+
+            // Reset toggle state if content is updated externally (e.g. typing or clicking verse)
+            if (typeof tempSavedText !== 'undefined' && tempSavedText !== "" && text !== "") {
+                 tempSavedText = "";
+                 const btn = document.getElementById('btn-hide-text');
+                 if(btn) {
+                     btn.querySelector('.material-icons').innerText = "visibility_off";
+                     btn.title = "Ocultar Texto";
+                 }
             }
 
             if(!isProjector) { 
