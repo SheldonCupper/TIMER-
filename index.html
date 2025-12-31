@@ -9,7 +9,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#121212">
-    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABmJLR0QA/wD/AP+gvaeTAAAAjklEQVRoge3ywQmAMAwF0EwlTtIlnKdrOoun0wlSqCFIQ/sP34PAQyAJ4D/i2c7d5666q6q7e7d5666q7u7d5q27qrq7d5t3rqrqrt7t3nrrqru7t3mrbuqurt3m7fuquru3m3euququ3u3eeuuqu7u3eatuyq6+zJ/4r6f4B/4u/u2eQAAAABJRU5ErkJggg==" id="app-icon">
+    <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAABmJLR0QA/wD/AP+gvaeTAAAAjklEQVRoge3ywQmAMAwF0EwlTtIlnKdrOoun0wlSqCFIQ/sP34PAQyAJ4D/i2c7d5666q6q7e7d5666q7u7d5t3rqrqrt7t3nrrqru7t3mrbuqurt3m7fuquru3m3euququ3u3eeuuqu7u3eatuyq6+zJ/4r6f4B/4u/u2eQAAAABJRU5ErkJggg==" id="app-icon">
     <link rel="manifest" id="app-manifest">
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     
@@ -24,6 +24,7 @@
             --success-color: #10b981;
             --alert-color-1: #ff0000;
             --alert-color-2: #880000;
+            --timer-corner-size: 40px; /* Variável para tamanho do timer no canto */
         }
         body { 
             margin: 0; 
@@ -159,9 +160,49 @@
         #display-overlay { position: absolute; top:0; left:0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); pointer-events: none; z-index: 1; }
         #content-wrapper { z-index: 2; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 20px; position: relative; }
         #timer-display { font-family: 'Courier New', monospace; font-weight: bold; line-height: 1; transition: color 0.3s, font-size 0.3s; }
+        #clock-display { font-family: 'Courier New', monospace; font-weight: bold; line-height: 1; margin-bottom: 5px; display: none; transition: color 0.3s, font-size 0.3s; }
         #text-display { line-height: 1.3; max-width: 90%; white-space: pre-wrap; font-weight: 500; transition: all 0.3s; }
         .danger-mode { color: var(--danger-color) !important; text-shadow: 0 0 30px rgba(239, 68, 68, 0.5) !important; }
         
+        /* ESTILOS PARA QUANDO HÁ TEXTO NA TELA */
+        body.content-active #timer-display {
+            position: absolute;
+            top: 40px;
+            left: 30px;
+            font-size: var(--timer-corner-size) !important;
+            text-align: left;
+            width: auto;
+            z-index: 100;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+        }
+        
+        body.content-active #clock-display {
+            position: absolute;
+            top: 15px;
+            left: 30px;
+            font-size: calc(var(--timer-corner-size) * 0.5) !important;
+            text-align: left;
+            width: auto;
+            z-index: 100;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+            margin: 0;
+        }
+
+        body.content-active #content-wrapper {
+            justify-content: center !important; /* Força o texto para o centro */
+            height: 100vh;
+            width: 100vw;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        body.content-active #text-display {
+            margin: 0;
+            width: 90%;
+            /* Tamanho da fonte é controlado pelo slider em Ajustes */
+        }
+
         @keyframes blink-panic {
             0%, 100% { opacity: 1; color: var(--alert-color-1); text-shadow: 0 0 40px var(--alert-color-1); transform: scale(1.05); }
             50% { opacity: 0.3; color: var(--alert-color-2); text-shadow: none; transform: scale(1); }
@@ -351,13 +392,20 @@
 
         <div id="tab-appearance" class="tab-content">
             <div class="config-group"><h4>Projeção</h4><div class="config-item"><label>Abrir Projetor ao Iniciar</label><input type="checkbox" id="cfg-auto-open" onchange="updateSettings()"></div></div>
-            <div class="config-group"><h4>Layout</h4><div class="config-item"><label>Mostrar Timer</label><input type="checkbox" id="cfg-show-timer" onchange="updateSettings()" checked></div><div class="config-item"><label>Mostrar Texto</label><input type="checkbox" id="cfg-show-text" onchange="updateSettings()" checked></div><div class="config-item"><label>Posição</label><select id="cfg-timer-pos" class="config-select" onchange="updateSettings()"><option value="top">Timer Acima</option><option value="bottom">Timer Abaixo</option></select></div></div>
+            <div class="config-group">
+                <h4>Layout</h4>
+                <div class="config-item"><label>Mostrar Timer</label><input type="checkbox" id="cfg-show-timer" onchange="updateSettings()" checked></div>
+                <div class="config-item"><label>Mostrar Hora</label><input type="checkbox" id="cfg-show-clock" onchange="updateSettings()"></div>
+                <div class="config-item"><label>Mostrar Texto</label><input type="checkbox" id="cfg-show-text" onchange="updateSettings()" checked></div>
+                <div class="config-item"><label>Posição</label><select id="cfg-timer-pos" class="config-select" onchange="updateSettings()"><option value="top">Timer Acima</option><option value="bottom">Timer Abaixo</option></select></div>
+            </div>
             <div class="config-group"><h4>Estilo Global</h4><div class="config-item"><label>Cor Fundo</label><input type="color" id="cfg-bg-color" value="#000000" oninput="updateSettings()"></div><div class="config-item"><label>Escurecer</label><input type="range" id="cfg-overlay-opacity" min="0" max="1" step="0.1" value="0.5" oninput="updateSettings()"></div><div class="config-item"><label>Cor Texto</label><input type="color" id="cfg-text-color" value="#ffffff" oninput="updateSettings()"></div><div class="config-item"><label>Tam. Texto</label><input type="number" id="cfg-text-size" min="10" max="800" value="80" oninput="updateSettings()"></div><div class="config-item" style="display:block"><label style="display:block; margin-bottom:5px;">Fonte</label><select id="cfg-font-family" class="font-select" onchange="updateSettings()"><option value="'Segoe UI', sans-serif">Padrão</option><option value="'Courier New', monospace">Máquina</option><option value="'Times New Roman', serif">Clássico</option><option value="Arial, sans-serif">Simples</option><option value="cursive">Manuscrito</option></select></div><div class="config-item" style="display:block; margin-top:10px;"><label style="display:block; margin-bottom:5px;">Alinhamento</label><div class="align-btn-group"><button class="align-btn" onclick="setAlignment('left')" id="btn-align-left"><span class="material-icons">format_align_left</span></button><button class="align-btn" onclick="setAlignment('center')" id="btn-align-center"><span class="material-icons">format_align_center</span></button><button class="align-btn" onclick="setAlignment('right')" id="btn-align-right"><span class="material-icons">format_align_right</span></button></div></div></div>
             
             <div class="config-group">
                 <h4>Timer</h4>
                 <div class="config-item"><label>Cor Normal</label><input type="color" id="cfg-timer-color" value="#4ade80" oninput="updateSettings()"></div>
                 <div class="config-item"><label>Tamanho (px)</label><input type="number" id="cfg-timer-size" min="10" max="800" value="180" oninput="updateSettings()"></div>
+                <div class="config-item"><label>Tam. (Canto)</label><input type="number" id="cfg-timer-corner-size" min="10" max="200" value="40" oninput="updateSettings()"></div>
                 <div class="config-item"><label>Alertar quando faltar:</label><div class="input-group" style="justify-content: flex-end;"><input type="number" id="cfg-alert-min" value="1" oninput="updateSettings()" placeholder="m" style="width: 40px;"><span>:</span><input type="number" id="cfg-alert-sec" value="00" oninput="updateSettings()" placeholder="s" style="width: 40px;"></div></div>
                 
                 <div style="border-top: 1px solid #333; margin: 10px 0; padding-top: 10px;">
@@ -383,18 +431,33 @@
         <div id="controls-bar">
             <button class="ctrl-btn" onclick="toggleSidebar()"><span class="material-icons">menu</span></button>
             <button class="ctrl-btn project" onclick="openProjectorWindow(true)" title="Projetar"><span class="material-icons">open_in_new</span> Projetor</button>
-            <div class="input-group"><input type="number" id="min" value="5"><span>:</span><input type="number" id="sec" value="00"></div>
+            
+            <div class="input-group">
+                <input type="number" id="min" value="5"><span>:</span><input type="number" id="sec" value="00">
+            </div>
+            
+            <!-- BUTTON FOR TARGET TIME -->
+            <button class="ctrl-btn" onclick="openTargetTimerModal()" title="Contagem p/ Horário"><span class="material-icons">alarm</span></button>
+
             <button class="ctrl-btn play" onclick="startTimer()"><span class="material-icons">play_arrow</span></button>
             <button class="ctrl-btn stop" onclick="pauseTimer()"><span class="material-icons">pause</span></button>
             <button class="ctrl-btn" onclick="resetTimer()"><span class="material-icons">refresh</span></button>
             <textarea id="live-text" placeholder="Digite para projetar..." oninput="updateDisplay(this.value)"></textarea>
+            
+            <!-- HIDE TEXT BUTTON -->
+            <button class="ctrl-btn" onclick="hideText()" title="OCULTAR TEXTO"><span class="material-icons">visibility_off</span></button>
+
             <button class="ctrl-btn" onclick="toggleFullScreen()"><span class="material-icons">fullscreen</span></button>
         </div>
         <div id="display-area">
             <video id="bg-video" loop muted playsinline></video>
             <img id="bg-image" style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; object-fit: cover; z-index: 0; display: none;" onerror="this.style.display='none'">
             <div id="display-overlay"></div>
-            <div id="content-wrapper"><div id="timer-display">05:00</div><div id="text-display">...</div></div>
+            <div id="content-wrapper">
+                <div id="clock-display">00:00</div>
+                <div id="timer-display">05:00</div>
+                <div id="text-display">...</div>
+            </div>
             <button class="control-only" onclick="toggleUI()" style="position: absolute; bottom: 20px; z-index:10; opacity: 0.3; background: none; border: 1px solid white; color: white; cursor: pointer;">Ocultar Interface</button>
         </div>
         
@@ -410,6 +473,19 @@
 
     <div id="modal-verse" class="modal-overlay hidden"><div class="modal"><h3 style="margin-top:0">Novo Texto</h3><input type="text" id="new-verse-title" placeholder="Título"><textarea id="new-verse-content" rows="5" placeholder="Conteúdo..."></textarea><div class="modal-actions"><button class="ctrl-btn" onclick="closeModal('verse')">Cancelar</button><button class="ctrl-btn play" onclick="saveVerse()">Salvar</button></div></div></div>
     
+    <!-- MODAL FOR TARGET TIMER -->
+    <div id="modal-timer-target" class="modal-overlay hidden">
+        <div class="modal" style="width: 300px !important;">
+            <h3 style="margin-top:0; display:flex; align-items:center; gap:10px;"><span class="material-icons">alarm</span> Contagem para Horário</h3>
+            <p style="font-size:0.9rem; color:#aaa; margin-bottom:15px;">Defina o horário de início (Ex: 19:30). O sistema calculará o tempo restante.</p>
+            <input type="time" id="target-time-input" style="font-size: 1.5rem; padding: 10px; text-align:center; color:white; background:#111; border:1px solid #444; border-radius:6px; margin-bottom:20px;">
+            <div class="modal-actions">
+                <button class="ctrl-btn" onclick="closeModal('timer-target')">Cancelar</button>
+                <button class="ctrl-btn play" onclick="setTargetTimer()">Iniciar Contagem</button>
+            </div>
+        </div>
+    </div>
+
     <div id="modal-sm" class="modal-overlay hidden">
         <div class="modal" style="width: 90%; max-width: 800px; flex-direction: row; gap: 20px;">
             <div style="flex: 1; display: flex; flex-direction: column; overflow-y: auto;">
@@ -485,8 +561,10 @@
         let isManualAlert = false;
         let currentBibleVerseIndex = -1;
 
-        const bibleBooks = [{name: "Gênesis", id: "Genesis"},{name: "Êxodo", id: "Exodus"},{name: "Levítico", id: "Leviticus"},{name: "Números", id: "Numbers"},{name: "Deuteronômio", id: "Deuteronomy"},{name: "Josué", id: "Joshua"},{name: "Juízes", id: "Judges"},{name: "Rute", id: "Ruth"},{name: "1 Samuel", id: "1 Samuel"},{name: "2 Samuel", id: "2 Samuel"},{name: "1 Reis", id: "1 Kings"},{name: "2 Reis", id: "2 Kings"},{name: "1 Crônicas", id: "1 Chronicles"},{name: "2 Crônicas", id: "2 Chronicles"},{name: "Esdras", id: "Ezra"},{name: "Neemias", id: "Nehemiah"},{name: "Ester", id: "Esther"},{name: "Jó", id: "Job"},{name: "Salmos", id: "Psalms"},{name: "Provérbios", id: "Proverbs"},{name: "Eclesiastes", id: "Ecclesiastes"},{name: "Cânticos", id: "Song of Solomon"},{name: "Isaías", id: "Isaiah"},{name: "Jeremias", id: "Jeremiah"},{name: "Lamentações", id: "Lamentations"},{name: "Ezequiel", id: "Ezekiel"},{name: "Daniel", id: "Daniel"},{name: "Oseias", id: "Hosea"},{name: "Joel", id: "Joel"},{name: "Amós", id: "Amos"},{name: "Obadias", id: "Obadiah"},{name: "Jonas", id: "Jonah"},{name: "Miqueias", id: "Micah"},{name: "Naum", id: "Nahum"},{name: "Habacuque", id: "Habakkuk"},{name: "Sofonias", id: "Zephaniah"},{name: "Ageu", id: "Haggai"},{name: "Zacarias", id: "Zechariah"},{name: "Malaquias", id: "Malachi"},{name: "Mateus", id: "Matthew"},{name: "Marcos", id: "Mark"},{name: "Lucas", id: "Luke"},{name: "João", id: "John"},{name: "Atos", id: "Acts"},{name: "Romanos", id: "Romans"},{name: "1 Coríntios", id: "1 Corinthians"},{name: "2 Coríntios", id: "2 Corinthians"},{name: "Gálatas", id: "Galatians"},{name: "Efésios", id: "Ephesians"},{name: "Filipenses", id: "Philippians"},{name: "Colossenses", id: "Colossians"},{name: "1 Tessalonicenses", id: "1 Thessalonians"},{name: "2 Tessalonicenses", id: "2 Thessalonians"},{name: "1 Timóteo", id: "1 Timothy"},{name: "2 Timóteo", id: "2 Timothy"},{name: "Tito", id: "Titus"},{name: "Filemom", id: "Philemon"},{name: "Hebreus", id: "Hebrews"},{name: "Tiago", id: "James"},{name: "1 Pedro", id: "1 Peter"},{name: "2 Pedro", id: "2 Peter"},{name: "1 João", id: "1 João"},{name: "2 João", id: "2 John"},{name: "3 João", id: "3 John"},{name: "Judas", id: "Judas"},{name: "Apocalipse", id: "Revelation"}];
-        const bibleChapterCounts = [50,40,27,36,34,24,21,4,31,24,22,25,29,36,10,13,10,42,150,31,12,8,66,52,5,48,12,14,3,9,1,4,7,3,3,3,2,14,4,28,16,24,21,28,16,16,13,6,6,4,4,5,3,6,1,13,5,5,3,5,1,1,1,22];
+        const bibleBooks = [{name: "Gênesis", id: "Genesis"},{name: "Êxodo", id: "Exodus"},{name: "Levítico", id: "Leviticus"},{name: "Números", id: "Numbers"},{name: "Deuteronômio", id: "Deuteronomy"},{name: "Josué", id: "Joshua"},{name: "Juízes", id: "Judges"},{name: "Rute", id: "Ruth"},{name: "1 Samuel", id: "1 Samuel"},{name: "2 Samuel", id: "2 Samuel"},{name: "1 Reis", id: "1 Kings"},{name: "2 Reis", id: "2 Kings"},{name: "1 Crônicas", id: "1 Chronicles"},{name: "2 Crônicas", id: "2 Chronicles"},{name: "Esdras", id: "Ezra"},{name: "Neemias", id: "Nehemiah"},{name: "Ester", id: "Esther"},{name: "Jó", id: "Job"},{name: "Salmos", id: "Psalms"},{name: "Provérbios", id: "Proverbs"},{name: "Eclesiastes", id: "Ecclesiastes"},{name: "Cânticos", id: "Song of Solomon"},{name: "Isaías", id: "Isaiah"},{name: "Jeremias", id: "Jeremiah"},{name: "Lamentações", id: "Lamentations"},{name: "Ezequiel", id: "Ezekiel"},{name: "Daniel", id: "Daniel"},{name: "Oseias", id: "Hosea"},{name: "Joel", id: "Joel"},{name: "Amós", id: "Amos"},{name: "Obadias", id: "Obadiah"},{name: "Jonas", id: "Jonah"},{name: "Miqueias", id: "Micah"},{name: "Naum", id: "Nahum"},{name: "Habacuque", id: "Habakkuk"},{name: "Sofonias", id: "Zephaniah"},{name: "Ageu", id: "Haggai"},{name: "Zacarias", id: "Zechariah"},{name: "Malaquias", id: "Malachi"},{name: "Mateus", id: "Matthew"},{name: "Marcos", id: "Mark"},{name: "Lucas", id: "Luke"},{name: "João", id: "John"},{name: "Atos", id: "Acts"},{name: "Romanos", id: "Romans"},{name: "1 Coríntios", id: "1 Corinthians"},{name: "2 Coríntios", id: "2 Corinthians"},{name: "Gálatas", id: "Galatians"},{name: "Efésios", id: "Ephesians"},{name: "Filipenses", id: "Philippians"},{name: "Colossenses", id: "Colossians"},{name: "1 Tessalonicenses", id: "1 Thessalonians"},{name: "2 Tessalonicenses", id: "2 Thessalonians"},{name: "1 Timóteo", id: "1 Timothy"},{name: "2 Timóteo", id: "2 Timothy"},{name: "Tito", id: "Titus"},{name: "Filemom", id: "Philemon"},{name: "Hebreus", id: "Hebrews"},{name: "Tiago", id: "James"},{name: "1 Pedro", id: "1 Peter"},{name: "2 Pedro", id: "2 Peter"},{name: "1 João", id: "1 John"},{name: "2 João", id: "2 John"},{name: "3 João", id: "3 John"},{name: "Judas", id: "Jude"},{name: "Apocalipse", id: "Revelation"}];
+        // CORRIGIDA A LISTAGEM DE CAPÍTULOS (Principalmente NT)
+        const bibleChapterCounts = [50, 40, 27, 36, 34, 24, 21, 4, 31, 24, 22, 25, 29, 36, 10, 13, 10, 42, 150, 31, 12, 8, 66, 52, 5, 48, 12, 14, 3, 9, 1, 4, 7, 3, 3, 3, 2, 14, 4, 28, 16, 24, 21, 28, 16, 16, 13, 6, 6, 4, 4, 5, 3, 6, 4, 3, 1, 13, 5, 5, 3, 5, 1, 1, 1, 22];
+        
         const bibleVersions = {
             'aa': { name: 'Almeida Atualizada', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_aa.json' },
             'acf': { name: 'Almeida Corr. Fiel', url: 'https://raw.githubusercontent.com/thiagobodruk/bible/master/json/pt_acf.json' },
@@ -495,10 +573,10 @@
 
         let currentSettings = JSON.parse(localStorage.getItem('appSettings')) || { 
             timestamp: 0,
-            autoOpenProjector: false, showTimer: true, showText: true, timerPos: 'top', 
+            autoOpenProjector: false, showTimer: true, showText: true, showClock: false, timerPos: 'top', 
             bgColor: '#000000', bgType: 'color', bgUrl: '', overlayOpacity: 0.5, 
             textColor: '#ffffff', textSize: 80, fontFamily: "'Segoe UI', sans-serif", textAlign: 'center', 
-            timerColor: '#4ade80', timerSize: 180, alertTime: 60,
+            timerColor: '#4ade80', timerSize: 180, timerCornerSize: 40, alertTime: 60,
             valign: 'center', 
             alertText: "ACABOU SEU TEMPO", alertSize: 70, alertColor1: "#ff0000", alertColor2: "#880000", alertDuration: 10
         };
@@ -507,6 +585,7 @@
         let smSlides = JSON.parse(localStorage.getItem('mySmSlides')) || []; 
 
         let timerInterval, totalSeconds = 300, isRunning = false;
+        let targetDate = null; // New variable for target time mode
         
         let overtimeInterval;
         let blinkTimeout;
@@ -924,30 +1003,43 @@
              if(downloadedVersions[vKey]) {
                  try {
                      data = await getChapterFromLocalDB(vKey, bIdx, ch);
-                 } catch(e){}
+                 } catch(e){ console.log("Local DB fetch failed", e); }
              }
              
-             if (!data) {
-                 const apiKey = "AIzaSyCD1tXgDGMa8H4UJR7s1eEOPFjbjI7dd4Y";
+             if (!data || !data.verses) {
+                 const apiKey = "";
                  try {
                     const prompt = `Texto de ${bName} ${ch} na versão ${bibleVersions[vKey].name}. JSON: {"verses":[{"verse":1,"text":"..."}]}`;
                     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, { method: "POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
                     const d = await res.json();
-                    const json = JSON.parse(d.candidates[0].content.parts[0].text.match(/\{[\s\S]*\}/)[0]);
-                    data = { verses: json.verses };
+                    const match = d.candidates?.[0]?.content?.parts?.[0]?.text?.match(/\{[\s\S]*\}/);
+                    if (!match) throw new Error("Invalid Gemini response");
+                    const json = JSON.parse(match[0]);
+                    if (json.verses) data = { verses: json.verses };
                  } catch(e) {
+                     console.log("Gemini failed, trying API fallback", e);
                      try {
-                         const res2 = await fetch(`https://bible-api.com/${bibleBooks[bIdx].id.replace(/\s/g,'+')}+${ch}?translation=almeida`);
+                         const safeId = bibleBooks[bIdx].id.replace(/\s/g,'+');
+                         const res2 = await fetch(`https://bible-api.com/${safeId}+${ch}?translation=almeida`);
+                         if (!res2.ok) throw new Error("API returned " + res2.status);
                          const d2 = await res2.json();
-                         data = { verses: d2.verses };
+                         if (d2.verses) data = { verses: d2.verses };
+                         else throw new Error("API response missing verses");
                      } catch(e2) {
-                         list.innerHTML = '<div style="color:red; text-align:center;">Erro. Baixe a versão para garantir.</div>';
+                         console.error("All fetch methods failed", e2);
+                         let msg = 'Erro ao buscar. Verifique internet ou baixe a versão.';
+                         if (e2.message.includes('404')) msg = 'Capítulo não encontrado na fonte online.';
+                         list.innerHTML = `<div style="color:red; text-align:center;">${msg}</div>`;
                          return;
                      }
                  }
              }
              
-             renderBibleVerses(data.verses, `${bName} ${ch}`, verse);
+             if (data && Array.isArray(data.verses)) {
+                renderBibleVerses(data.verses, `${bName} ${ch}`, verse);
+             } else {
+                list.innerHTML = '<div style="color:red; text-align:center;">Texto não encontrado.</div>';
+             }
         }
 
         function renderBibleVerses(verses, ref, highlightVerse) {
@@ -1067,9 +1159,10 @@
 
 
         function openModal(t) {
-            if(t==='verse' || t==='gallery' || t==='sm') {
-                const m = document.getElementById(`modal-${t}`);
-                m.style.display='flex'; m.classList.remove('hidden');
+            if(t==='verse' || t==='gallery' || t==='sm' || t==='timer-target') {
+                const m = document.getElementById(t === 'timer-target' ? 'modal-timer-target' : `modal-${t}`);
+                if(m) { m.style.display='flex'; m.classList.remove('hidden'); }
+                
                 if(t==='verse') { document.getElementById('new-verse-title').value=''; document.getElementById('new-verse-content').value=''; }
                 if(t==='sm') { 
                     currentSmIndex = -1; 
@@ -1078,7 +1171,7 @@
                     document.getElementById('sm-style-bg').value = '#000000';
                     document.getElementById('sm-style-color').value = '#ffffff';
                     document.getElementById('sm-style-size').value = '';
-                    updateSmMediaOptions('');
+                    document.getElementById('sm-style-img').value = '';
                     setSmAlign('center', 'h');
                     setSmAlign('center', 'v');
                     document.getElementById('sm-style-options').classList.remove('open');
@@ -1088,13 +1181,42 @@
         }
         
         function closeModal(t) { 
-            const m = document.getElementById(t === 'bible-navigator' ? 'modal-bible-navigator' : `modal-${t}`);
+            let id = `modal-${t}`;
+            if (t === 'bible-navigator') id = 'modal-bible-navigator';
+            if (t === 'timer-target') id = 'modal-timer-target';
+            
+            const m = document.getElementById(id);
             if(m) m.style.display='none';
             if(t==='sm') { if(document.getElementById('sm-viewer').style.display === 'none') currentSmIndex = -1; }
         }
         
+        // --- HIDE TEXT / CLEAR CONTENT FUNCTIONALITY ---
+        function hideText() {
+            updateDisplay(""); 
+            // Force removal of content-active class to center timer
+            document.body.classList.remove('content-active');
+            
+            // Clear selections in UI
+            document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
+            document.querySelectorAll('.active-slide').forEach(el => el.classList.remove('active-slide'));
+            currentBibleVerseIndex = -1;
+            
+            // Ensure projector knows about this state
+            if(!isProjector) {
+                channel.postMessage({ type: 'text', payload: "" });
+            }
+        }
+        
         function updateDisplay(text) { 
             document.getElementById('text-display').innerText = text; 
+            
+            const hasContent = text && text.trim().length > 0 && text !== "...";
+            if (hasContent) {
+                document.body.classList.add('content-active');
+            } else {
+                document.body.classList.remove('content-active');
+            }
+
             if(!isProjector) { 
                 document.getElementById('live-text').value = text; 
                 channel.postMessage({ type: 'text', payload: text }); 
@@ -1105,8 +1227,16 @@
         if(isProjector) {
             setInterval(() => {
                 const storedText = localStorage.getItem('liveText');
-                if (storedText && document.getElementById('text-display').innerText !== storedText) {
+                if (storedText !== null && document.getElementById('text-display').innerText !== storedText) {
                     document.getElementById('text-display').innerText = storedText;
+                    
+                    // Sync content-active class in projector based on stored text
+                    const hasContent = storedText && storedText.trim().length > 0 && storedText !== "...";
+                    if (hasContent) {
+                        if (!document.body.classList.contains('content-active')) document.body.classList.add('content-active');
+                    } else {
+                        if (document.body.classList.contains('content-active')) document.body.classList.remove('content-active');
+                    }
                 }
                 const storedTimer = localStorage.getItem('timerState');
                 if (storedTimer) {
@@ -1144,6 +1274,13 @@
                         applyStyles(settings);
                     }
                 }
+                
+                // Clock Update for Projector (HH:MM)
+                if (currentSettings.showClock) {
+                    const now = new Date();
+                    document.getElementById('clock-display').innerText = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                }
+                
             }, 500); 
         }
 
@@ -1164,14 +1301,20 @@
             const overlay = document.getElementById('display-overlay');
             const text = document.getElementById('text-display');
             const timer = document.getElementById('timer-display');
+            const clock = document.getElementById('clock-display');
             const wrapper = document.getElementById('content-wrapper');
             const videoEl = document.getElementById('bg-video');
             const bgImageEl = document.getElementById('bg-image'); 
 
             document.documentElement.style.setProperty('--alert-color-1', s.alertColor1 || '#ff0000');
             document.documentElement.style.setProperty('--alert-color-2', s.alertColor2 || '#880000');
+            
+            // Set Corner Size variable
+            const cornerSize = s.timerCornerSize || 40;
+            document.documentElement.style.setProperty('--timer-corner-size', `${cornerSize}px`);
 
             timer.style.display = (s.showTimer !== false) ? 'block' : 'none';
+            clock.style.display = (s.showClock === true) ? 'block' : 'none';
             text.style.display = (s.showText !== false) ? 'block' : 'none';
 
             if (s.timerPos === 'bottom') {
@@ -1226,12 +1369,15 @@
             wrapper.style.alignItems = alignH;
 
             timer.style.color = s.timerColor; 
-             if(timer.innerText !== s.alertText) timer.style.fontSize = `${s.timerSize}px`;
+            clock.style.color = s.timerColor; 
+            if(timer.innerText !== s.alertText) timer.style.fontSize = `${s.timerSize}px`;
+            clock.style.fontSize = `${s.timerSize}px`;
         }
         
         function updateSettings() {
              currentSettings.autoOpenProjector = document.getElementById('cfg-auto-open').checked;
              currentSettings.showTimer = document.getElementById('cfg-show-timer').checked;
+             currentSettings.showClock = document.getElementById('cfg-show-clock').checked;
              currentSettings.showText = document.getElementById('cfg-show-text').checked;
              currentSettings.timerPos = document.getElementById('cfg-timer-pos').value;
              currentSettings.bgColor = document.getElementById('cfg-bg-color').value;
@@ -1241,6 +1387,7 @@
              currentSettings.fontFamily = document.getElementById('cfg-font-family').value;
              currentSettings.timerColor = document.getElementById('cfg-timer-color').value;
              currentSettings.timerSize = document.getElementById('cfg-timer-size').value;
+             currentSettings.timerCornerSize = document.getElementById('cfg-timer-corner-size').value; // New setting
              const alertMin = parseInt(document.getElementById('cfg-alert-min').value) || 0;
              const alertSec = parseInt(document.getElementById('cfg-alert-sec').value) || 0;
              currentSettings.alertTime = (alertMin * 60) + alertSec;
@@ -1258,6 +1405,7 @@
             if(isProjector) return;
             document.getElementById('cfg-auto-open').checked = currentSettings.autoOpenProjector;
             document.getElementById('cfg-show-timer').checked = currentSettings.showTimer;
+            document.getElementById('cfg-show-clock').checked = currentSettings.showClock;
             document.getElementById('cfg-show-text').checked = currentSettings.showText;
             document.getElementById('cfg-timer-pos').value = currentSettings.timerPos;
             document.getElementById('cfg-bg-color').value = currentSettings.bgColor;
@@ -1267,6 +1415,7 @@
             document.getElementById('cfg-font-family').value = currentSettings.fontFamily;
             document.getElementById('cfg-timer-color').value = currentSettings.timerColor;
             document.getElementById('cfg-timer-size').value = currentSettings.timerSize;
+            document.getElementById('cfg-timer-corner-size').value = currentSettings.timerCornerSize || 40; // New setting
             
             const totalAlert = currentSettings.alertTime || 60;
             const m = Math.floor(totalAlert / 60);
@@ -1310,6 +1459,45 @@
         function deleteVerse(index) { if(confirm('Apagar?')) { verses.splice(index, 1); localStorage.setItem('myVerses', JSON.stringify(verses)); renderList(); } }
         function saveVerse() { const t = document.getElementById('new-verse-title').value; const c = document.getElementById('new-verse-content').value; if(t&&c) { verses.push({title:t, content:c}); localStorage.setItem('myVerses', JSON.stringify(verses)); renderList(); closeModal('verse'); } }
 
+        // TIMER TARGET FUNCTIONS
+        function openTargetTimerModal() {
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const m = String(now.getMinutes()).padStart(2, '0');
+            document.getElementById('target-time-input').value = `${h}:${m}`;
+            openModal('timer-target');
+        }
+
+        function setTargetTimer() {
+            const timeStr = document.getElementById('target-time-input').value;
+            if (!timeStr) return;
+            
+            const now = new Date();
+            const [h, m] = timeStr.split(':').map(Number);
+            const target = new Date();
+            target.setHours(h, m, 0, 0);
+            
+            // Logic: If target is earlier than now (e.g. now 20:00, target 19:30), 
+            // usually means tomorrow, UNLESS it's very close (e.g. started 5 mins ago).
+            // Let's assume if diff is negative by more than 12 hours, it was probably meant for tomorrow.
+            // But simple countdown usually implies future. 
+            // Let's stick to simple: if target < now, add 1 day.
+            if (target < now) {
+                target.setDate(target.getDate() + 1);
+            }
+            
+            targetDate = target;
+            closeModal('timer-target');
+            
+            // Calculate initial seconds immediately
+            const diff = Math.ceil((targetDate - new Date()) / 1000);
+            totalSeconds = diff;
+            updateTimerUI(false);
+            
+            // Start the timer
+            if (!isRunning) startTimer();
+        }
+
         if (isProjector) {
             document.body.classList.add('projector-mode'); document.title = "Projeção";
             applyStyles(currentSettings);
@@ -1333,6 +1521,14 @@
                 }
                 if(type === 'text') {
                     document.getElementById('text-display').innerText = payload;
+                    
+                    // Sincroniza a classe no projetor também
+                    const hasContent = payload && payload.trim().length > 0 && payload !== "...";
+                    if (hasContent) {
+                        document.body.classList.add('content-active');
+                    } else {
+                        document.body.classList.remove('content-active');
+                    }
                 }
                 if(type === 'settings') {
                     if(payload.timestamp > currentSettings.timestamp) {
@@ -1370,6 +1566,14 @@
 
             if(currentSettings.autoOpenProjector) document.getElementById('startup-overlay').classList.remove('hidden');
             
+            // Interval to update clock in main window
+            setInterval(() => {
+                if (currentSettings.showClock) {
+                    const now = new Date();
+                    document.getElementById('clock-display').innerText = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                }
+            }, 500);
+
             channel.onmessage = (e) => {
                 if (e.data.type === 'request_state') {
                     const currentText = document.getElementById('live-text').value;
@@ -1454,14 +1658,77 @@
         }
         function downloadSource() { const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([document.documentElement.outerHTML],{type:'text/html'})); a.download='louvor_app_pro.html'; a.click(); }
 
-        function startTimer() { if (isRunning) return; if (!isProjector && !timerInterval) { const m = parseInt(document.getElementById('min').value)||0; const s = parseInt(document.getElementById('sec').value)||0; totalSeconds = m * 60 + s; } isRunning = true; timerInterval = setInterval(() => { if (totalSeconds <= 0) { clearInterval(timerInterval); isRunning = false; startBlinkSequence(); return; } totalSeconds--; updateTimerUI(false); }, 1000); }
+        function startTimer() { 
+            if (isRunning) return; 
+            
+            // Only set manual time if NOT in target mode
+            if (!isProjector && !timerInterval && !targetDate) { 
+                const m = parseInt(document.getElementById('min').value)||0; 
+                const s = parseInt(document.getElementById('sec').value)||0; 
+                totalSeconds = m * 60 + s; 
+            } 
+            
+            isRunning = true; 
+            
+            timerInterval = setInterval(() => { 
+                if (targetDate) {
+                    // TARGET MODE LOGIC
+                    const now = new Date();
+                    const diff = Math.ceil((targetDate - now) / 1000);
+                    totalSeconds = diff;
+                } else {
+                    // MANUAL MODE LOGIC
+                    totalSeconds--;
+                }
+
+                if (totalSeconds <= 0) { 
+                    clearInterval(timerInterval); 
+                    isRunning = false; 
+                    
+                    if (targetDate) {
+                        // For target timer, just stop at 00:00 without alert/blinking
+                        totalSeconds = 0;
+                        updateTimerUI(true);
+                        targetDate = null; // Exit target mode
+                    } else {
+                        // Manual timer triggers alert
+                        startBlinkSequence(); 
+                    }
+                    return; 
+                } 
+                
+                updateTimerUI(false); 
+            }, 1000); 
+        }
+        
         function startBlinkSequence() { isRunning = true; isBlinking = true; updateTimerUI(true); 
             const duration = (currentSettings.alertDuration || 10) * 1000;
             blinkTimeout = setTimeout(() => { isBlinking = false; startOvertime(); }, duration); 
         }
         function startOvertime() { isBlinking = false; isOvertime = true; overtimeSeconds = 0; isRunning = true; if(timerInterval) clearInterval(timerInterval); overtimeInterval = setInterval(() => { overtimeSeconds++; updateTimerUI(false); }, 1000); }
-        function pauseTimer() { clearInterval(timerInterval); timerInterval = null; clearInterval(overtimeInterval); overtimeInterval = null; clearTimeout(blinkTimeout); blinkTimeout = null; isRunning = false; }
-        function resetTimer() { pauseTimer(); isBlinking = false; isOvertime = false; overtimeSeconds = 0; isManualAlert = false; if (!isProjector) { const m = parseInt(document.getElementById('min').value)||0; const s = parseInt(document.getElementById('sec').value)||0; totalSeconds = m * 60 + s; updateTimerUI(false); } }
+        
+        function pauseTimer() { 
+            clearInterval(timerInterval); timerInterval = null; 
+            clearInterval(overtimeInterval); overtimeInterval = null; 
+            clearTimeout(blinkTimeout); blinkTimeout = null; 
+            isRunning = false; 
+        }
+        
+        function resetTimer() { 
+            pauseTimer(); 
+            isBlinking = false; 
+            isOvertime = false; 
+            overtimeSeconds = 0; 
+            isManualAlert = false; 
+            targetDate = null; // Reset target mode
+            
+            if (!isProjector) { 
+                const m = parseInt(document.getElementById('min').value)||0; 
+                const s = parseInt(document.getElementById('sec').value)||0; 
+                totalSeconds = m * 60 + s; 
+                updateTimerUI(false); 
+            } 
+        }
         
         function updateTimerUI(finished) {
             let txt = "", size = "", danger = false;
