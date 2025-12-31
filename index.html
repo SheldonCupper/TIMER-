@@ -165,7 +165,6 @@
         #text-display { line-height: 1.3; max-width: 90%; white-space: pre-wrap; font-weight: 500; transition: all 0.3s; }
         .danger-mode { color: var(--danger-color) !important; text-shadow: 0 0 30px rgba(239, 68, 68, 0.5) !important; }
         
-        /* ESTILOS PARA QUANDO HÁ TEXTO NA TELA */
         body.content-active #timer-display {
             position: absolute;
             top: 40px;
@@ -190,7 +189,7 @@
         }
 
         body.content-active #content-wrapper {
-            justify-content: center !important; /* Força o texto para o centro */
+            justify-content: center !important; 
             height: 100vh;
             width: 100vw;
             position: absolute;
@@ -201,7 +200,6 @@
         body.content-active #text-display {
             margin: 0;
             width: 90%;
-            /* Tamanho da fonte é controlado pelo slider em Ajustes */
         }
 
         @keyframes blink-panic {
@@ -438,7 +436,6 @@
                 <input type="number" id="min" value="5"><span>:</span><input type="number" id="sec" value="00">
             </div>
             
-            <!-- BUTTON FOR TARGET TIME -->
             <button class="ctrl-btn" onclick="openTargetTimerModal()" title="Contagem p/ Horário"><span class="material-icons">alarm</span></button>
 
             <button class="ctrl-btn play" onclick="startTimer()"><span class="material-icons">play_arrow</span></button>
@@ -446,7 +443,6 @@
             <button class="ctrl-btn" onclick="resetTimer()"><span class="material-icons">refresh</span></button>
             <textarea id="live-text" placeholder="Digite para projetar..." oninput="updateDisplay(this.value)"></textarea>
             
-            <!-- HIDE TEXT BUTTON -->
             <button class="ctrl-btn" id="btn-hide-text" onclick="toggleText()" title="Ocultar Texto"><span class="material-icons">visibility_off</span></button>
 
             <button class="ctrl-btn" onclick="toggleFullScreen()"><span class="material-icons">fullscreen</span></button>
@@ -475,7 +471,6 @@
 
     <div id="modal-verse" class="modal-overlay hidden"><div class="modal"><h3 style="margin-top:0">Novo Texto</h3><input type="text" id="new-verse-title" placeholder="Título"><textarea id="new-verse-content" rows="5" placeholder="Conteúdo..."></textarea><div class="modal-actions"><button class="ctrl-btn" onclick="closeModal('verse')">Cancelar</button><button class="ctrl-btn play" onclick="saveVerse()">Salvar</button></div></div></div>
     
-    <!-- MODAL FOR TARGET TIMER -->
     <div id="modal-timer-target" class="modal-overlay hidden">
         <div class="modal" style="width: 300px !important;">
             <h3 style="margin-top:0; display:flex; align-items:center; gap:10px;"><span class="material-icons">alarm</span> Contagem para Horário</h3>
@@ -564,7 +559,6 @@
         let currentBibleVerseIndex = -1;
 
         const bibleBooks = [{name: "Gênesis", id: "Genesis"},{name: "Êxodo", id: "Exodus"},{name: "Levítico", id: "Leviticus"},{name: "Números", id: "Numbers"},{name: "Deuteronômio", id: "Deuteronomy"},{name: "Josué", id: "Joshua"},{name: "Juízes", id: "Judges"},{name: "Rute", id: "Ruth"},{name: "1 Samuel", id: "1 Samuel"},{name: "2 Samuel", id: "2 Samuel"},{name: "1 Reis", id: "1 Kings"},{name: "2 Reis", id: "2 Kings"},{name: "1 Crônicas", id: "1 Chronicles"},{name: "2 Crônicas", id: "2 Chronicles"},{name: "Esdras", id: "Ezra"},{name: "Neemias", id: "Nehemiah"},{name: "Ester", id: "Esther"},{name: "Jó", id: "Job"},{name: "Salmos", id: "Psalms"},{name: "Provérbios", id: "Proverbs"},{name: "Eclesiastes", id: "Ecclesiastes"},{name: "Cânticos", id: "Song of Solomon"},{name: "Isaías", id: "Isaiah"},{name: "Jeremias", id: "Jeremiah"},{name: "Lamentações", id: "Lamentations"},{name: "Ezequiel", id: "Ezekiel"},{name: "Daniel", id: "Daniel"},{name: "Oseias", id: "Hosea"},{name: "Joel", id: "Joel"},{name: "Amós", id: "Amos"},{name: "Obadias", id: "Obadiah"},{name: "Jonas", id: "Jonah"},{name: "Miqueias", id: "Micah"},{name: "Naum", id: "Nahum"},{name: "Habacuque", id: "Habakkuk"},{name: "Sofonias", id: "Zephaniah"},{name: "Ageu", id: "Haggai"},{name: "Zacarias", id: "Zechariah"},{name: "Malaquias", id: "Malachi"},{name: "Mateus", id: "Matthew"},{name: "Marcos", id: "Mark"},{name: "Lucas", id: "Luke"},{name: "João", id: "John"},{name: "Atos", id: "Acts"},{name: "Romanos", id: "Romans"},{name: "1 Coríntios", id: "1 Corinthians"},{name: "2 Coríntios", id: "2 Corinthians"},{name: "Gálatas", id: "Galatians"},{name: "Efésios", id: "Ephesians"},{name: "Filipenses", id: "Philippians"},{name: "Colossenses", id: "Colossians"},{name: "1 Tessalonicenses", id: "1 Thessalonians"},{name: "2 Tessalonicenses", id: "2 Thessalonians"},{name: "1 Timóteo", id: "1 Timothy"},{name: "2 Timóteo", id: "2 Timothy"},{name: "Tito", id: "Titus"},{name: "Filemom", id: "Philemon"},{name: "Hebreus", id: "Hebrews"},{name: "Tiago", id: "James"},{name: "1 Pedro", id: "1 Peter"},{name: "2 Pedro", id: "2 Peter"},{name: "1 João", id: "1 John"},{name: "2 João", id: "2 John"},{name: "3 João", id: "3 John"},{name: "Judas", id: "Jude"},{name: "Apocalipse", id: "Revelation"}];
-        // CORRIGIDA A LISTAGEM DE CAPÍTULOS (Principalmente NT)
         const bibleChapterCounts = [50, 40, 27, 36, 34, 24, 21, 4, 31, 24, 22, 25, 29, 36, 10, 13, 10, 42, 150, 31, 12, 8, 66, 52, 5, 48, 12, 14, 3, 9, 1, 4, 7, 3, 3, 3, 2, 14, 4, 28, 16, 24, 21, 28, 16, 16, 13, 6, 6, 4, 4, 5, 3, 6, 4, 3, 1, 13, 5, 5, 3, 5, 1, 1, 1, 22];
         
         const bibleVersions = {
@@ -587,7 +581,7 @@
         let smSlides = JSON.parse(localStorage.getItem('mySmSlides')) || []; 
 
         let timerInterval, totalSeconds = 300, isRunning = false;
-        let targetDate = null; // New variable for target time mode
+        let targetDate = null; 
         
         let overtimeInterval;
         let blinkTimeout;
@@ -1192,7 +1186,6 @@
             if(t==='sm') { if(document.getElementById('sm-viewer').style.display === 'none') currentSmIndex = -1; }
         }
         
-        // --- HIDE TEXT / CLEAR CONTENT FUNCTIONALITY ---
         let tempSavedText = "";
 
         function toggleText() {
@@ -1201,25 +1194,24 @@
             const currentText = document.getElementById('live-text').value;
 
             if (tempSavedText === "") {
-                // Hiding
-                if (!currentText.trim()) return; // Nothing to hide
-                tempSavedText = currentText;
-                updateDisplay(""); // This clears the display AND removes content-active class, centering the timer
+                if (!currentText.trim()) return; 
+                tempSavedText = currentText; 
                 
-                // Clear selections in UI visually
+                updateDisplay(""); 
+                
                 document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
                 document.querySelectorAll('.active-slide').forEach(el => el.classList.remove('active-slide'));
                 
-                icon.innerText = "visibility"; // Eye open (Show)
+                icon.innerText = "visibility"; 
                 btn.title = "Mostrar Texto";
-                btn.style.backgroundColor = "#444"; // Feedback visual opcional
+                btn.style.backgroundColor = "#444"; 
             } else {
-                // Showing
-                updateDisplay(tempSavedText);
-                tempSavedText = "";
-                icon.innerText = "visibility_off"; // Eye crossed (Hide)
+                updateDisplay(tempSavedText); 
+                tempSavedText = ""; 
+                
+                icon.innerText = "visibility_off"; 
                 btn.title = "Ocultar Texto";
-                btn.style.backgroundColor = ""; // Reseta cor
+                btn.style.backgroundColor = ""; 
             }
         }
         
@@ -1233,7 +1225,6 @@
                 document.body.classList.remove('content-active');
             }
 
-            // Reset toggle state if content is updated externally (e.g. typing or clicking verse)
             if (typeof tempSavedText !== 'undefined' && tempSavedText !== "" && text !== "") {
                  tempSavedText = "";
                  const btn = document.getElementById('btn-hide-text');
@@ -1254,7 +1245,6 @@
 
         if(isProjector) {
             setInterval(() => {
-                // --- Safe Text Update ---
                 try {
                     const storedText = localStorage.getItem('liveText');
                     if (storedText !== null && document.getElementById('text-display').innerText !== storedText) {
@@ -1269,7 +1259,6 @@
                     }
                 } catch(e) { console.error("Text update error", e); }
 
-                // --- Safe Timer Update ---
                 try {
                     const storedTimer = localStorage.getItem('timerState');
                     if (storedTimer) {
@@ -1293,7 +1282,6 @@
                     }
                 } catch(e) { console.error("Timer update error", e); }
 
-                // --- Safe Blackout Check ---
                 try {
                     const storedBlackout = localStorage.getItem('blackoutState');
                     if(storedBlackout !== null) {
@@ -1305,7 +1293,6 @@
                     }
                 } catch(e) {}
 
-                // --- Safe Settings Update ---
                 try {
                     const storedSettings = localStorage.getItem('appSettings');
                     if(storedSettings) {
@@ -1316,16 +1303,18 @@
                         }
                     }
                 } catch(e) {}
-                
-                // --- Safe Clock Update (Totally Independent) ---
+            }, 200); 
+
+            setInterval(() => {
                 try {
                     if (currentSettings.showClock) {
                         const now = new Date();
-                        document.getElementById('clock-display').innerText = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                        const timeStr = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                        const el = document.getElementById('clock-display');
+                        if(el.innerText !== timeStr) el.innerText = timeStr;
                     }
                 } catch(e) { console.error("Clock update error", e); }
-                
-            }, 500); 
+            }, 1000); 
         }
 
         function removeBackground() { 
@@ -1434,7 +1423,7 @@
              currentSettings.timerColor = document.getElementById('cfg-timer-color').value;
              currentSettings.timerSize = document.getElementById('cfg-timer-size').value;
              currentSettings.timerCornerSize = document.getElementById('cfg-timer-corner-size').value;
-             currentSettings.clockCornerSize = document.getElementById('cfg-clock-corner-size').value; // New setting
+             currentSettings.clockCornerSize = document.getElementById('cfg-clock-corner-size').value; 
              const alertMin = parseInt(document.getElementById('cfg-alert-min').value) || 0;
              const alertSec = parseInt(document.getElementById('cfg-alert-sec').value) || 0;
              currentSettings.alertTime = (alertMin * 60) + alertSec;
@@ -1463,7 +1452,7 @@
             document.getElementById('cfg-timer-color').value = currentSettings.timerColor;
             document.getElementById('cfg-timer-size').value = currentSettings.timerSize;
             document.getElementById('cfg-timer-corner-size').value = currentSettings.timerCornerSize || 40;
-            document.getElementById('cfg-clock-corner-size').value = currentSettings.clockCornerSize || 20; // New setting
+            document.getElementById('cfg-clock-corner-size').value = currentSettings.clockCornerSize || 20; 
             
             const totalAlert = currentSettings.alertTime || 60;
             const m = Math.floor(totalAlert / 60);
@@ -1507,7 +1496,6 @@
         function deleteVerse(index) { if(confirm('Apagar?')) { verses.splice(index, 1); localStorage.setItem('myVerses', JSON.stringify(verses)); renderList(); } }
         function saveVerse() { const t = document.getElementById('new-verse-title').value; const c = document.getElementById('new-verse-content').value; if(t&&c) { verses.push({title:t, content:c}); localStorage.setItem('myVerses', JSON.stringify(verses)); renderList(); closeModal('verse'); } }
 
-        // TIMER TARGET FUNCTIONS
         function openTargetTimerModal() {
             const now = new Date();
             const h = String(now.getHours()).padStart(2, '0');
@@ -1540,14 +1528,13 @@
         }
 
         if (isProjector) {
-            // Already handled in the safe interval block above
+            
         } else {
             loadSettingsToInputs(); initBible(); renderSmList(); renderList(); updateTimerUI(false); initOfflineBible(); 
             applyStyles(currentSettings);
 
             if(currentSettings.autoOpenProjector) document.getElementById('startup-overlay').classList.remove('hidden');
             
-            // Interval to update clock in main window - SEPARATE AND SAFE
             setInterval(() => {
                 try {
                     if (currentSettings.showClock) {
@@ -1644,7 +1631,6 @@
         function startTimer() { 
             if (isRunning) return; 
             
-            // Only set manual time if NOT in target mode
             if (!isProjector && !timerInterval && !targetDate) { 
                 const m = parseInt(document.getElementById('min').value)||0; 
                 const s = parseInt(document.getElementById('sec').value)||0; 
@@ -1655,12 +1641,10 @@
             
             timerInterval = setInterval(() => { 
                 if (targetDate) {
-                    // TARGET MODE LOGIC
                     const now = new Date();
                     const diff = Math.ceil((targetDate - now) / 1000);
                     totalSeconds = diff;
                 } else {
-                    // MANUAL MODE LOGIC
                     totalSeconds--;
                 }
 
@@ -1669,12 +1653,10 @@
                     isRunning = false; 
                     
                     if (targetDate) {
-                        // For target timer, just stop at 00:00 without alert/blinking
                         totalSeconds = 0;
                         updateTimerUI(true);
-                        targetDate = null; // Exit target mode
+                        targetDate = null; 
                     } else {
-                        // Manual timer triggers alert
                         startBlinkSequence(); 
                     }
                     return; 
@@ -1703,7 +1685,7 @@
             isOvertime = false; 
             overtimeSeconds = 0; 
             isManualAlert = false; 
-            targetDate = null; // Reset target mode
+            targetDate = null; 
             
             if (!isProjector) { 
                 const m = parseInt(document.getElementById('min').value)||0; 
