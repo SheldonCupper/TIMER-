@@ -24,7 +24,8 @@
             --success-color: #10b981;
             --alert-color-1: #ff0000;
             --alert-color-2: #880000;
-            --timer-corner-size: 40px; /* Variável para tamanho do timer no canto */
+            --timer-corner-size: 40px; 
+            --clock-corner-size: 20px; /* Nova variável para hora no canto */
         }
         body { 
             margin: 0; 
@@ -180,7 +181,7 @@
             position: absolute;
             top: 15px;
             left: 30px;
-            font-size: calc(var(--timer-corner-size) * 0.5) !important;
+            font-size: var(--clock-corner-size) !important; /* Agora usa a variável independente */
             text-align: left;
             width: auto;
             z-index: 100;
@@ -402,10 +403,11 @@
             <div class="config-group"><h4>Estilo Global</h4><div class="config-item"><label>Cor Fundo</label><input type="color" id="cfg-bg-color" value="#000000" oninput="updateSettings()"></div><div class="config-item"><label>Escurecer</label><input type="range" id="cfg-overlay-opacity" min="0" max="1" step="0.1" value="0.5" oninput="updateSettings()"></div><div class="config-item"><label>Cor Texto</label><input type="color" id="cfg-text-color" value="#ffffff" oninput="updateSettings()"></div><div class="config-item"><label>Tam. Texto</label><input type="number" id="cfg-text-size" min="10" max="800" value="80" oninput="updateSettings()"></div><div class="config-item" style="display:block"><label style="display:block; margin-bottom:5px;">Fonte</label><select id="cfg-font-family" class="font-select" onchange="updateSettings()"><option value="'Segoe UI', sans-serif">Padrão</option><option value="'Courier New', monospace">Máquina</option><option value="'Times New Roman', serif">Clássico</option><option value="Arial, sans-serif">Simples</option><option value="cursive">Manuscrito</option></select></div><div class="config-item" style="display:block; margin-top:10px;"><label style="display:block; margin-bottom:5px;">Alinhamento</label><div class="align-btn-group"><button class="align-btn" onclick="setAlignment('left')" id="btn-align-left"><span class="material-icons">format_align_left</span></button><button class="align-btn" onclick="setAlignment('center')" id="btn-align-center"><span class="material-icons">format_align_center</span></button><button class="align-btn" onclick="setAlignment('right')" id="btn-align-right"><span class="material-icons">format_align_right</span></button></div></div></div>
             
             <div class="config-group">
-                <h4>Timer</h4>
+                <h4>Timer & Relógio</h4>
                 <div class="config-item"><label>Cor Normal</label><input type="color" id="cfg-timer-color" value="#4ade80" oninput="updateSettings()"></div>
                 <div class="config-item"><label>Tamanho (px)</label><input type="number" id="cfg-timer-size" min="10" max="800" value="180" oninput="updateSettings()"></div>
-                <div class="config-item"><label>Tam. (Canto)</label><input type="number" id="cfg-timer-corner-size" min="10" max="200" value="40" oninput="updateSettings()"></div>
+                <div class="config-item"><label>Timer (Canto)</label><input type="number" id="cfg-timer-corner-size" min="10" max="200" value="40" oninput="updateSettings()"></div>
+                <div class="config-item"><label>Hora (Canto)</label><input type="number" id="cfg-clock-corner-size" min="10" max="200" value="20" oninput="updateSettings()"></div>
                 <div class="config-item"><label>Alertar quando faltar:</label><div class="input-group" style="justify-content: flex-end;"><input type="number" id="cfg-alert-min" value="1" oninput="updateSettings()" placeholder="m" style="width: 40px;"><span>:</span><input type="number" id="cfg-alert-sec" value="00" oninput="updateSettings()" placeholder="s" style="width: 40px;"></div></div>
                 
                 <div style="border-top: 1px solid #333; margin: 10px 0; padding-top: 10px;">
@@ -576,7 +578,7 @@
             autoOpenProjector: false, showTimer: true, showText: true, showClock: false, timerPos: 'top', 
             bgColor: '#000000', bgType: 'color', bgUrl: '', overlayOpacity: 0.5, 
             textColor: '#ffffff', textSize: 80, fontFamily: "'Segoe UI', sans-serif", textAlign: 'center', 
-            timerColor: '#4ade80', timerSize: 180, timerCornerSize: 40, alertTime: 60,
+            timerColor: '#4ade80', timerSize: 180, timerCornerSize: 40, clockCornerSize: 20, alertTime: 60,
             valign: 'center', 
             alertText: "ACABOU SEU TEMPO", alertSize: 70, alertColor1: "#ff0000", alertColor2: "#880000", alertDuration: 10
         };
@@ -1199,23 +1201,29 @@
             const currentText = document.getElementById('live-text').value;
 
             if (tempSavedText === "") {
-                // Hiding
-                if (!currentText.trim()) return; // Nothing to hide
-                tempSavedText = currentText;
-                updateDisplay(""); // This clears the display AND removes content-active class, centering the timer
+                // ESTADO 1: Ocultar o texto (Limpar a tela)
+                if (!currentText.trim()) return; // Não faz nada se não tiver texto
+                tempSavedText = currentText; // Salva o texto atual na memória
                 
-                // Clear selections in UI visually
+                updateDisplay(""); // Limpa a projeção -> isso centraliza o timer
+                
+                // Limpa seleções visuais
                 document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
                 document.querySelectorAll('.active-slide').forEach(el => el.classList.remove('active-slide'));
                 
-                icon.innerText = "visibility"; // Eye open (Show)
+                // Muda ícone para "Olho Aberto" (indicando que ao clicar, vai MOSTRAR)
+                icon.innerText = "visibility"; 
                 btn.title = "Mostrar Texto";
+                btn.style.backgroundColor = "#444"; // Feedback visual opcional
             } else {
-                // Showing
-                updateDisplay(tempSavedText);
-                tempSavedText = "";
-                icon.innerText = "visibility_off"; // Eye crossed (Hide)
+                // ESTADO 2: Mostrar o texto de volta (Restaurar)
+                updateDisplay(tempSavedText); // Restaura o texto -> isso move o timer pro canto
+                tempSavedText = ""; // Limpa a memória temporária
+                
+                // Muda ícone para "Olho Cortado" (indicando que ao clicar, vai OCULTAR)
+                icon.innerText = "visibility_off"; 
                 btn.title = "Ocultar Texto";
+                btn.style.backgroundColor = ""; // Reseta cor
             }
         }
         
@@ -1229,13 +1237,16 @@
                 document.body.classList.remove('content-active');
             }
 
-            // Reset toggle state if content is updated externally (e.g. typing or clicking verse)
+            // RESET INTELIGENTE: Se o usuário mudar o texto manualmente (digitando ou clicando em outro verso)
+            // enquanto o modo "Oculto" estava ativo, o sistema reseta o botão para o estado normal.
             if (typeof tempSavedText !== 'undefined' && tempSavedText !== "" && text !== "") {
                  tempSavedText = "";
                  const btn = document.getElementById('btn-hide-text');
                  if(btn) {
-                     btn.querySelector('.material-icons').innerText = "visibility_off";
+                     const icon = btn.querySelector('.material-icons');
+                     icon.innerText = "visibility_off";
                      btn.title = "Ocultar Texto";
+                     btn.style.backgroundColor = "";
                  }
             }
 
@@ -1334,6 +1345,9 @@
             // Set Corner Size variable
             const cornerSize = s.timerCornerSize || 40;
             document.documentElement.style.setProperty('--timer-corner-size', `${cornerSize}px`);
+            
+            const clockCornerSize = s.clockCornerSize || 20;
+            document.documentElement.style.setProperty('--clock-corner-size', `${clockCornerSize}px`);
 
             timer.style.display = (s.showTimer !== false) ? 'block' : 'none';
             clock.style.display = (s.showClock === true) ? 'block' : 'none';
@@ -1409,7 +1423,8 @@
              currentSettings.fontFamily = document.getElementById('cfg-font-family').value;
              currentSettings.timerColor = document.getElementById('cfg-timer-color').value;
              currentSettings.timerSize = document.getElementById('cfg-timer-size').value;
-             currentSettings.timerCornerSize = document.getElementById('cfg-timer-corner-size').value; // New setting
+             currentSettings.timerCornerSize = document.getElementById('cfg-timer-corner-size').value;
+             currentSettings.clockCornerSize = document.getElementById('cfg-clock-corner-size').value; // New setting
              const alertMin = parseInt(document.getElementById('cfg-alert-min').value) || 0;
              const alertSec = parseInt(document.getElementById('cfg-alert-sec').value) || 0;
              currentSettings.alertTime = (alertMin * 60) + alertSec;
@@ -1437,7 +1452,8 @@
             document.getElementById('cfg-font-family').value = currentSettings.fontFamily;
             document.getElementById('cfg-timer-color').value = currentSettings.timerColor;
             document.getElementById('cfg-timer-size').value = currentSettings.timerSize;
-            document.getElementById('cfg-timer-corner-size').value = currentSettings.timerCornerSize || 40; // New setting
+            document.getElementById('cfg-timer-corner-size').value = currentSettings.timerCornerSize || 40;
+            document.getElementById('cfg-clock-corner-size').value = currentSettings.clockCornerSize || 20; // New setting
             
             const totalAlert = currentSettings.alertTime || 60;
             const m = Math.floor(totalAlert / 60);
