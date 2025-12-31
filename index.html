@@ -1663,23 +1663,33 @@
         
         function startProjectorFlow() { document.getElementById('startup-overlay').style.display='none'; openProjectorWindow(true); }
         async function openProjectorWindow(click) { 
-            let params = 'width=1280,height=720,menubar=no,toolbar=no,location=no,status=no,scrollbars=no,resizable=yes';
+            let params = 'width=800,height=600,menubar=no,toolbar=no,location=no,status=no,scrollbars=no,resizable=yes';
+            let targetScreen = null;
+
             if (click && window.getScreenDetails) {
                 try {
                     const screenDetails = await window.getScreenDetails();
-                    const secondaryScreen = screenDetails.screens.find(s => s !== screenDetails.currentScreen) || screenDetails.screens[0];
-                    if (secondaryScreen) {
-                        params = `left=${secondaryScreen.left},top=${secondaryScreen.top},width=${secondaryScreen.width},height=${secondaryScreen.height},menubar=no,toolbar=no,location=no,status=no,scrollbars=no,fullscreen=yes`;
+                    targetScreen = screenDetails.screens.find(s => s !== screenDetails.currentScreen);
+                    
+                    if (targetScreen) {
+                        params = `left=${targetScreen.left},top=${targetScreen.top},width=${targetScreen.width},height=${targetScreen.height},menubar=no,toolbar=no,location=no,status=no,scrollbars=no,fullscreen=yes`;
                     }
-                } catch (e) { console.warn("Permissão de tela negada ou API não suportada.", e); }
+                } catch (e) { 
+                    console.warn("Permissão de tela negada ou API não suportada.", e); 
+                }
             }
+            
             if(!isProjector) {
                  localStorage.setItem('live-text', document.getElementById('live-text').value);
                  currentSettings.timestamp = Date.now();
                  localStorage.setItem('appSettings', JSON.stringify(currentSettings));
             }
+            
             const newWin = window.open(window.location.href.split('?')[0] + '?view=projector', 'ProjectorWindow', params);
-            if(!newWin || newWin.closed || typeof newWin.closed=='undefined') alert("O navegador bloqueou a janela do projetor. Por favor, permita POP-UPS para este site na barra de endereço.");
+            
+            if (!targetScreen && click) {
+                alert("Não foi possível detectar automaticamente a segunda tela. \n\n1. Verifique se o Windows/Mac está no modo 'Estender'.\n2. Se a janela abriu na tela principal, arraste-a para o projetor e pressione F11/Fullscreen.");
+            }
         }
         function downloadSource() { const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([document.documentElement.outerHTML],{type:'text/html'})); a.download='louvor_app_pro.html'; a.click(); }
 
