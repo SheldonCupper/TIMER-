@@ -25,7 +25,7 @@
             --alert-color-1: #ff0000;
             --alert-color-2: #880000;
             --timer-corner-size: 40px; 
-            --clock-corner-size: 20px; /* Nova variável para hora no canto */
+            --clock-corner-size: 20px;
         }
         body { 
             margin: 0; 
@@ -181,7 +181,7 @@
             position: absolute;
             top: 15px;
             left: 30px;
-            font-size: var(--clock-corner-size) !important; /* Agora usa a variável independente */
+            font-size: var(--clock-corner-size) !important;
             text-align: left;
             width: auto;
             z-index: 100;
@@ -1201,27 +1201,23 @@
             const currentText = document.getElementById('live-text').value;
 
             if (tempSavedText === "") {
-                // ESTADO 1: Ocultar o texto (Limpar a tela)
-                if (!currentText.trim()) return; // Não faz nada se não tiver texto
-                tempSavedText = currentText; // Salva o texto atual na memória
+                // Hiding
+                if (!currentText.trim()) return; // Nothing to hide
+                tempSavedText = currentText;
+                updateDisplay(""); // This clears the display AND removes content-active class, centering the timer
                 
-                updateDisplay(""); // Limpa a projeção -> isso centraliza o timer
-                
-                // Limpa seleções visuais
+                // Clear selections in UI visually
                 document.querySelectorAll('.selected').forEach(el => el.classList.remove('selected'));
                 document.querySelectorAll('.active-slide').forEach(el => el.classList.remove('active-slide'));
                 
-                // Muda ícone para "Olho Aberto" (indicando que ao clicar, vai MOSTRAR)
-                icon.innerText = "visibility"; 
+                icon.innerText = "visibility"; // Eye open (Show)
                 btn.title = "Mostrar Texto";
                 btn.style.backgroundColor = "#444"; // Feedback visual opcional
             } else {
-                // ESTADO 2: Mostrar o texto de volta (Restaurar)
-                updateDisplay(tempSavedText); // Restaura o texto -> isso move o timer pro canto
-                tempSavedText = ""; // Limpa a memória temporária
-                
-                // Muda ícone para "Olho Cortado" (indicando que ao clicar, vai OCULTAR)
-                icon.innerText = "visibility_off"; 
+                // Showing
+                updateDisplay(tempSavedText);
+                tempSavedText = "";
+                icon.innerText = "visibility_off"; // Eye crossed (Hide)
                 btn.title = "Ocultar Texto";
                 btn.style.backgroundColor = ""; // Reseta cor
             }
@@ -1237,8 +1233,7 @@
                 document.body.classList.remove('content-active');
             }
 
-            // RESET INTELIGENTE: Se o usuário mudar o texto manualmente (digitando ou clicando em outro verso)
-            // enquanto o modo "Oculto" estava ativo, o sistema reseta o botão para o estado normal.
+            // Reset toggle state if content is updated externally (e.g. typing or clicking verse)
             if (typeof tempSavedText !== 'undefined' && tempSavedText !== "" && text !== "") {
                  tempSavedText = "";
                  const btn = document.getElementById('btn-hide-text');
@@ -1259,60 +1254,76 @@
 
         if(isProjector) {
             setInterval(() => {
-                const storedText = localStorage.getItem('liveText');
-                if (storedText !== null && document.getElementById('text-display').innerText !== storedText) {
-                    document.getElementById('text-display').innerText = storedText;
-                    
-                    // Sync content-active class in projector based on stored text
-                    const hasContent = storedText && storedText.trim().length > 0 && storedText !== "...";
-                    if (hasContent) {
-                        if (!document.body.classList.contains('content-active')) document.body.classList.add('content-active');
-                    } else {
-                        if (document.body.classList.contains('content-active')) document.body.classList.remove('content-active');
+                // --- Safe Text Update ---
+                try {
+                    const storedText = localStorage.getItem('liveText');
+                    if (storedText !== null && document.getElementById('text-display').innerText !== storedText) {
+                        document.getElementById('text-display').innerText = storedText;
+                        
+                        const hasContent = storedText && storedText.trim().length > 0 && storedText !== "...";
+                        if (hasContent) {
+                            if (!document.body.classList.contains('content-active')) document.body.classList.add('content-active');
+                        } else {
+                            if (document.body.classList.contains('content-active')) document.body.classList.remove('content-active');
+                        }
                     }
-                }
-                const storedTimer = localStorage.getItem('timerState');
-                if (storedTimer) {
-                    const state = JSON.parse(storedTimer);
-                    const el = document.getElementById('timer-display');
-                    if (el.innerText !== state.text) el.innerText = state.text;
-                    if(state.text !== currentSettings.alertText) el.style.fontSize = state.fontSize;
-                    else el.style.fontSize = (currentSettings.alertSize || 70) + "px";
+                } catch(e) { console.error("Text update error", e); }
 
-                    if(state.danger) {
-                         if(!el.classList.contains('danger-mode')) el.classList.add('danger-mode');
-                    } else {
-                         if(el.classList.contains('danger-mode')) el.classList.remove('danger-mode');
+                // --- Safe Timer Update ---
+                try {
+                    const storedTimer = localStorage.getItem('timerState');
+                    if (storedTimer) {
+                        const state = JSON.parse(storedTimer);
+                        const el = document.getElementById('timer-display');
+                        if (el.innerText !== state.text) el.innerText = state.text;
+                        if(state.text !== currentSettings.alertText) el.style.fontSize = state.fontSize;
+                        else el.style.fontSize = (currentSettings.alertSize || 70) + "px";
+
+                        if(state.danger) {
+                             if(!el.classList.contains('danger-mode')) el.classList.add('danger-mode');
+                        } else {
+                             if(el.classList.contains('danger-mode')) el.classList.remove('danger-mode');
+                        }
+                        if(state.danger && state.text === currentSettings.alertText) {
+                             if(!el.classList.contains('blink-mode')) el.classList.add('blink-mode');
+                             if(el.classList.contains('danger-mode')) el.classList.remove('danger-mode');
+                         } else {
+                             if(el.classList.contains('blink-mode')) el.classList.remove('blink-mode');
+                         }
                     }
-                    if(state.danger && state.text === currentSettings.alertText) {
-                         if(!el.classList.contains('blink-mode')) el.classList.add('blink-mode');
-                         if(el.classList.contains('danger-mode')) el.classList.remove('danger-mode');
-                     } else {
-                         if(el.classList.contains('blink-mode')) el.classList.remove('blink-mode');
-                     }
-                }
-                const storedBlackout = localStorage.getItem('blackoutState');
-                if(storedBlackout !== null) {
-                     const isBO = (storedBlackout === 'true');
-                     if(isBO !== document.body.classList.contains('blackout-active')) {
-                         if(isBO) document.body.classList.add('blackout-active');
-                         else document.body.classList.remove('blackout-active');
-                     }
-                }
-                const storedSettings = localStorage.getItem('appSettings');
-                if(storedSettings) {
-                    const settings = JSON.parse(storedSettings);
-                    if(settings.timestamp > currentSettings.timestamp) {
-                        currentSettings = settings;
-                        applyStyles(settings);
+                } catch(e) { console.error("Timer update error", e); }
+
+                // --- Safe Blackout Check ---
+                try {
+                    const storedBlackout = localStorage.getItem('blackoutState');
+                    if(storedBlackout !== null) {
+                         const isBO = (storedBlackout === 'true');
+                         if(isBO !== document.body.classList.contains('blackout-active')) {
+                             if(isBO) document.body.classList.add('blackout-active');
+                             else document.body.classList.remove('blackout-active');
+                         }
                     }
-                }
+                } catch(e) {}
+
+                // --- Safe Settings Update ---
+                try {
+                    const storedSettings = localStorage.getItem('appSettings');
+                    if(storedSettings) {
+                        const settings = JSON.parse(storedSettings);
+                        if(settings.timestamp > currentSettings.timestamp) {
+                            currentSettings = settings;
+                            applyStyles(settings);
+                        }
+                    }
+                } catch(e) {}
                 
-                // Clock Update for Projector (HH:MM)
-                if (currentSettings.showClock) {
-                    const now = new Date();
-                    document.getElementById('clock-display').innerText = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                }
+                // --- Safe Clock Update (Totally Independent) ---
+                try {
+                    if (currentSettings.showClock) {
+                        const now = new Date();
+                        document.getElementById('clock-display').innerText = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    }
+                } catch(e) { console.error("Clock update error", e); }
                 
             }, 500); 
         }
@@ -1342,7 +1353,6 @@
             document.documentElement.style.setProperty('--alert-color-1', s.alertColor1 || '#ff0000');
             document.documentElement.style.setProperty('--alert-color-2', s.alertColor2 || '#880000');
             
-            // Set Corner Size variable
             const cornerSize = s.timerCornerSize || 40;
             document.documentElement.style.setProperty('--timer-corner-size', `${cornerSize}px`);
             
@@ -1515,11 +1525,6 @@
             const target = new Date();
             target.setHours(h, m, 0, 0);
             
-            // Logic: If target is earlier than now (e.g. now 20:00, target 19:30), 
-            // usually means tomorrow, UNLESS it's very close (e.g. started 5 mins ago).
-            // Let's assume if diff is negative by more than 12 hours, it was probably meant for tomorrow.
-            // But simple countdown usually implies future. 
-            // Let's stick to simple: if target < now, add 1 day.
             if (target < now) {
                 target.setDate(target.getDate() + 1);
             }
@@ -1527,89 +1532,29 @@
             targetDate = target;
             closeModal('timer-target');
             
-            // Calculate initial seconds immediately
             const diff = Math.ceil((targetDate - new Date()) / 1000);
             totalSeconds = diff;
             updateTimerUI(false);
             
-            // Start the timer
             if (!isRunning) startTimer();
         }
 
         if (isProjector) {
-            document.body.classList.add('projector-mode'); document.title = "Projeção";
-            applyStyles(currentSettings);
-            
-            channel.onmessage = (e) => {
-                const { type, payload } = e.data;
-                if(type === 'timer') {
-                    const el = document.getElementById('timer-display');
-                    el.innerText = payload.text;
-                    if(payload.text !== currentSettings.alertText) el.style.fontSize = payload.fontSize; 
-                    else el.style.fontSize = (currentSettings.alertSize || 70) + "px";
-
-                    if(payload.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
-                    if(payload.blinking) {
-                        el.classList.add('blink-mode');
-                        el.classList.remove('danger-mode');
-                    } else {
-                         el.classList.remove('blink-mode');
-                         if(payload.danger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
-                    }
-                }
-                if(type === 'text') {
-                    document.getElementById('text-display').innerText = payload;
-                    
-                    // Sincroniza a classe no projetor também
-                    const hasContent = payload && payload.trim().length > 0 && payload !== "...";
-                    if (hasContent) {
-                        document.body.classList.add('content-active');
-                    } else {
-                        document.body.classList.remove('content-active');
-                    }
-                }
-                if(type === 'settings') {
-                    if(payload.timestamp > currentSettings.timestamp) {
-                        currentSettings = payload;
-                        applyStyles(payload);
-                    }
-                }
-                if(type === 'blackout') {
-                    isBlackout = payload;
-                    updateBlackoutState();
-                }
-                if(type === 'state_sync') {
-                    document.getElementById('text-display').innerText = payload.text;
-                    if(payload.settings.timestamp > currentSettings.timestamp) {
-                        currentSettings = payload.settings;
-                        applyStyles(payload.settings);
-                    }
-                    const el = document.getElementById('timer-display');
-                    el.innerText = payload.timerText;
-                    if(payload.timerText !== currentSettings.alertText) el.style.fontSize = payload.timerSize;
-                    
-                    if(payload.timerDanger) el.classList.add('danger-mode'); else el.classList.remove('danger-mode');
-                }
-            };
-            
-            channel.postMessage({ type: 'request_state' });
-            
-            const savedText = localStorage.getItem('liveText');
-            if(savedText) document.getElementById('text-display').innerText = savedText;
-
-
+            // Already handled in the safe interval block above
         } else {
             loadSettingsToInputs(); initBible(); renderSmList(); renderList(); updateTimerUI(false); initOfflineBible(); 
             applyStyles(currentSettings);
 
             if(currentSettings.autoOpenProjector) document.getElementById('startup-overlay').classList.remove('hidden');
             
-            // Interval to update clock in main window
+            // Interval to update clock in main window - SEPARATE AND SAFE
             setInterval(() => {
-                if (currentSettings.showClock) {
-                    const now = new Date();
-                    document.getElementById('clock-display').innerText = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                }
+                try {
+                    if (currentSettings.showClock) {
+                        const now = new Date();
+                        document.getElementById('clock-display').innerText = now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    }
+                } catch(e) {}
             }, 500);
 
             channel.onmessage = (e) => {
