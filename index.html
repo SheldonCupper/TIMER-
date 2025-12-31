@@ -419,7 +419,9 @@
         </div>
 
         <div id="tab-appearance" class="tab-content">
-            <div class="config-group"><h4>Projeção</h4><div class="config-item"><label>Abrir Projetor ao Iniciar</label><input type="checkbox" id="cfg-auto-open" onchange="updateSettings()"></div></div>
+            <div class="config-group"><h4>Projeção</h4><div class="config-item"><label>Abrir Projetor ao Iniciar</label><input type="checkbox" id="cfg-auto-open" onchange="updateSettings()"></div>
+            <div class="config-item"><label>Modo Retorno (Sem Fundo)</label><input type="checkbox" id="cfg-stage-mode" onchange="updateSettings()" title="Remove imagens de fundo para facilitar a leitura"></div>
+            </div>
             <div class="config-group">
                 <h4>Layout</h4>
                 <div class="config-item"><label>Mostrar Timer</label><input type="checkbox" id="cfg-show-timer" onchange="updateSettings()" checked></div>
@@ -616,7 +618,8 @@
             timerCornerColor: '#4ade80', clockCornerColor: '#ffffff',
             alertTime: 60,
             valign: 'center', 
-            alertText: "ACABOU SEU TEMPO", alertSize: 70, alertColor1: "#ff0000", alertColor2: "#880000", alertDuration: 10
+            alertText: "ACABOU SEU TEMPO", alertSize: 70, alertColor1: "#ff0000", alertColor2: "#880000", alertDuration: 10,
+            stageMode: false 
         };
         let verses = JSON.parse(localStorage.getItem('myVerses')) || [{ title: "Boas Vindas", content: "Sejam bem-vindos!\nO culto começará em instantes." }];
         
@@ -1406,39 +1409,47 @@
                 wrapper.style.flexDirection = 'column';
             }
 
-            display.style.backgroundColor = s.bgColor;
-            
-            display.style.justifyContent = s.valign || 'center';
-
-            display.style.backgroundImage = 'none';
-
-            let cleanBgUrl = s.bgUrl ? s.bgUrl.replace(/(\r\n|\n|\r)/gm, "") : "";
-
-            if (s.bgType === 'video' && cleanBgUrl) {
-                videoEl.style.display = 'block';
-                bgImageEl.style.display = 'none'; 
-                if (videoEl.src !== cleanBgUrl) {
-                    videoEl.src = cleanBgUrl;
-                    videoEl.play().catch(e => console.log("Erro ao tocar vídeo:", e));
-                } else {
-                    if(videoEl.paused) videoEl.play();
-                }
-            } else if (s.bgType === 'image' && cleanBgUrl) {
-                videoEl.style.display = 'none';
-                videoEl.pause();
-                
-                bgImageEl.style.display = 'block'; 
-                bgImageEl.src = cleanBgUrl;
-            } else {
+            if (s.stageMode) {
+                display.style.backgroundColor = '#000000';
                 videoEl.style.display = 'none';
                 videoEl.pause();
                 bgImageEl.style.display = 'none';
-            }
-
-            if (s.bgType !== 'color') {
-                overlay.style.backgroundColor = `rgba(0,0,0,${s.overlayOpacity})`;
-            } else {
                 overlay.style.backgroundColor = 'transparent';
+            } else {
+                display.style.backgroundColor = s.bgColor;
+                
+                display.style.justifyContent = s.valign || 'center';
+
+                display.style.backgroundImage = 'none';
+
+                let cleanBgUrl = s.bgUrl ? s.bgUrl.replace(/(\r\n|\n|\r)/gm, "") : "";
+
+                if (s.bgType === 'video' && cleanBgUrl) {
+                    videoEl.style.display = 'block';
+                    bgImageEl.style.display = 'none'; 
+                    if (videoEl.src !== cleanBgUrl) {
+                        videoEl.src = cleanBgUrl;
+                        videoEl.play().catch(e => console.log("Erro ao tocar vídeo:", e));
+                    } else {
+                        if(videoEl.paused) videoEl.play();
+                    }
+                } else if (s.bgType === 'image' && cleanBgUrl) {
+                    videoEl.style.display = 'none';
+                    videoEl.pause();
+                    
+                    bgImageEl.style.display = 'block'; 
+                    bgImageEl.src = cleanBgUrl;
+                } else {
+                    videoEl.style.display = 'none';
+                    videoEl.pause();
+                    bgImageEl.style.display = 'none';
+                }
+
+                if (s.bgType !== 'color') {
+                    overlay.style.backgroundColor = `rgba(0,0,0,${s.overlayOpacity})`;
+                } else {
+                    overlay.style.backgroundColor = 'transparent';
+                }
             }
 
             text.style.color = s.textColor;
@@ -1475,6 +1486,8 @@
              
              currentSettings.timerCornerColor = document.getElementById('cfg-timer-corner-color').value;
              currentSettings.clockCornerColor = document.getElementById('cfg-clock-corner-color').value;
+             
+             currentSettings.stageMode = document.getElementById('cfg-stage-mode').checked;
 
              const alertMin = parseInt(document.getElementById('cfg-alert-min').value) || 0;
              const alertSec = parseInt(document.getElementById('cfg-alert-sec').value) || 0;
@@ -1508,6 +1521,8 @@
             
             document.getElementById('cfg-timer-corner-color').value = currentSettings.timerCornerColor || '#4ade80';
             document.getElementById('cfg-clock-corner-color').value = currentSettings.clockCornerColor || '#ffffff';
+            
+            document.getElementById('cfg-stage-mode').checked = currentSettings.stageMode || false;
             
             const totalAlert = currentSettings.alertTime || 60;
             const m = Math.floor(totalAlert / 60);
