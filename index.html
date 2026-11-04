@@ -593,6 +593,12 @@
         let deferredPrompt; window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; document.getElementById('install-btn').style.display = 'flex'; });
         async function installPWA() { if (deferredPrompt) { deferredPrompt.prompt(); const { outcome } = await deferredPrompt.userChoice; if (outcome === 'accepted') document.getElementById('install-btn').style.display = 'none'; deferredPrompt = null; } }
 
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, ch => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[ch]);
+        }
+
         const channel = new BroadcastChannel('louvor_app_v2');
         const urlParams = new URLSearchParams(window.location.search);
         const isProjector = urlParams.get('view') === 'projector';
@@ -777,8 +783,8 @@
                 card.className = 'list-card';
                 card.innerHTML = `
                     <div class="list-info" onclick="openSmViewer(${index})">
-                        <div class="list-title">${item.title} ${item.style ? '<span style="color:var(--accent-color); font-size:12px;">★</span>' : ''}</div>
-                        <div class="list-preview">${item.content.substring(0, 30).replace(/\n/g, ' ')}...</div>
+                        <div class="list-title">${escapeHtml(item.title)} ${item.style ? '<span style="color:var(--accent-color); font-size:12px;">★</span>' : ''}</div>
+                        <div class="list-preview">${escapeHtml(item.content.substring(0, 30).replace(/\n/g, ' '))}...</div>
                     </div>
                     <div>
                          <button class="edit-btn" onclick="editSmSlide(${index})"><span class="material-icons" style="font-size:16px">edit</span></button>
@@ -906,7 +912,7 @@
                 if(!slideText.trim()) return;
                 const card = document.createElement('div');
                 card.className = 'slide-card';
-                card.innerHTML = `<span class="slide-number">Slide ${i+1}</span>${slideText.trim()}`;
+                card.innerHTML = `<span class="slide-number">Slide ${i+1}</span>${escapeHtml(slideText.trim())}`;
                 card.onclick = () => {
                     updateDisplay(slideText.trim());
                     document.querySelectorAll('.slide-card').forEach(c => c.classList.remove('active-slide'));
@@ -1048,9 +1054,10 @@
              }
              
              if (!data || !data.verses) {
-                 const apiKey = "";
+                 const apiKey = ""; // Nunca incluir chaves secretas no frontend.
                  try {
-                    const prompt = `Texto de ${bName} ${ch} na versão ${bibleVersions[vKey].name}. JSON: {"verses":[{"verse":1,"text":"..."}]}`;
+                    if (!apiKey) throw new Error("Gemini não configurado; usando fonte bíblica pública");
+                     const prompt = `Texto de ${bName} ${ch} na versão ${bibleVersions[vKey].name}. JSON: {"verses":[{"verse":1,"text":"..."}]}`;
                     const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, { method: "POST", headers:{"Content-Type":"application/json"}, body: JSON.stringify({contents:[{parts:[{text:prompt}]}]})});
                     const d = await res.json();
                     const match = d.candidates?.[0]?.content?.parts?.[0]?.text?.match(/\{[\s\S]*\}/);
@@ -1092,7 +1099,7 @@
             verses.forEach((v, index) => {
                 const d = document.createElement('div'); d.className = 'bible-verse-item';
                 const vNum = v.verse || v.pk;
-                d.innerHTML = `<span class="bible-verse-ref">${vNum}</span>${v.text}`;
+                d.innerHTML = `<span class="bible-verse-ref">${escapeHtml(vNum)}</span>${escapeHtml(v.text)}`;
                 
                 if (highlightVerse && parseInt(vNum) === parseInt(highlightVerse)) {
                     d.classList.add('selected');
@@ -1187,7 +1194,7 @@
                          data.verses.forEach(v=>{
                              const row=document.createElement('div'); row.className='bible-verse-item-full';
                              const vn = v.verse||v.pk;
-                             row.innerHTML=`<span class="bible-verse-num">${vn}</span> ${v.text}`;
+                             row.innerHTML=`<span class="bible-verse-num">${escapeHtml(vn)}</span> ${escapeHtml(v.text)}`;
                              row.onclick=()=>{ updateDisplay(`${v.text}\n\n(${book.name} ${ch}:${vn})`); row.style.background='#2563eb'; setTimeout(()=>row.style.background='',300); };
                              list.appendChild(row);
                          });
@@ -1555,8 +1562,8 @@
                 };
                 card.innerHTML = `
                     <div class="list-info">
-                        <div class="list-title">${v.title}</div>
-                        <div class="list-preview">${v.content.replace(/\n/g, ' ')}</div>
+                        <div class="list-title">${escapeHtml(v.title)}</div>
+                        <div class="list-preview">${escapeHtml(v.content.replace(/\n/g, ' '))}</div>
                     </div>
                     <button class="delete-btn" onclick="deleteVerse(${index})"><span class="material-icons" style="font-size:18px">delete</span></button>
                 `;
