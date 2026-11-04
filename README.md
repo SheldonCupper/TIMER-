@@ -16,11 +16,9 @@ Aplicação web para apoiar **projeções de textos, avisos e referências bíbl
 
 ## Demonstração online
 
-A demonstração foi preparada para publicação em **GitHub Pages**. Quando a publicação estiver ativa, o endereço será:
+**[🚀 Abrir Louvor Pro online](https://sheldoncupper.github.io/TIMER-/)**
 
-https://sheldoncupper.github.io/TIMER-/
-
-O workflow de publicação está em `.github/workflows/pages.yml`. A ativação inicial do GitHub Pages em **Settings → Pages → Source: GitHub Actions** pode ser necessária.
+O site está acessível pelo GitHub Pages. O workflow automático está em `.github/workflows/pages.yml`.
 
 ## Como executar
 
@@ -49,7 +47,8 @@ HTML, CSS, JavaScript e APIs do navegador (`localStorage`, janelas de projeção
 - [x] Escapar as principais entradas dinâmicas de slides, avisos e versículos na interface (revisão estática; testes de navegador pendentes).
 - [ ] Confirmar compatibilidade com projetores, dispositivos móveis e navegadores.
 - [ ] Tratar falhas de rede e disponibilidade das fontes bíblicas.
-- [ ] Preparar exemplos de uso, capturas e demonstração online depois dos testes.
+- [x] Disponibilizar demonstração online pelo GitHub Pages.
+- [ ] Preparar exemplos de uso e capturas adicionais após os testes.
 - [ ] Renomear o repositório para um título mais descritivo, caso desejado.
 
 ## Autor
