@@ -14,6 +14,14 @@ Aplicação web para apoiar **projeções de textos, avisos e referências bíbl
 - Ajustes visuais de fontes, cores, posição e tamanho de texto, relógio e timer.
 - Armazenamento local de algumas preferências e conteúdos no navegador.
 
+## Demonstração online
+
+A demonstração foi preparada para publicação em **GitHub Pages**. Quando a publicação estiver ativa, o endereço será:
+
+https://sheldoncupper.github.io/TIMER-/
+
+O workflow de publicação está em `.github/workflows/pages.yml`. A ativação inicial do GitHub Pages em **Settings → Pages → Source: GitHub Actions** pode ser necessária.
+
 ## Como executar
 
 1. Abra `index.html` em um navegador atualizado.
@@ -30,13 +38,15 @@ A busca de conteúdo online depende de acesso à internet e da disponibilidade d
 - O armazenamento local pode ser apagado pelo navegador.
 - Não use esta versão sem testes prévios em eventos reais.
 
+Para validação antes de uso real, veja [roteiro de testes](docs/TESTES.md).
+
 ## Tecnologias
 
 HTML, CSS, JavaScript e APIs do navegador (`localStorage`, janelas de projeção e comunicação entre abas).
 
 ## Próximas melhorias
 
-- [ ] Revisar segurança da renderização dos textos digitados pelo usuário.
+- [x] Escapar as principais entradas dinâmicas de slides, avisos e versículos na interface (revisão estática; testes de navegador pendentes).
 - [ ] Confirmar compatibilidade com projetores, dispositivos móveis e navegadores.
 - [ ] Tratar falhas de rede e disponibilidade das fontes bíblicas.
 - [ ] Preparar exemplos de uso, capturas e demonstração online depois dos testes.
